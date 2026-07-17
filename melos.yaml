@@ -1,0 +1,40 @@
+name: gloss_ecosystem
+packages:
+  - "packages/**"
+  - "apps/**"
+
+scripts:
+  # Backend
+  backend:dev: melos run --scope=backend -- dev
+  backend:build: melos run --scope=backend -- build
+  backend:lint: melos run --scope=backend -- lint
+  backend:test: melos run --scope=backend -- test
+  backend:migrate: melos run --scope=backend -- migrate
+  backend:seed: melos run --scope=backend -- seed
+
+  # Flutter apps
+  client:dev: melos run --scope=gloss_client -- dev
+  provider:dev: melos run --scope=gloss_provider -- dev
+  deliver:dev: melos run --scope=gloss_deliver -- dev
+  seller:dev: melos run --scope=gloss_seller -- dev
+
+  # Shared packages
+  shared:build: "cd packages/shared/models && dart run build_runner build --delete-conflicting-outputs"
+  shared:lint: melos exec --scope=shared -- dart analyze
+
+  # API client generation
+  gen:client: "cd packages/shared/api-client && dart run build_runner build --delete-conflicting-outputs"
+
+  # All
+  lint:all: melos exec -- flutter analyze
+  test:all: melos exec -- flutter test
+  format: melos exec -- dart format .
+  clean: melos clean
+  bootstrap: melos bootstrap
+
+  # CI
+  ci:check: melos run lint:all && melos run test:all
+
+ide:
+  intellij:
+    enabled: true

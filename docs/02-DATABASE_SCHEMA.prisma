@@ -1,0 +1,1138 @@
+// Gloss Ecosystem — Prisma Schema
+// Source of truth for all 3 apps
+// Single PostgreSQL database, role-based access
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider             = "postgresql"
+  url                  = env("DATABASE_URL")
+  relationMode         = "prisma"
+  // Production: ?pgbouncer=true&connection_limit=50&pool_timeout=10 — see DEV_GUIDE for scaling config
+}
+
+// ─────────────────────────────────────────────
+// AUTH & USERS
+// ─────────────────────────────────────────────
+
+model User {
+  id           String   @id @default(cuid())
+  phone        String   @unique
+  email        String?  @unique
+  passwordHash String   @map("password_hash")
+  fullName     String?  @map("full_name")
+  avatar       String?
+  language     String   @default("uz")
+  isActive     Boolean  @default(true) @map("is_active")
+  isBlocked    Boolean  @default(false) @map("is_blocked")
+  lastLoginAt  DateTime? @map("last_login_at")
+  deletedAt    DateTime? @map("deleted_at")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  roles          UserRole[]
+  addresses      Address[]
+  deviceTokens   DeviceToken[]
+  userConsents   UserConsent[]
+  notifications  Notification[]
+
+  // As client
+  ordersPlaced Order[] @relation("ClientOrders")
+
+  // As provider
+  providerAssignments ProviderAssignment[]
+
+  // As courier
+  courierAssignments CourierAssignment[]
+  trackingRecords    Tracking[]
+  locationPoints     LocationPoint[]
+
+  // As seller
+  sellerProfile SellerProfile?
+
+  // Messages sent
+  messagesSent Message[] @relation("SentMessages")
+
+  // Payments
+  payments Payment[]
+
+  // Reviews
+  reviewsWritten Review[] @relation("ReviewsWritten")
+  reviewsReceived Review[] @relation("ReviewsReceived")
+
+  // KYC
+  kycDocuments KYCDocument[]
+
+  // Wallet
+  wallet Wallet?
+
+  // Cart
+  cart Cart?
+
+  // Refresh tokens
+  refreshTokens RefreshToken[]
+
+  @@map("users")
+}
+
+model Role {
+  id          String   @id @default(cuid())
+  name        String   @unique // client, provider, courier, seller, admin, super_admin
+  description String?
+  isSystem    Boolean  @default(true) @map("is_system")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  users          UserRole[]
+  rolePermissions RolePermission[]
+
+  @@map("roles")
+}
+
+model Permission {
+  id          String   @id @default(cuid())
+  resource    String   // user, order, product, service, payment, chat, kyc, analytics, system
+  action      String   // create, read, update, delete, manage, moderate
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  rolePermissions RolePermission[]
+
+  @@unique([resource, action])
+  @@map("permissions")
+}
+
+model RolePermission {
+  roleId       String @map("role_id")
+  permissionId String @map("permission_id")
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+model UserRole {
+  userId     String   @map("user_id")
+  roleId     String   @map("role_id")
+  assignedAt DateTime @default(now()) @map("assigned_at")
+  assignedBy String?  @map("assigned_by")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@id([userId, roleId])
+  @@map("user_roles")
+}
+
+model DeviceToken {
+  id         String   @id @default(cuid())
+  userId     String   @map("user_id")
+  token      String
+  platform   String   // ios, android
+  deviceId   String?  @map("device_id")
+  isActive   Boolean  @default(true) @map("is_active")
+  lastUsedAt DateTime @default(now()) @map("last_used_at")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, token])
+  @@map("device_tokens")
+}
+
+model RefreshToken {
+  id         String    @id @default(cuid())
+  userId     String    @map("user_id")
+  token      String    @unique
+  expiresAt  DateTime  @map("expires_at")
+  deviceInfo String?   @map("device_info")
+  ipAddress  String?   @map("ip_address")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+  revokedAt  DateTime? @map("revoked_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+model UserConsent {
+  id          String   @id @default(cuid())
+  userId      String   @map("user_id")
+  type        String   // marketing_emails, location_tracking, data_processing, analytics, tos_v1, privacy_policy_v1
+  granted     Boolean  @default(true)
+  ipAddress   String?  @map("ip_address")
+  userAgent   String?  @map("user_agent")
+  grantedAt   DateTime @default(now()) @map("granted_at")
+  revokedAt   DateTime? @map("revoked_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, type])
+  @@index([userId])
+  @@map("user_consents")
+}
+
+// ─────────────────────────────────────────────
+// ADDRESSES
+// ─────────────────────────────────────────────
+
+model Address {
+  id          String  @id @default(cuid())
+  userId      String  @map("user_id")
+  label       String? // home, work, etc
+  lat         Float
+  lng         Float
+  addressLine String  @map("address_line")
+  building    String?
+  entrance    String?
+  floor       String?
+  apartment   String?
+  doorCode    String? @map("door_code")
+  comment     String?
+  isDefault   Boolean @default(false) @map("is_default")
+  yandexPlaceId String? @map("yandex_place_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("addresses")
+}
+
+// ─────────────────────────────────────────────
+// CART
+// ─────────────────────────────────────────────
+
+model Cart {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items CartItem[]
+
+  @@unique([userId])
+  @@map("carts")
+}
+
+model CartItem {
+  id        String   @id @default(cuid())
+  cartId    String   @map("cart_id")
+  productId String   @map("product_id")
+  variantId String?  @map("variant_id")
+  quantity  Int      @default(1)
+  addedAt   DateTime @default(now()) @map("added_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  cart    Cart           @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product Product        @relation(fields: [productId], references: [id])
+  variant ProductVariant? @relation(fields: [variantId], references: [id])
+
+  @@index([cartId])
+  @@index([productId])
+  @@map("cart_items")
+}
+
+// ─────────────────────────────────────────────
+// CLEANING SERVICES
+// ─────────────────────────────────────────────
+
+model ServiceType {
+  id       String  @id @default(cuid())
+  code     String  @unique // standard, deep, post_construction, office, carpet, window
+  name     String  // Standard Cleaning, Deep Cleaning, etc
+  nameRu   String? @map("name_ru")
+  nameEn   String? @map("name_en")
+  description String?
+  icon     String?
+  sortOrder Int    @default(0) @map("sort_order")
+  isActive Boolean @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  services Service[]
+  images   ServiceImage[]
+
+  @@map("service_types")
+}
+
+model Service {
+  id              String   @id @default(cuid())
+  serviceTypeId   String   @map("service_type_id")
+  name            String
+  nameRu          String?  @map("name_ru")
+  nameEn          String?  @map("name_en")
+  description     String?
+  searchText      String?  @map("search_text") // concatenated name+description for pg_trgm search
+  durationMinutes Int      @map("duration_minutes")
+  minArea         Float?   @map("min_area")
+  maxArea         Float?   @map("max_area")
+  basePrice       Decimal  @map("base_price")
+  isActive        Boolean  @default(true) @map("is_active")
+  sortOrder       Int      @default(0) @map("sort_order")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  serviceType ServiceType @relation(fields: [serviceTypeId], references: [id])
+  pricings    ServicePricing[]
+  images      ServiceImage[]
+  orderItems  OrderItem[]
+
+  @@index([serviceTypeId, isActive])
+  @@map("services")
+}
+
+model ServicePricing {
+  id         String  @id @default(cuid())
+  serviceId  String  @map("service_id")
+  areaFrom   Float?  @map("area_from")
+  areaTo     Float?  @map("area_to")
+  pricePerSqm Decimal? @map("price_per_sqm")
+  fixedPrice Decimal? @map("fixed_price")
+  extraOptions Json? @map("extra_options") // { "rooms": 20000, "windows": 15000 }
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  service Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@map("service_pricings")
+}
+
+model ProviderProfile {
+  id          String   @id @default(cuid())
+  userId      String   @unique @map("user_id")
+  bio         String?
+  experienceYears Int? @map("experience_years")
+  rating      Float    @default(0.0)
+  totalOrders Int     @default(0) @map("total_orders")
+  isAvailable Boolean  @default(false) @map("is_available")
+  serviceRadiusKm Float @default(10.0) @map("service_radius_km")
+  maxOrdersPerSlot Int @default(1) @map("max_orders_per_slot")
+  currentLat  Float?  @map("current_lat")
+  currentLng  Float?  @map("current_lng")
+  lastLocationAt DateTime? @map("last_location_at")
+  isVerified  Boolean  @default(false) @map("is_verified")
+  deletedAt   DateTime? @map("deleted_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  user         User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  availabilities ProviderAvailability[]
+
+  @@map("provider_profiles")
+}
+
+model ProviderAvailability {
+  id        String @id @default(cuid())
+  providerId String @map("provider_id")
+  dayOfWeek Int    @map("day_of_week") // 0=Mon, 6=Sun
+  startTime String @map("start_time") // "09:00"
+  endTime   String @map("end_time")   // "18:00"
+  isActive  Boolean @default(true) @map("is_active")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  provider ProviderProfile @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@index([providerId, dayOfWeek])
+  @@map("provider_availabilities")
+}
+
+model CourierProfile {
+  id            String   @id @default(cuid())
+  userId        String   @unique @map("user_id")
+  vehicleType   String   @default("bike") // bike, car, scooter, on_foot
+  isAvailable   Boolean  @default(false) @map("is_available")
+  currentLat    Float?   @map("current_lat")
+  currentLng    Float?   @map("current_lng")
+  lastLocationAt DateTime? @map("last_location_at")
+  rating        Float    @default(0.0)
+  totalDeliveries Int    @default(0) @map("total_deliveries")
+  maxDistanceKm Float    @default(15.0) @map("max_distance_km")
+  maxOrdersAtOnce Int    @default(3) @map("max_orders_at_once")
+  isOnline      Boolean  @default(false) @map("is_online")
+  isVerified    Boolean  @default(false) @map("is_verified")
+  deletedAt     DateTime? @map("deleted_at")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  user   User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  trackings Tracking[]
+
+  @@index([isAvailable, isOnline, currentLat, currentLng])
+  @@index([isOnline, currentLat, currentLng])
+  @@map("courier_profiles")
+}
+
+model ServiceImage {
+  id        String  @id @default(cuid())
+  serviceId String  @map("service_id")
+  url       String
+  alt       String?
+  sortOrder Int     @default(0) @map("sort_order")
+  isPrimary Boolean @default(false) @map("is_primary")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  service Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@index([serviceId])
+  @@map("service_images")
+}
+
+// ─────────────────────────────────────────────
+// MARKET — PRODUCTS
+// ─────────────────────────────────────────────
+
+model Category {
+  id        String  @id @default(cuid())
+  parentId  String? @map("parent_id")
+  name      String
+  nameRu    String? @map("name_ru")
+  nameEn    String? @map("name_en")
+  slug      String  @unique
+  image     String?
+  icon      String?
+  description String?
+  sortOrder Int     @default(0) @map("sort_order")
+  isActive  Boolean @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  parent   Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children Category[] @relation("CategoryHierarchy")
+  products Product[]
+
+  @@map("categories")
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  sellerId    String   @map("seller_id")
+  categoryId  String   @map("category_id")
+  name        String
+  nameRu      String?  @map("name_ru")
+  nameEn      String?  @map("name_en")
+  slug        String
+  description String?
+  searchText  String?  @map("search_text") // concatenated name+description+brand for pg_trgm search
+  brand       String?
+  unit        String   @default("pcs") // pcs, liter, kg, ml, pack
+  basePrice   Decimal  @map("base_price")
+  salePrice   Decimal? @map("sale_price")
+  sku         String?
+  barcode     String?
+  stockQty    Int      @default(0) @map("stock_qty")
+  minOrderQty Int      @default(1) @map("min_order_qty")
+  weight      Float?   // grams
+  volume      Float?   // ml
+  isActive    Boolean  @default(true) @map("is_active")
+  isFeatured  Boolean  @default(false) @map("is_featured")
+  // Status managed in shared/constants — DB-level CHECK constraint recommended for production
+  status      String   @default("pending") // pending, approved, rejected, archived
+  rejectionReason String? @map("rejection_reason")
+  totalSold   Int      @default(0) @map("total_sold")
+  rating      Float    @default(0.0)
+  reviewCount Int      @default(0) @map("review_count")
+  deletedAt   DateTime? @map("deleted_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  seller   SellerProfile  @relation(fields: [sellerId], references: [id])
+  category Category       @relation(fields: [categoryId], references: [id])
+  variants ProductVariant[]
+  images   ProductImage[]
+  orderItems OrderItem[]
+
+  // Note: For full-text search, create a tsvector column with GIN index on (name, description, brand) via raw SQL
+  // Note: Enable pg_trgm extension for trigram-based search on searchText field
+
+  @@unique([sellerId, slug])
+  @@unique([barcode]) // partial unique where barcode IS NOT NULL
+  @@unique([sellerId, sku])
+  @@index([categoryId, isActive, status])
+  @@index([isFeatured, isActive])
+  @@index([sellerId, status, createdAt])
+  @@map("products")
+}
+
+model ProductVariant {
+  id        String  @id @default(cuid())
+  productId String  @map("product_id")
+  name      String  // "500ml", "1L", "Red"
+  sku       String?
+  price     Decimal
+  stockQty  Int     @default(0) @map("stock_qty")
+  attributes Json?  // {"volume":"500ml", "color":"red"}
+  sortOrder Int     @default(0) @map("sort_order")
+  isActive  Boolean @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  orderItems OrderItem[]
+
+  @@unique([productId, sku])
+  @@map("product_variants")
+}
+
+model ProductImage {
+  id        String  @id @default(cuid())
+  productId String  @map("product_id")
+  url       String
+  alt       String?
+  sortOrder Int     @default(0) @map("sort_order")
+  isPrimary Boolean @default(false) @map("is_primary")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("product_images")
+}
+
+// ─────────────────────────────────────────────
+// SELLER
+// ─────────────────────────────────────────────
+
+model SellerProfile {
+  id            String   @id @default(cuid())
+  userId        String   @unique @map("user_id")
+  shopName      String   @map("shop_name")
+  shopSlug      String   @unique @map("shop_slug")
+  shopDescription String? @map("shop_description")
+  logo          String?
+  banner        String?
+  rating        Float    @default(0.0)
+  totalSales    Int      @default(0) @map("total_sales")
+  totalProducts Int      @default(0) @map("total_products")
+  commissionRate Float   @default(15.0) @map("commission_rate")
+  isVerified    Boolean  @default(false) @map("is_verified")
+  isActive      Boolean  @default(false) @map("is_active")
+  verifiedAt    DateTime? @map("verified_at")
+  deletedAt     DateTime? @map("deleted_at")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  products Product[]
+  kycDocuments KYCDocument[]
+
+  @@map("seller_profiles")
+}
+
+model KYCDocument {
+  id            String   @id @default(cuid())
+  userId        String   @map("user_id")
+  sellerId      String?  @map("seller_id")
+  type          String   // passport, selfie, bank_card, inn, license, certificate
+  fileUrl       String   @map("file_url")
+  // Status managed in shared/constants — DB-level CHECK constraint recommended for production
+  status        String   @default("pending") // pending, approved, rejected
+  reviewedBy    String?  @map("reviewed_by")
+  reviewedAt    DateTime? @map("reviewed_at")
+  rejectionReason String? @map("rejection_reason")
+  expiresAt     DateTime? @map("expires_at")
+  deletedAt     DateTime? @map("deleted_at")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  user   User          @relation(fields: [userId], references: [id])
+  seller SellerProfile? @relation(fields: [sellerId], references: [id])
+
+  @@index([status, createdAt])
+  @@index([userId])
+  @@map("kyc_documents")
+}
+
+// ─────────────────────────────────────────────
+// ORDERS (Unified — Service + Product + Mixed)
+// ─────────────────────────────────────────────
+
+model Order {
+  id              String   @id @default(cuid())
+  orderNumber     String   @unique @map("order_number")
+  clientId        String   @map("client_id")
+  type            String   // service, product, mixed
+  // Status managed in shared/constants — DB-level CHECK constraint recommended for production
+  status          String   @default("pending")
+  // pending, confirmed, assigned_provider, assigned_courier, ready_for_pickup,
+  // in_progress, en_route_to_pickup, picked_up, en_route_to_delivery, delivered, completed, cancelled
+  priority        Int      @default(0) // higher = urgent
+  subtotal        Decimal
+  discount        Decimal  @default(0.0)
+  deliveryFee     Decimal  @default(0.0) @map("delivery_fee")
+  platformFee     Decimal  @default(0.0) @map("platform_fee")
+  total           Decimal
+  // Status managed in shared/constants — DB-level CHECK constraint recommended for production
+  paymentStatus   String   @default("pending") @map("payment_status") // pending, paid, failed, refunded
+  paymentMethod   String?  @map("payment_method")
+  scheduledAt     DateTime? @map("scheduled_at")
+  startedAt       DateTime? @map("started_at")
+  completedAt     DateTime? @map("completed_at")
+  cancelledAt     DateTime? @map("cancelled_at")
+  cancelledBy     String?  @map("cancelled_by")
+  cancellationReason String? @map("cancellation_reason")
+  notes           String?
+  addressId       String?  @map("address_id")
+  deliveredPhoto  String?  @map("delivered_photo")
+  clientSignature String?  @map("client_signature")
+  deletedAt       DateTime? @map("deleted_at")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  client    User    @relation("ClientOrders", fields: [clientId], references: [id])
+  items     OrderItem[]
+  statusHistory OrderStatusHistory[]
+  payments      Payment[]
+  tracking      Tracking[]
+  chats         Chat[]
+  reviews       Review[]
+  promoCodes    OrderPromoCode[]
+  address       Address? @relation(fields: [addressId], references: [id])
+  providerAssignments ProviderAssignment[]
+  courierAssignments  CourierAssignment[]
+  taxLines      TaxLine[]
+  disputes      Dispute[]
+
+  @@index([clientId, status])
+  @@index([status, createdAt])
+  @@index([status, scheduledAt])
+  @@index([clientId, createdAt])
+  @@index([paymentStatus])
+  @@map("orders")
+}
+
+// APPLICATION ENFORCED: exactly one of productId/serviceId must be non-null
+model OrderItem {
+  id        String  @id @default(cuid())
+  orderId   String  @map("order_id")
+  productId String? @map("product_id")
+  variantId String? @map("variant_id")
+  serviceId String? @map("service_id")
+  sellerId  String? @map("seller_id")
+  quantity  Int     @default(1)
+  unitPrice Decimal @map("unit_price")
+  totalPrice Decimal @map("total_price")
+  metadata  Json?   // { area: 50, rooms: 2, extras: {windows: true} }
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  order   Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product?        @relation(fields: [productId], references: [id])
+  variant ProductVariant? @relation(fields: [variantId], references: [id])
+  service Service?        @relation(fields: [serviceId], references: [id])
+
+  @@index([orderId])
+  @@index([productId])
+  @@index([serviceId])
+  @@index([sellerId])
+  @@index([variantId])
+  @@map("order_items")
+}
+
+model OrderStatusHistory {
+  id        String   @id @default(cuid())
+  orderId   String   @map("order_id")
+  fromStatus String? @map("from_status")
+  toStatus  String   @map("to_status")
+  changedBy String   @map("changed_by")
+  notes     String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId, createdAt])
+  @@map("order_status_history")
+}
+
+model TaxLine {
+  id        String   @id @default(cuid())
+  orderId   String   @map("order_id")
+  taxRate   Decimal  @map("tax_rate")
+  taxAmount Decimal  @map("tax_amount")
+  taxName   String   @default("VAT") @map("tax_name")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@map("tax_lines")
+}
+
+model ProviderAssignment {
+  id         String   @id @default(cuid())
+  orderId    String   @map("order_id")
+  providerId String   @map("provider_id")
+  // Status managed in shared/constants — DB-level CHECK constraint recommended for production
+  status     String   @default("pending") // pending, accepted, rejected, completed
+  acceptedAt DateTime? @map("accepted_at")
+  completedAt DateTime? @map("completed_at")
+  score      Float?   // assignment algorithm score
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  order    Order @relation(fields: [orderId], references: [id])
+  provider User  @relation(fields: [providerId], references: [id])
+
+  @@index([providerId, status])
+  @@index([orderId])
+  @@index([providerId, createdAt])
+  @@map("provider_assignments")
+}
+
+model CourierAssignment {
+  id         String   @id @default(cuid())
+  orderId    String   @map("order_id")
+  courierId  String   @map("courier_id")
+  // Status managed in shared/constants — DB-level CHECK constraint recommended for production
+  status     String   @default("pending") // pending, accepted, rejected, picked_up, delivered
+  acceptedAt DateTime? @map("accepted_at")
+  pickedUpAt DateTime? @map("picked_up_at")
+  deliveredAt DateTime? @map("delivered_at")
+  score      Float?
+  isPrimary  Boolean  @default(true) @map("is_primary") // false = secondary (mixed multi-seller)
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  order   Order @relation(fields: [orderId], references: [id])
+  courier User  @relation(fields: [courierId], references: [id])
+  items   CourierAssignmentItem[]
+
+  @@index([courierId, status])
+  @@index([orderId])
+  @@map("courier_assignments")
+}
+
+// ─────────────────────────────────────────────
+// TRACKING (Yandex-style Real-time)
+// ─────────────────────────────────────────────
+
+model Tracking {
+  id              String   @id @default(cuid())
+  orderId         String   @unique @map("order_id")
+  courierId       String?  @map("courier_id")
+  // Status managed in shared/constants — DB-level CHECK constraint recommended for production
+  status          String   @default("assigned")
+  // assigned, en_route_to_pickup, at_pickup, en_route_to_delivery, at_delivery, completed
+  currentLat      Float?   @map("current_lat")
+  currentLng      Float?   @map("current_lng")
+  estimatedArrival DateTime? @map("estimated_arrival")
+  distanceKm      Float?   @map("distance_km")
+  routePolyline   String?  @map("route_polyline") // encoded polyline
+  startedAt       DateTime? @map("started_at")
+  completedAt     DateTime? @map("completed_at")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  order         Order          @relation(fields: [orderId], references: [id])
+  courier       User?          @relation(fields: [courierId], references: [id])
+  locationPoints LocationPoint[]
+
+  @@map("tracking")
+}
+
+model LocationPoint {
+  id             String   @id @default(cuid())
+  trackingId     String   @map("tracking_id")
+  lat            Float
+  lng            Float
+  accuracy       Float?
+  speed          Float?
+  heading        Float?
+  battery        Int?
+  timestamp      DateTime @default(now())
+  partitionMonth String?  @map("partition_month") // "2024_01" — for monthly partitioning
+
+  tracking Tracking @relation(fields: [trackingId], references: [id], onDelete: Cascade)
+
+  // Note: Consider monthly partitioning on (partition_month, timestamp) for large-scale location data
+
+  @@index([trackingId, timestamp])
+  @@map("location_points")
+}
+
+// ─────────────────────────────────────────────
+// CHAT
+// ─────────────────────────────────────────────
+
+model Chat {
+  id           String   @id @default(cuid())
+  orderId      String   @map("order_id")
+  type         String   // client_provider, client_courier, provider_courier, support
+  lastMessageAt DateTime? @map("last_message_at")
+  deletedAt    DateTime? @map("deleted_at")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  order    Order     @relation(fields: [orderId], references: [id])
+  messages Message[]
+  participants ChatParticipant[]
+
+  @@map("chats")
+}
+
+model ChatParticipant {
+  id         String   @id @default(cuid())
+  chatId     String   @map("chat_id")
+  userId     String   @map("user_id")
+  joinedAt   DateTime @default(now()) @map("joined_at")
+  lastReadAt DateTime? @map("last_read_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  chat Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([chatId, userId])
+  @@index([userId])
+  @@map("chat_participants")
+}
+
+model Message {
+  id         String    @id @default(cuid())
+  chatId     String    @map("chat_id")
+  fromUserId String    @map("from_user_id")
+  toUserId   String?   @map("to_user_id")
+  type       String    @default("text") // text, image, location, system, order_status
+  content    String
+  metadata   Json?     // { imageUrl, lat, lng, status }
+  readAt     DateTime? @map("read_at")
+  deletedAt  DateTime? @map("deleted_at")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+
+  chat Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  from User @relation("SentMessages", fields: [fromUserId], references: [id])
+
+  @@index([chatId, createdAt])
+  @@map("messages")
+}
+
+// ─────────────────────────────────────────────
+// PAYMENTS
+// ─────────────────────────────────────────────
+
+model Payment {
+  id                  String   @id @default(cuid())
+  orderId             String   @map("order_id")
+  userId              String   @map("user_id")
+  amount              Decimal
+  currency            String   @default("UZS")
+  method              String   // click, payme, card, cash
+  provider            String   // click, payme
+  providerTransactionId String? @map("provider_transaction_id")
+  // Status managed in shared/constants — DB-level CHECK constraint recommended for production
+  status              String   @default("pending")
+  // pending, processing, success, failed, refunded, partially_refunded
+  paidAt              DateTime? @map("paid_at")
+  refundedAt          DateTime? @map("refunded_at")
+  refundAmount        Decimal? @map("refund_amount")
+  metadata            Json?    // { card, phone, merchant_id }
+  deletedAt           DateTime? @map("deleted_at")
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  order Order @relation(fields: [orderId], references: [id])
+  user  User  @relation(fields: [userId], references: [id])
+  refunds Refund[]
+
+  @@index([orderId])
+  @@index([userId])
+  @@index([status])
+  @@index([providerTransactionId])
+  @@map("payments")
+}
+
+model Payout {
+  id           String    @id @default(cuid())
+  sellerId     String?   @map("seller_id")
+  courierId    String?   @map("courier_id")
+  providerId   String?   @map("provider_id")
+  amount       Decimal
+  commission   Decimal
+  netAmount    Decimal   @map("net_amount")
+  // Status managed in shared/constants — DB-level CHECK constraint recommended for production
+  status       String    @default("pending") // pending, processing, completed, failed
+  periodStart  DateTime? @map("period_start")
+  periodEnd    DateTime? @map("period_end")
+  paidAt       DateTime? @map("paid_at")
+  paymentRef   String?   @map("payment_ref")
+  payoutBatchId String?  @map("payout_batch_id")
+  deletedAt    DateTime? @map("deleted_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  payoutBatch PayoutBatch? @relation(fields: [payoutBatchId], references: [id])
+
+  @@index([sellerId, status])
+  @@index([courierId, status])
+  @@index([providerId, status])
+  @@map("payouts")
+}
+
+model PayoutBatch {
+  id           String    @id @default(cuid())
+  periodStart  DateTime  @map("period_start")
+  periodEnd    DateTime  @map("period_end")
+  // Status managed in shared/constants — DB-level CHECK constraint recommended for production
+  status       String    @default("pending") // pending, processing, completed, failed
+  totalAmount  Decimal   @map("total_amount")
+  totalCount   Int       @map("total_count")
+  processedAt  DateTime? @map("processed_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  payouts Payout[]
+
+  @@index([status, createdAt])
+  @@map("payout_batches")
+}
+
+model PayoutAccount {
+  id        String   @id @default(cuid())
+  userId    String   @unique @map("user_id")
+  type      String   // bank_card, bank_account, ewallet
+  details   Json     // { bank, card_number, account, phone, ewallet_name }
+  isDefault Boolean  @default(true) @map("is_default")
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("payout_accounts")
+}
+
+// ─────────────────────────────────────────────
+// WALLET
+// ─────────────────────────────────────────────
+
+model Wallet {
+  id             String   @id @default(cuid())
+  userId         String   @unique @map("user_id")
+  balance        Decimal  @default(0)
+  pendingBalance Decimal  @default(0) @map("pending_balance")
+  currency       String   @default("UZS")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  user       User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions WalletTransaction[]
+
+  @@map("wallets")
+}
+
+model WalletTransaction {
+  id            String   @id @default(cuid())
+  walletId      String   @map("wallet_id")
+  amount        Decimal
+  type          String   // credit, debit
+  referenceType String?  @map("reference_type")
+  referenceId   String?  @map("reference_id")
+  description   String?
+  balanceBefore Decimal  @map("balance_before")
+  balanceAfter  Decimal  @map("balance_after")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  wallet Wallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
+
+  @@index([walletId, createdAt])
+  @@map("wallet_transactions")
+}
+
+// ─────────────────────────────────────────────
+// PROMO / COUPONS
+// ─────────────────────────────────────────────
+
+model PromoCode {
+  id            String   @id @default(cuid())
+  code          String   @unique
+  type          String   // percentage, fixed_amount, free_delivery
+  value         Decimal  // percentage (10 = 10%), or fixed amount (5000)
+  minOrderAmount Decimal? @map("min_order_amount")
+  maxDiscount   Decimal? @map("max_discount")
+  usageLimit    Int?     @default(1) @map("usage_limit")
+  usedCount     Int      @default(0) @map("used_count")
+  appliesTo     String   @default("all") // all, service, product, mixed
+  isActive      Boolean  @default(true) @map("is_active")
+  startsAt      DateTime? @map("starts_at")
+  expiresAt     DateTime? @map("expires_at")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  usages OrderPromoCode[]
+
+  @@index([code, isActive, expiresAt])
+  @@map("promo_codes")
+}
+
+model OrderPromoCode {
+  id        String   @id @default(cuid())
+  orderId   String   @map("order_id")
+  promoId   String   @map("promo_id")
+  userId    String   @map("user_id")
+  discount  Decimal
+  appliedAt DateTime @default(now()) @map("applied_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  order  Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  promo  PromoCode @relation(fields: [promoId], references: [id])
+  user   User      @relation(fields: [userId], references: [id])
+
+  @@unique([orderId, promoId])
+  @@map("order_promo_codes")
+}
+
+model CourierAssignmentItem {
+  id                 String @id @default(cuid())
+  courierAssignmentId String @map("courier_assignment_id")
+  orderItemId        String @map("order_item_id")
+  pickupOrder        Int    @default(0) @map("pickup_order") // sequence for multi-seller
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  courierAssignment CourierAssignment @relation(fields: [courierAssignmentId], references: [id], onDelete: Cascade)
+  orderItem         OrderItem        @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+
+  @@unique([courierAssignmentId, orderItemId])
+  @@map("courier_assignment_items")
+}
+
+// ─────────────────────────────────────────────
+// DISPUTES & REFUNDS
+// ─────────────────────────────────────────────
+
+model Dispute {
+  id              String    @id @default(cuid())
+  orderId         String    @map("order_id")
+  raisedByUserId  String    @map("raised_by_user_id")
+  reason          String
+  // Status managed in shared/constants — DB-level CHECK constraint recommended for production
+  status          String    @default("open") // open, investigating, resolved, rejected
+  resolutionNotes String?   @map("resolution_notes")
+  refundAmount    Decimal?  @map("refund_amount")
+  resolvedBy      String?   @map("resolved_by")
+  resolvedAt      DateTime? @map("resolved_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  order Order @relation(fields: [orderId], references: [id])
+  raisedBy User @relation(fields: [raisedByUserId], references: [id])
+
+  @@index([orderId])
+  @@index([status, createdAt])
+  @@map("disputes")
+}
+
+model Refund {
+  id         String    @id @default(cuid())
+  paymentId  String    @map("payment_id")
+  amount     Decimal?
+  reason     String
+  approvedBy String?   @map("approved_by")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+
+  payment Payment @relation(fields: [paymentId], references: [id])
+
+  @@index([paymentId])
+  @@map("refunds")
+}
+
+// ─────────────────────────────────────────────
+// NOTIFICATIONS
+// ─────────────────────────────────────────────
+
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String    @map("user_id")
+  type      String    // order_assigned, status_changed, payment, chat, promo, system
+  title     String
+  body      String
+  data      Json?     // { orderId, chatId, deepLink }
+  isRead    Boolean   @default(false) @map("is_read")
+  readAt    DateTime? @map("read_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+  @@map("notifications")
+}
+
+// ─────────────────────────────────────────────
+// REVIEWS
+// ─────────────────────────────────────────────
+
+model Review {
+  id          String   @id @default(cuid())
+  orderId     String   @map("order_id")
+  fromUserId  String   @map("from_user_id")
+  toUserId    String   @map("to_user_id")
+  rating      Int      // 1-5
+  comment     String?
+  images      Json?    // ["url1", "url2"]
+  isAnonymous Boolean  @default(false) @map("is_anonymous")
+  deletedAt   DateTime? @map("deleted_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  order    Order @relation(fields: [orderId], references: [id])
+  fromUser User  @relation("ReviewsWritten", fields: [fromUserId], references: [id])
+  toUser   User  @relation("ReviewsReceived", fields: [toUserId], references: [id])
+
+  @@unique([orderId, fromUserId, toUserId])
+  @@index([toUserId, createdAt])
+  @@index([orderId])
+  @@index([fromUserId, createdAt])
+  @@map("reviews")
+}
+
+// ─────────────────────────────────────────────
+// CONFIGURATION
+// ─────────────────────────────────────────────
+
+model SystemConfig {
+  id    String @id @default(cuid())
+  key   String @unique
+  value Json
+  // courier_assignment_weights: {"distance": 1.5, "rating": 2.0, "load": -1.0}
+  // commission_rate: 15
+  // asap_window_minutes: 30
+  // payout_schedule: "weekly_monday"
+  description String?
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("system_config")
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?  @map("user_id")
+  action    String   // create, update, delete, login, logout, payment
+  entity    String   // order, product, user, payment, kyc
+  entityId  String?  @map("entity_id")
+  oldValue  Json?    @map("old_value")
+  newValue  Json?    @map("new_value")
+  ipAddress String?  @map("ip_address")
+  userAgent String?  @map("user_agent")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([userId, createdAt])
+  @@index([entity, entityId])
+  @@index([action, createdAt])
+  @@map("audit_logs")
+}

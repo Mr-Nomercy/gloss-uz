@@ -1,0 +1,13 @@
+dist/
+node_modules/
+.pnpm-store/
+coverage/
+*.lock
+*.log
+.git/
+.next/
+build/
+.gradle/
+.idea/
+.vscode/
+*.iml

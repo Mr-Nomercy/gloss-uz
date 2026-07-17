@@ -1,0 +1,193 @@
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ui_kit/ui_kit.dart';
+
+final loginFormProvider = StateNotifierProvider<LoginFormNotifier, LoginFormState>((ref) {
+  return LoginFormNotifier();
+});
+
+class LoginFormState {
+  final String phone;
+  final String password;
+  final bool isLoading;
+  final String? error;
+
+  const LoginFormState({this.phone = '', this.password = '', this.isLoading = false, this.error});
+
+  LoginFormState copyWith({String? phone, String? password, bool? isLoading, String? error}) {
+    return LoginFormState(
+      phone: phone ?? this.phone,
+      password: password ?? this.password,
+      isLoading: isLoading ?? this.isLoading,
+      error: error,
+    );
+  }
+}
+
+class LoginFormNotifier extends StateNotifier<LoginFormState> {
+  LoginFormNotifier() : super(const LoginFormState());
+
+  void setPhone(String v) => state = state.copyWith(phone: v, error: null);
+  void setPassword(String v) => state = state.copyWith(password: v, error: null);
+  void setLoading(bool v) => state = state.copyWith(isLoading: v);
+  void setError(String? e) => state = state.copyWith(error: e);
+}
+
+class LoginScreen extends ConsumerWidget {
+  const LoginScreen({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = context.gloss;
+    final form = ref.watch(loginFormProvider);
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          onPressed: () => context.pop(),
+          icon: Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: theme.bg,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(Icons.arrow_back_ios_new_rounded, color: theme.text, size: 18),
+          ),
+        ),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const SizedBox(height: 48),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: theme.greenBgLight,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: const Icon(Icons.delivery_dining_rounded, color: GlossColors.green, size: 40),
+            ),
+            const SizedBox(height: 24),
+            const Text(
+              'Xush kelibsiz',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: GlossColors.text),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Hisobingizga kiring',
+              style: TextStyle(fontSize: 15, color: GlossColors.hint),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 48),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: theme.bg,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: theme.border),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Telefon raqam', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: theme.hint)),
+                  const SizedBox(height: 8),
+                  TextField(
+                    keyboardType: TextInputType.phone,
+                    onChanged: (v) => ref.read(loginFormProvider.notifier).setPhone(v),
+                    style: TextStyle(fontSize: 16, color: theme.text),
+                    decoration: const InputDecoration(
+                      border: InputBorder.none,
+                      hintText: '+998 XX XXX XX XX',
+                      hintStyle: TextStyle(color: GlossColors.disabled),
+                      isDense: true,
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: theme.bg,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: theme.border),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Parol', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: theme.hint)),
+                  const SizedBox(height: 8),
+                  TextField(
+                    obscureText: true,
+                    onChanged: (v) => ref.read(loginFormProvider.notifier).setPassword(v),
+                    style: TextStyle(fontSize: 16, color: theme.text),
+                    decoration: const InputDecoration(
+                      border: InputBorder.none,
+                      isDense: true,
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (form.error != null) ...[
+              const SizedBox(height: 8),
+              Text(form.error!, style: const TextStyle(color: GlossColors.red, fontSize: 13)),
+            ],
+            const SizedBox(height: 8),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton(
+                onPressed: () {},
+                child: Text(
+                  'Parolni unutdingizmi?',
+                  style: TextStyle(color: theme.green, fontWeight: FontWeight.w500, fontSize: 14),
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              height: 52,
+              child: ElevatedButton(
+                onPressed: form.isLoading ? null : () => context.go('/'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: theme.green,
+                  foregroundColor: Colors.white,
+                  disabledBackgroundColor: theme.grayLight,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  elevation: 0,
+                  textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                ),
+                child: form.isLoading
+                    ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                    : const Text('Kirish'),
+              ),
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              height: 52,
+              child: OutlinedButton(
+                onPressed: () => context.go('/auth/register'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: theme.green,
+                  side: BorderSide(color: theme.green.withAlpha(75)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                ),
+                child: const Text("Ro'yxatdan o'tish"),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

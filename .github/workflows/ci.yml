@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  flutter-analyze:
+    strategy:
+      matrix:
+        app: [client, provider, deliver, seller]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.x
+      - uses: bluefireteam/melos-action@v3
+        with:
+          melos-version: "6.3.0"
+      - run: melos exec --scope="gloss_${{ matrix.app }}" -- flutter analyze
+
+  admin-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci
+        working-directory: apps/gloss_admin
+      - run: npm run lint
+        working-directory: apps/gloss_admin
+      - run: npm run build
+        working-directory: apps/gloss_admin

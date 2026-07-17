@@ -1,0 +1,22 @@
+# Trivy Ignore File
+# Path: .trivyignore
+# Used to ignore specific vulnerabilities that are false positives or accepted risks
+
+# Format: CVE-ID [reason] [expiry-date]
+# Example: CVE-2023-12345 [Accepted risk: requires local access] 2024-12-31
+
+# Node.js dependencies - accepted risks
+# CVE-2022-XXXXX [Accepted: dev dependency only] 2024-12-31
+
+# Python dependencies - false positives
+# CVE-2023-XXXXX [False positive: not used in runtime] 2024-12-31
+
+# OS packages in base images
+# CVE-2024-XXXXX [Fixed in newer base image, will update] 2024-12-31
+
+# Add your accepted risks below:
+# Format: CVE-ID [reason] [expiry-date]
+
+# Example entries (remove or modify as needed):
+# CVE-2022-25883 [Accepted: only in dev dependencies, not in production image] 2024-12-31
+# CVE-2023-48795 [SSH Terrapin: not applicable to our container] 2024-12-31
