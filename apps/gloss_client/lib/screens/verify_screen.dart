@@ -1,21 +1,25 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:ui_kit/ui_kit.dart';
-import 'register_screen.dart';
+import '../providers/auth_provider.dart';
 
-class VerifyScreen extends StatefulWidget {
-  const VerifyScreen({super.key});
+class VerifyScreen extends ConsumerStatefulWidget {
+  final String phone;
+
+  const VerifyScreen({super.key, required this.phone});
 
   @override
-  State<VerifyScreen> createState() => _VerifyScreenState();
+  ConsumerState<VerifyScreen> createState() => _VerifyScreenState();
 }
 
-class _VerifyScreenState extends State<VerifyScreen> {
+class _VerifyScreenState extends ConsumerState<VerifyScreen> {
   final _codeCtrl = TextEditingController();
   final _focusNode = FocusNode();
-  bool _loading = false;
   int _resendSeconds = 30;
   Timer? _resendTimer;
+  String? _error;
 
   @override
   void initState() {
@@ -46,30 +50,22 @@ class _VerifyScreenState extends State<VerifyScreen> {
   Future<void> _submit() async {
     final code = _codeCtrl.text.trim();
     if (code.length != 4) return;
-    setState(() => _loading = true);
-    await Future.delayed(const Duration(seconds: 1));
-    if (mounted) {
-      setState(() => _loading = false);
-      if (code == '1111') {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const RegisterScreen()),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Kod noto'g'ri"),
-            backgroundColor: Colors.red,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
-          ),
-        );
-      }
+    setState(() => _error = null);
+
+    final success = await ref.read(authProvider.notifier).verifyOtp(widget.phone, code);
+    if (!mounted) return;
+
+    if (success) {
+      context.go('/home');
+    } else {
+      final error = ref.read(authProvider).error;
+      setState(() => _error = error ?? "Kod noto'g'ri");
     }
   }
 
   void _resend() {
     if (_resendSeconds > 0) return;
+    ref.read(authProvider.notifier).login(widget.phone);
     _startResendTimer();
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
@@ -83,6 +79,7 @@ class _VerifyScreenState extends State<VerifyScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isLoading = ref.watch(authProvider).isLoading;
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -118,16 +115,22 @@ class _VerifyScreenState extends State<VerifyScreen> {
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: GlossColors.text),
               ),
               const SizedBox(height: 8),
-              const Text(
-                'Biz +998 xx xxx xx xx raqamiga 4 xonali kod yubordik',
-                style: TextStyle(fontSize: 15, color: GlossColors.hint),
+              Text(
+                'Biz ${widget.phone} raqamiga 4 xonali kod yubordik',
+                style: const TextStyle(fontSize: 15, color: GlossColors.hint),
               ),
               const SizedBox(height: 32),
               Container(
                 decoration: BoxDecoration(
                   color: GlossColors.bg,
                   borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: _codeCtrl.text.length == 4 ? GlossColors.green : GlossColors.border),
+                  border: Border.all(
+                    color: _error != null
+                        ? Colors.red
+                        : _codeCtrl.text.length == 4
+                            ? GlossColors.green
+                            : GlossColors.border,
+                  ),
                 ),
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: TextField(
@@ -143,15 +146,19 @@ class _VerifyScreenState extends State<VerifyScreen> {
                     hintText: '0000',
                     hintStyle: TextStyle(color: GlossColors.disabled, fontSize: 28, letterSpacing: 12),
                   ),
-                  onChanged: (_) => setState(() {}),
+                  onChanged: (_) => setState(() => _error = null),
                 ),
               ),
+              if (_error != null) ...[
+                const SizedBox(height: 8),
+                Text(_error!, style: const TextStyle(color: Colors.red, fontSize: 13)),
+              ],
               const SizedBox(height: 24),
               SizedBox(
                 width: double.infinity,
                 height: 52,
                 child: ElevatedButton(
-                  onPressed: _codeCtrl.text.length == 4 && !_loading ? _submit : null,
+                  onPressed: _codeCtrl.text.length == 4 && !isLoading ? _submit : null,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: GlossColors.green,
                     foregroundColor: Colors.white,
@@ -159,7 +166,7 @@ class _VerifyScreenState extends State<VerifyScreen> {
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                     elevation: 0,
                   ),
-                  child: _loading
+                  child: isLoading
                       ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                       : const Text('Tasdiqlash', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
                 ),
