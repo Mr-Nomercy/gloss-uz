@@ -18,6 +18,8 @@ jobs:
         with:
           flutter-version: 3.x
       - uses: bluefireteam/melos-action@v3
+        with:
+          melos-version: "6.3.0"
       - run: melos exec --scope="gloss_${{ matrix.app }}" -- flutter analyze
 
   admin-lint:
