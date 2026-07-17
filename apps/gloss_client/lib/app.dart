@@ -46,29 +46,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(path: '/home', builder: (_, __) => const HomeScreen()),
       GoRoute(path: '/xizmatlar', builder: (_, __) => const XizmatlarScreen()),
-      GoRoute(
-        path: '/booking',
-        builder: (_, state) {
-          final args = state.extra as Map<String, dynamic>? ?? {};
-          return BookingScreen(
-            serviceName: args['serviceName'] as String? ?? '',
-            subcategoryName: args['subcategoryName'] as String? ?? '',
-            serviceId: args['serviceId'] as String? ?? '',
-          );
-        },
-      ),
+      GoRoute(path: '/booking', builder: (_, __) => const BookingScreen()),
       GoRoute(path: '/time-slot', builder: (_, __) => const TimeSlotScreen()),
       GoRoute(path: '/address-search', builder: (_, __) => const AddressSearchScreen()),
-      GoRoute(
-        path: '/order',
-        builder: (_, state) {
-          final args = state.extra as Map<String, dynamic>? ?? {};
-          return OrderScreen(
-            serviceName: args['serviceName'] as String? ?? '',
-            orderId: args['orderId'] as String?,
-          );
-        },
-      ),
+      GoRoute(path: '/order', builder: (_, __) => const OrderScreen()),
       GoRoute(path: '/team-info', builder: (_, __) => const TeamInfoScreen()),
       GoRoute(path: '/cancel-reason', builder: (_, __) => const CancelReasonScreen()),
       GoRoute(path: '/multi-aspect-rating', builder: (_, __) => const MultiAspectRatingScreen()),
