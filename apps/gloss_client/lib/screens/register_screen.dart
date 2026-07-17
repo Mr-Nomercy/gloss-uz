@@ -1,18 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:ui_kit/ui_kit.dart';
-import 'home_screen.dart';
+import '../providers/auth_provider.dart';
 
-class RegisterScreen extends StatefulWidget {
-  const RegisterScreen({super.key});
+class RegisterScreen extends ConsumerStatefulWidget {
+  final String phone;
+
+  const RegisterScreen({super.key, required this.phone});
 
   @override
-  State<RegisterScreen> createState() => _RegisterScreenState();
+  ConsumerState<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _RegisterScreenState extends State<RegisterScreen> {
+class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _nameCtrl = TextEditingController();
   final _nameFocus = FocusNode();
-  bool _loading = false;
+  String? _error;
 
   @override
   void dispose() {
@@ -24,20 +28,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Future<void> _submit() async {
     final name = _nameCtrl.text.trim();
     if (name.isEmpty) return;
-    setState(() => _loading = true);
-    await Future.delayed(const Duration(seconds: 1));
-    if (mounted) {
-      setState(() => _loading = false);
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (_) => const HomeScreen()),
-        (route) => false,
-      );
+    setState(() => _error = null);
+
+    final success = await ref.read(authProvider.notifier).register(widget.phone, name);
+    if (!mounted) return;
+
+    if (success) {
+      context.go('/home');
+    } else {
+      final error = ref.read(authProvider).error;
+      setState(() => _error = error ?? "Xatolik yuz berdi");
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final isLoading = ref.watch(authProvider).isLoading;
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -83,7 +89,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       child: const Icon(Icons.phone_rounded, color: GlossColors.green, size: 18),
                     ),
                     const SizedBox(width: 12),
-                    const Text('+998 xx xxx xx xx', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: GlossColors.text)),
+                    Text(widget.phone, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: GlossColors.text)),
                     const Spacer(),
                     const Icon(Icons.check_circle_rounded, color: GlossColors.green, size: 20),
                   ],
@@ -94,7 +100,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 decoration: BoxDecoration(
                   color: GlossColors.bg,
                   borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: _nameCtrl.text.trim().isNotEmpty ? GlossColors.green : GlossColors.border),
+                  border: Border.all(
+                    color: _error != null
+                        ? Colors.red
+                        : _nameCtrl.text.trim().isNotEmpty
+                            ? GlossColors.green
+                            : GlossColors.border,
+                  ),
                 ),
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: TextField(
@@ -107,15 +119,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     hintText: 'Ismingiz...',
                     hintStyle: TextStyle(color: GlossColors.disabled),
                   ),
-                  onChanged: (_) => setState(() {}),
+                  onChanged: (_) => setState(() => _error = null),
                 ),
               ),
+              if (_error != null) ...[
+                const SizedBox(height: 8),
+                Text(_error!, style: const TextStyle(color: Colors.red, fontSize: 13)),
+              ],
               const SizedBox(height: 24),
               SizedBox(
                 width: double.infinity,
                 height: 52,
                 child: ElevatedButton(
-                  onPressed: _nameCtrl.text.trim().isNotEmpty && !_loading ? _submit : null,
+                  onPressed: _nameCtrl.text.trim().isNotEmpty && !isLoading ? _submit : null,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: GlossColors.green,
                     foregroundColor: Colors.white,
@@ -123,7 +139,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                     elevation: 0,
                   ),
-                  child: _loading
+                  child: isLoading
                       ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                       : const Text("Ro'yxatdan o'tish", style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
                 ),
