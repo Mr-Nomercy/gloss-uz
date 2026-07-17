@@ -77,7 +77,7 @@ class ProfileScreen extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.star, size: 16, color: GlossColors.star),
+              const Icon(Icons.star, size: 16, color: GlossColors.star),
               const SizedBox(width: 4),
               const Text('4.8', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
               Text(' (487 ta buyurtma)', style: TextStyle(fontSize: 13, color: theme.hint)),

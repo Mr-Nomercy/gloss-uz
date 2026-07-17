@@ -408,7 +408,11 @@ class _MarketScreenState extends State<MarketScreen> {
                   ),
                 Positioned(top: 6, right: 6,
                   child: GestureDetector(
-                    onTap: () { setState(() { if (isFav) _favorites.remove(p['id']); else _favorites.add(p['id'] as String); }); },
+                    onTap: () { setState(() { if (isFav) {
+                      _favorites.remove(p['id']);
+                    } else {
+                      _favorites.add(p['id'] as String);
+                    } }); },
                     child: Container(
                       padding: const EdgeInsets.all(4),
                       decoration: BoxDecoration(color: GlossColors.card, borderRadius: BorderRadius.circular(6), boxShadow: [BoxShadow(color: Colors.black.withAlpha(15), blurRadius: 4)]),
@@ -549,7 +553,11 @@ class _MarketScreenState extends State<MarketScreen> {
                   Positioned(
                     top: 6, right: 6,
                     child: GestureDetector(
-                      onTap: () { setState(() { if (isFav) _favorites.remove(p['id']); else _favorites.add(p['id'] as String); }); },
+                      onTap: () { setState(() { if (isFav) {
+                        _favorites.remove(p['id']);
+                      } else {
+                        _favorites.add(p['id'] as String);
+                      } }); },
                       child: Container(
                         padding: const EdgeInsets.all(4),
                         decoration: BoxDecoration(color: GlossColors.card, borderRadius: BorderRadius.circular(6), boxShadow: [BoxShadow(color: Colors.black.withAlpha(15), blurRadius: 4)]),
@@ -586,8 +594,11 @@ class _MarketScreenState extends State<MarketScreen> {
                         GestureDetector(
                           onTap: () {
                             setState(() {
-                              if (inC) _cart.remove(p['id']);
-                              else _cart[p['id'] as String] = 1;
+                              if (inC) {
+                                _cart.remove(p['id']);
+                              } else {
+                                _cart[p['id'] as String] = 1;
+                              }
                             });
                           },
                           child: Container(

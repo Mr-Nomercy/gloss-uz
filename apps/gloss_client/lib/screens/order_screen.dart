@@ -99,7 +99,7 @@ class _OrderScreenState extends State<OrderScreen> {
                   children: [
                     Icon(Icons.map_rounded, size: 64, color: GlossColors.green.withAlpha(100)),
                     const SizedBox(height: 8),
-                    Text("Xarita", style: TextStyle(fontSize: 16, color: GlossColors.hint)),
+                    const Text("Xarita", style: TextStyle(fontSize: 16, color: GlossColors.hint)),
                   ],
                 ),
               ),
@@ -122,7 +122,7 @@ class _OrderScreenState extends State<OrderScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Buyurtma GLS-12345', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: GlossColors.text)),
+                          const Text('Buyurtma GLS-12345', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: GlossColors.text)),
                           Text(widget.serviceName.isNotEmpty ? widget.serviceName : 'Tozalash', style: const TextStyle(fontSize: 13, color: GlossColors.hint)),
                         ],
                       ),

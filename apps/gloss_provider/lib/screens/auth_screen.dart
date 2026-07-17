@@ -64,7 +64,7 @@ class _AuthScreenState extends State<AuthScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 24),
-                    Text(
+                    const Text(
                       'Assalom,\nXush kelibsiz!',
                       style: TextStyle(
                         fontSize: 28,

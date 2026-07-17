@@ -230,9 +230,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildRecentDeliveries(GlossTheme theme) {
     final deliveries = [
-      _Delivery('iPhone 15 Pro', "Amir Temur 45 → Navoiy 12", "120 000", 'Yetkazilgan'),
-      _Delivery("Samsung Galaxy S24", "Bunyodkor 78 → Beruniy 5", "150 000", "Yo'lda"),
-      _Delivery('MacBook Pro', "Muqimiy 23 → Shota Rustaveli 8", "200 000", 'Qabul qilingan'),
+      const _Delivery('iPhone 15 Pro', "Amir Temur 45 → Navoiy 12", "120 000", 'Yetkazilgan'),
+      const _Delivery("Samsung Galaxy S24", "Bunyodkor 78 → Beruniy 5", "150 000", "Yo'lda"),
+      const _Delivery('MacBook Pro', "Muqimiy 23 → Shota Rustaveli 8", "200 000", 'Qabul qilingan'),
     ];
 
     return Column(

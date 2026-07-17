@@ -159,7 +159,7 @@ class _GlassCard extends StatelessWidget {
                       style: const TextStyle(fontSize: 14, color: GlossColors.hint, height: 1.5),
                     ),
                     const SizedBox(height: 18),
-                    Divider(height: 1, color: GlossColors.divider),
+                    const Divider(height: 1, color: GlossColors.divider),
                     const SizedBox(height: 16),
                     _StatsRow(service: service),
                     const SizedBox(height: 18),

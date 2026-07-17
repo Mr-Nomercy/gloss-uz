@@ -61,7 +61,7 @@ class _BookingScreenState extends State<BookingScreen> {
       _appliedPromo = code;
     });
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Promo kod qabul qilindi! 10% chegirma'), backgroundColor: GlossColors.green, behavior: SnackBarBehavior.floating, shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(12)))),
+      const SnackBar(content: Text('Promo kod qabul qilindi! 10% chegirma'), backgroundColor: GlossColors.green, behavior: SnackBarBehavior.floating, shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(12)))),
     );
   }
 
@@ -107,9 +107,9 @@ class _BookingScreenState extends State<BookingScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(width: 40, height: 4, margin: const EdgeInsets.only(bottom: 20), decoration: BoxDecoration(color: GlossColors.border, borderRadius: BorderRadius.circular(2))),
-            const Text("To\'lov usulini tanlang", style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: GlossColors.text)),
+            const Text("To'lov usulini tanlang", style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: GlossColors.text)),
             const SizedBox(height: 16),
-            _paymentOption('Naqt', Icons.money_rounded, "To\'lovni naqd pulda amalga oshiring"),
+            _paymentOption('Naqt', Icons.money_rounded, "To'lovni naqd pulda amalga oshiring"),
             const SizedBox(height: 8),
             _paymentOption('Plastik karta', Icons.credit_card_rounded, 'Visa, Mastercard, UzCard'),
           ],
@@ -168,7 +168,7 @@ class _BookingScreenState extends State<BookingScreen> {
             child: const Icon(Icons.arrow_back_ios_new_rounded, color: GlossColors.text, size: 18),
           ),
         ),
-        title: Text('${widget.serviceName}', style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: GlossColors.text)),
+        title: Text(widget.serviceName, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: GlossColors.text)),
       ),
       body: Column(
         children: [

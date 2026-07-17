@@ -286,7 +286,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 Text('$_quantity', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: GlossColors.text)),
                 GestureDetector(
                   onTap: () => setState(() => _quantity++),
-                  child: Padding(padding: const EdgeInsets.all(8), child: Icon(Icons.add_rounded, size: 20, color: GlossColors.green)),
+                  child: const Padding(padding: EdgeInsets.all(8), child: Icon(Icons.add_rounded, size: 20, color: GlossColors.green)),
                 ),
               ],
             ),

@@ -154,8 +154,11 @@ class _CartScreenState extends State<CartScreen> {
                   GestureDetector(
                     onTap: () {
                       setState(() {
-                        if (item['quantity'] > 1) item['quantity'] = (item['quantity'] as int) - 1;
-                        else _cartItems.removeWhere((i) => i['id'] == item['id']);
+                        if (item['quantity'] > 1) {
+                          item['quantity'] = (item['quantity'] as int) - 1;
+                        } else {
+                          _cartItems.removeWhere((i) => i['id'] == item['id']);
+                        }
                       });
                     },
                     child: Padding(
@@ -166,7 +169,7 @@ class _CartScreenState extends State<CartScreen> {
                   Text('${item['quantity']}', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: GlossColors.text)),
                   GestureDetector(
                     onTap: () => setState(() => item['quantity'] = (item['quantity'] as int) + 1),
-                    child: Padding(padding: const EdgeInsets.all(8), child: Icon(Icons.add_rounded, size: 16, color: GlossColors.green)),
+                    child: const Padding(padding: EdgeInsets.all(8), child: Icon(Icons.add_rounded, size: 16, color: GlossColors.green)),
                   ),
                 ],
               ),
@@ -203,7 +206,7 @@ class _CartScreenState extends State<CartScreen> {
                       ],
                     ),
                   ),
-                  GestureDetector(onTap: _removePromo, child: Icon(Icons.close_rounded, color: GlossColors.red, size: 20)),
+                  GestureDetector(onTap: _removePromo, child: const Icon(Icons.close_rounded, color: GlossColors.red, size: 20)),
                 ],
               ),
             )

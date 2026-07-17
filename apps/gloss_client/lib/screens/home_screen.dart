@@ -15,7 +15,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  static final _banners = const [
+  static const _banners = [
     ('Yangi mijozlar uchun', '30% OFF', GlossColors.green, GlossColors.darkGreen),
     ('Premium tozalash', 'Bepul tekshiruv', GlossColors.darkGreen, GlossColors.green),
     ('Bahorgi tozalash', '2+1 bepul', GlossColors.green, GlossColors.darkGreen),
@@ -48,14 +48,14 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
+      body: const SingleChildScrollView(
+        physics: AlwaysScrollableScrollPhysics(),
         child: Padding(
-          padding: const EdgeInsets.only(top: 16, bottom: 32),
+          padding: EdgeInsets.only(top: 16, bottom: 32),
           child: Column(
             children: [
               _TopSection(banners: _banners),
-              const SizedBox(height: 20),
+              SizedBox(height: 20),
               _BannerAndProductsBlock(banners: _banners),
             ],
           ),
@@ -79,7 +79,7 @@ class _TopSection extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            _MainCategoryCards(),
+            const _MainCategoryCards(),
             const SizedBox(height: 12),
             GestureDetector(
               onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const XizmatlarScreen())),
@@ -100,7 +100,7 @@ class _TopSection extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 10),
-            _SearchPanel(),
+            const _SearchPanel(),
           ],
         ),
       ),
@@ -113,7 +113,7 @@ class _MainCategoryCards extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final items = const [
+    const items = [
       (Icons.cleaning_services_rounded, 'Tozalash'),
       (Icons.local_laundry_service_rounded, 'Kir yuvish'),
       (Icons.home_repair_service_rounded, 'Ta\'mirlash'),

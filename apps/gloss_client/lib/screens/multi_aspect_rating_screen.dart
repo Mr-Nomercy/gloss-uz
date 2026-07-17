@@ -73,13 +73,13 @@ class _MultiAspectRatingScreenState extends State<MultiAspectRatingScreen> {
                     Center(
                       child: Column(
                         children: [
-                          CircleAvatar(
+                          const CircleAvatar(
                             radius: 32,
                             backgroundColor: GlossColors.greenBgPale,
                             child: Icon(Icons.group_rounded, size: 32, color: GlossColors.green),
                           ),
                           const SizedBox(height: 12),
-                          Text(widget.teamName!, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: GlossColors.text)),
+                          Text(widget.teamName!, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: GlossColors.text)),
                           const SizedBox(height: 24),
                         ],
                       ),
@@ -91,23 +91,23 @@ class _MultiAspectRatingScreenState extends State<MultiAspectRatingScreen> {
                   const SizedBox(height: 20),
                   _AspectRating(title: 'Muloqot', rating: _communication, onChanged: (v) => setState(() => _communication = v)),
                   const SizedBox(height: 24),
-                  Text('Izoh (ixtiyoriy)', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: GlossColors.text)),
+                  const Text('Izoh (ixtiyoriy)', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: GlossColors.text)),
                   const SizedBox(height: 8),
                   TextField(
                     controller: _commentController,
                     maxLines: 4,
                     decoration: InputDecoration(
                       hintText: "Tajribangizni baham ko'ring...",
-                      hintStyle: TextStyle(color: GlossColors.hint),
+                      hintStyle: const TextStyle(color: GlossColors.hint),
                       filled: true,
                       fillColor: GlossColors.card,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: GlossColors.border),
+                        borderSide: const BorderSide(color: GlossColors.border),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: GlossColors.border),
+                        borderSide: const BorderSide(color: GlossColors.border),
                       ),
                     ),
                   ),
@@ -159,7 +159,7 @@ class _AspectRating extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: GlossColors.text)),
+          Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: GlossColors.text)),
           const SizedBox(height: 12),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,

@@ -92,7 +92,7 @@ class _CancelReasonScreenState extends State<CancelReasonScreen> {
                   if (widget.orderNumber != null)
                     Padding(
                       padding: const EdgeInsets.only(bottom: 16),
-                      child: Text('Buyurtma #${widget.orderNumber}', style: TextStyle(fontSize: 14, color: GlossColors.hint)),
+                      child: Text('Buyurtma #${widget.orderNumber}', style: const TextStyle(fontSize: 14, color: GlossColors.hint)),
                     ),
                   ..._reasons.map((reason) => _ReasonTile(
                         id: reason['id'] as String,
@@ -102,23 +102,23 @@ class _CancelReasonScreenState extends State<CancelReasonScreen> {
                       )),
                   if (_needsNote) ...[
                     const SizedBox(height: 20),
-                    Text('Izoh', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: GlossColors.text)),
+                    const Text('Izoh', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: GlossColors.text)),
                     const SizedBox(height: 8),
                     TextField(
                       controller: _noteController,
                       maxLines: 3,
                       decoration: InputDecoration(
                         hintText: "Sababni tushuntiring...",
-                        hintStyle: TextStyle(color: GlossColors.hint),
+                        hintStyle: const TextStyle(color: GlossColors.hint),
                         filled: true,
                         fillColor: GlossColors.card,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: GlossColors.border),
+                          borderSide: const BorderSide(color: GlossColors.border),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: GlossColors.border),
+                          borderSide: const BorderSide(color: GlossColors.border),
                         ),
                       ),
                     ),
