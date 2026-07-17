@@ -17,8 +17,7 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: 3.x
-      - run: dart pub global activate melos
-      - run: melos bootstrap
+      - uses: bluefireteam/melos-action@v3
       - run: melos exec --scope="gloss_${{ matrix.app }}" -- flutter analyze
 
   admin-lint:
