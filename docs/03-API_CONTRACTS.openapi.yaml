@@ -1,0 +1,2754 @@
+openapi: 3.1.0
+info:
+  title: Gloss Ecosystem API
+  version: 1.0.0
+  description: |
+    Unified API for Gloss Cleaning Service + Marketplace.
+    Single backend serving gloss_client, gloss_provider_deliver, gloss_seller apps.
+    Role-based access control via JWT claims.
+# Rate Limiting
+All endpoints are rate-limited. Per-endpoint limits:
+- Auth endpoints (register, login, forgot-password, reset-password): 10 req/min per IP
+- General API: 100 req/min per user/IP  
+- WebSocket: 60 messages/min per connection
+- Payment webhooks: 30 req/min per IP
+On rate limit exceeded, API returns 429 with Retry-After header.
+
+servers:
+  - url: http://localhost:3000
+    description: Local development
+  - url: https://api.gloss.uz
+    description: Production
+
+x-cors:
+  allowedOrigins:
+    - https://gloss-client.uz
+    - https://gloss-seller.uz
+    - https://gloss-admin.uz
+  allowedMethods: [GET, POST, PUT, PATCH, DELETE]
+  allowedHeaders: [Content-Type, Authorization, X-Idempotency-Key]
+  maxAge: 86400
+
+components:
+  securitySchemes:
+    # Password hashing: argon2id (memory=19MB, iterations=2, parallelism=1)
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    RefreshToken:
+      type: apiKey
+      in: header
+      name: x-refresh-token
+
+    # Standard error responses (all endpoints may return these)
+    # 400: BadRequestError — validation failure
+    # 401: UnauthorizedError — missing/invalid JWT
+    # 403: ForbiddenError — insufficient role permissions
+    # 404: NotFoundError — resource not found
+    # 409: ConflictError — duplicate, race condition, state conflict
+    # 422: UnprocessableEntityError — business rule violation
+    # 429: RateLimitError — too many requests
+    # 500: InternalServerError — unexpected failure
+
+  schemas:
+    # ─── Common ───
+    Pagination:
+      type: object
+      properties:
+        page: { type: integer, minimum: 1 }
+        limit: { type: integer, minimum: 1, maximum: 100 }
+        total: { type: integer }
+        totalPages: { type: integer }
+
+    ApiResponse:
+      type: object
+      properties:
+        success: { type: boolean }
+        message: { type: string }
+        data: {}
+
+    ApiError:
+      type: object
+      properties:
+        success: { type: boolean, default: false }
+        statusCode: { type: integer }
+        message: { type: string }
+        errors: { type: array, items: { type: object } }
+
+    RateLimitError:
+      type: object
+      properties:
+        statusCode:
+          type: integer
+          example: 429
+        message:
+          type: string
+          example: Too many requests. Please try again in 60 seconds.
+        error:
+          type: string
+          example: Too Many Requests
+        retryAfter:
+          type: integer
+          example: 60
+
+    RateLimitHeaders:
+      type: object
+      properties:
+        X-RateLimit-Limit:
+          type: integer
+          description: Maximum requests per window
+        X-RateLimit-Remaining:
+          type: integer
+          description: Remaining requests in current window
+        X-RateLimit-Reset:
+          type: integer
+          description: Unix timestamp when the rate limit resets
+        Retry-After:
+          type: integer
+          description: Seconds to wait before retrying (only on 429)
+
+    # ─── Auth ───
+    LoginDto:
+      type: object
+      required: [phone, password]
+      properties:
+        phone: { type: string, example: "+998901234567" }
+        password:
+          type: string
+          minLength: 8
+          pattern: '^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$'
+          description: "Minimum 8 characters, at least one uppercase letter, one lowercase letter, one digit, and one special character"
+        deviceToken: { type: string }
+
+    RegisterDto:
+      type: object
+      required: [phone, password, acceptedTos, acceptedPrivacyPolicy]
+      properties:
+        phone:
+          type: string
+          example: "+998901234567"
+        password:
+          type: string
+          minLength: 8
+          pattern: '^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$'
+          description: "Minimum 8 characters, at least one uppercase letter, one lowercase letter, one digit, and one special character"
+        fullName: { type: string }
+        roles:
+          type: array
+          items:
+            type: string
+            enum: [client, provider, courier, seller]
+        deviceToken: { type: string }
+        acceptedTos:
+          type: boolean
+          description: Must accept Terms of Service
+        acceptedPrivacyPolicy:
+          type: boolean
+          description: Must accept Privacy Policy
+
+    TokenResponse:
+      type: object
+      properties:
+        accessToken: { type: string }
+        refreshToken: { type: string }
+        user: { $ref: '#/components/schemas/UserResponse' }
+
+    VerifyPhoneDto:
+      type: object
+      required: [phone, code]
+      properties:
+        phone: { type: string }
+        code: { type: string, minLength: 4, maxLength: 6 }
+
+    # ─── User ───
+    UserResponse:
+      type: object
+      properties:
+        id: { type: string }
+        phone: { type: string }
+        email: { type: string, nullable: true }
+        fullName: { type: string, nullable: true }
+        avatar: { type: string, nullable: true }
+        language: { type: string }
+        roles: { type: array, items: { type: string } }
+        isActive: { type: boolean }
+        createdAt: { type: string, format: date-time }
+
+    UpdateProfileDto:
+      type: object
+      properties:
+        fullName: { type: string }
+        email: { type: string, format: email }
+        language: { type: string, enum: [uz, ru, en] }
+        avatar: { type: string }
+
+    # ─── Address ───
+    AddressDto:
+      type: object
+      required: [lat, lng, addressLine]
+      properties:
+        id: { type: string }
+        label: { type: string, enum: [home, work, other] }
+        lat: { type: number, format: float }
+        lng: { type: number, format: float }
+        addressLine: { type: string }
+        building: { type: string }
+        entrance: { type: string }
+        floor: { type: string }
+        apartment: { type: string }
+        doorCode: { type: string }
+        comment: { type: string }
+        isDefault: { type: boolean }
+
+    # ─── Service ───
+    ServiceTypeResponse:
+      type: object
+      properties:
+        id: { type: string }
+        code: { type: string }
+        name: { type: string }
+        description: { type: string }
+        icon: { type: string }
+        sortOrder: { type: integer }
+        services: { type: array, items: { $ref: '#/components/schemas/ServiceResponse' } }
+
+    ServiceResponse:
+      type: object
+      properties:
+        id: { type: string }
+        serviceTypeId: { type: string }
+        name: { type: string }
+        description: { type: string }
+        durationMinutes: { type: integer }
+        minArea: { type: number, nullable: true }
+        maxArea: { type: number, nullable: true }
+        basePrice: { type: number }
+        pricings: { type: array, items: { $ref: '#/components/schemas/ServicePricingResponse' } }
+
+    ServicePricingResponse:
+      type: object
+      properties:
+        id: { type: string }
+        areaFrom: { type: number, nullable: true }
+        areaTo: { type: number, nullable: true }
+        pricePerSqm: { type: number, nullable: true }
+        fixedPrice: { type: number, nullable: true }
+        extraOptions: { type: object }
+
+    # ─── Category ───
+    CategoryResponse:
+      type: object
+      properties:
+        id: { type: string }
+        parentId: { type: string, nullable: true }
+        name: { type: string }
+        slug: { type: string }
+        image: { type: string, nullable: true }
+        children: { type: array, items: { $ref: '#/components/schemas/CategoryResponse' } }
+
+    # ─── Product ───
+    ProductCreateDto:
+      type: object
+      required: [categoryId, name, basePrice]
+      properties:
+        categoryId: { type: string }
+        name: { type: string }
+        description: { type: string }
+        brand: { type: string }
+        unit: { type: string }
+        basePrice: { type: number }
+        salePrice: { type: number }
+        sku: { type: string }
+        stockQty: { type: integer }
+        minOrderQty: { type: integer }
+        weight: { type: number }
+        volume: { type: number }
+        images: { type: array, items: { type: string } }
+        variants: { type: array, items: { $ref: '#/components/schemas/ProductVariantDto' } }
+
+    ProductResponse:
+      type: object
+      properties:
+        id: { type: string }
+        sellerId: { type: string }
+        categoryId: { type: string }
+        name: { type: string }
+        slug: { type: string }
+        description: { type: string }
+        brand: { type: string }
+        unit: { type: string }
+        basePrice: { type: number }
+        salePrice: { type: number, nullable: true }
+        stockQty: { type: integer }
+        minOrderQty: { type: integer }
+        status: { type: string }
+        rating: { type: number }
+        images: { type: array, items: { $ref: '#/components/schemas/ProductImageResponse' } }
+        variants: { type: array, items: { $ref: '#/components/schemas/ProductVariantResponse' } }
+        createdAt: { type: string, format: date-time }
+
+    ProductVariantDto:
+      type: object
+      required: [name, price, stockQty]
+      properties:
+        name: { type: string }
+        sku: { type: string }
+        price: { type: number }
+        stockQty: { type: integer }
+        attributes: { type: object }
+
+    ProductVariantResponse:
+      allOf:
+        - { $ref: '#/components/schemas/ProductVariantDto' }
+        - properties:
+            id: { type: string }
+            productId: { type: string }
+
+    ProductImageResponse:
+      type: object
+      properties:
+        id: { type: string }
+        url: { type: string }
+        isPrimary: { type: boolean }
+
+    # ─── Order ───
+    CreateServiceOrderDto:
+      type: object
+      required: [type, serviceId]
+      properties:
+        type: { type: string, enum: [service], default: service }
+        serviceId: { type: string }
+        addressId: { type: string }
+        scheduledAt: { type: string, format: date-time, nullable: true }
+        area: { type: number }
+        rooms: { type: integer }
+        extras: { type: array, items: { type: string } }
+        notes: { type: string }
+
+    CreateProductOrderDto:
+      type: object
+      required: [type, items, addressId]
+      properties:
+        type: { type: string, enum: [product], default: product }
+        items: { type: array, items: { $ref: '#/components/schemas/OrderItemDto' } }
+        addressId: { type: string }
+        notes: { type: string }
+
+    CreateMixedOrderDto:
+      type: object
+      required: [type]
+      properties:
+        type: { type: string, enum: [mixed], default: mixed }
+        service: { $ref: '#/components/schemas/CreateServiceOrderDto' }
+        items: { type: array, items: { $ref: '#/components/schemas/OrderItemDto' } }
+        addressId: { type: string }
+        scheduledAt: { type: string, format: date-time, nullable: true }
+        notes: { type: string }
+
+    OrderItemDto:
+      type: object
+      required: [productId, quantity]
+      properties:
+        productId: { type: string }
+        variantId: { type: string }
+        quantity: { type: integer, minimum: 1 }
+
+    OrderResponse:
+      type: object
+      properties:
+        id: { type: string }
+        orderNumber: { type: string }
+        clientId: { type: string }
+        type: { type: string, enum: [service, product, mixed] }
+        status: { type: string }
+        subtotal: { type: number }
+        discount: { type: number }
+        deliveryFee: { type: number }
+        total: { type: number }
+        paymentStatus: { type: string }
+        paymentMethod: { type: string, nullable: true }
+        scheduledAt: { type: string, format: date-time, nullable: true }
+        startedAt: { type: string, format: date-time, nullable: true }
+        completedAt: { type: string, format: date-time, nullable: true }
+        items: { type: array, items: { $ref: '#/components/schemas/OrderItemResponse' } }
+        provider: { $ref: '#/components/schemas/UserResponse' }
+        courier: { $ref: '#/components/schemas/UserResponse' }
+        tracking: { $ref: '#/components/schemas/TrackingResponse' }
+        address: { $ref: '#/components/schemas/AddressDto' }
+        createdAt: { type: string, format: date-time }
+
+    OrderItemResponse:
+      type: object
+      properties:
+        id: { type: string }
+        product: { $ref: '#/components/schemas/ProductResponse' }
+        variant: { $ref: '#/components/schemas/ProductVariantResponse' }
+        service: { $ref: '#/components/schemas/ServiceResponse' }
+        quantity: { type: integer }
+        unitPrice: { type: number }
+        totalPrice: { type: number }
+
+    # ─── Tracking ───
+    TrackingResponse:
+      type: object
+      properties:
+        id: { type: string }
+        orderId: { type: string }
+        courierId: { type: string, nullable: true }
+        courierName: { type: string }
+        courierPhone: { type: string }
+        courierAvatar: { type: string }
+        courierRating: { type: number }
+        status: { type: string }
+        currentLat: { type: number }
+        currentLng: { type: number }
+        estimatedArrival: { type: string, format: date-time, nullable: true }
+        distanceKm: { type: number, nullable: true }
+        routePolyline: { type: string, nullable: true }
+
+    LocationUpdateDto:
+      type: object
+      required: [lat, lng]
+      properties:
+        lat: { type: number, format: float }
+        lng: { type: number, format: float }
+        accuracy: { type: number }
+        speed: { type: number }
+        heading: { type: number }
+        battery: { type: integer }
+
+    # ─── Chat ───
+    ChatResponse:
+      type: object
+      properties:
+        id: { type: string }
+        orderId: { type: string }
+        type: { type: string }
+        participants: { type: array, items: { $ref: '#/components/schemas/UserResponse' } }
+        lastMessage: { $ref: '#/components/schemas/MessageResponse' }
+        unreadCount: { type: integer }
+        createdAt: { type: string, format: date-time }
+
+    MessageResponse:
+      type: object
+      properties:
+        id: { type: string }
+        chatId: { type: string }
+        fromUserId: { type: string }
+        fromUserName: { type: string }
+        type: { type: string }
+        content: { type: string }
+        metadata: { type: object }
+        readAt: { type: string, format: date-time, nullable: true }
+        createdAt: { type: string, format: date-time }
+
+    SendMessageDto:
+      type: object
+      required: [content]
+      properties:
+        content: { type: string }
+        type: { type: string, default: text }
+        metadata: { type: object }
+
+    # ─── Payment ───
+    InitPaymentDto:
+      type: object
+      required: [orderId, method]
+      properties:
+        orderId: { type: string }
+        method: { type: string, enum: [click, payme, cash] }
+
+    PaymentResponse:
+      type: object
+      properties:
+        id: { type: string }
+        orderId: { type: string }
+        amount: { type: number }
+        currency: { type: string }
+        method: { type: string }
+        status: { type: string }
+        paymentUrl: { type: string, nullable: true }
+        paidAt: { type: string, format: date-time, nullable: true }
+
+    # ─── KYC ───
+    KYCDocumentResponse:
+      type: object
+      properties:
+        id: { type: string }
+        type: { type: string }
+        fileUrl: { type: string }
+        status: { type: string }
+        rejectionReason: { type: string, nullable: true }
+        createdAt: { type: string, format: date-time }
+
+    SubmitKYCDto:
+      type: object
+      required: [type, fileUrl]
+      properties:
+        type: { type: string, enum: [passport, selfie, bank_card, inn, license] }
+        fileUrl: { type: string }
+
+    # ─── Seller ───
+    SellerProfileResponse:
+      type: object
+      properties:
+        id: { type: string }
+        userId: { type: string }
+        shopName: { type: string }
+        shopSlug: { type: string }
+        description: { type: string }
+        logo: { type: string, nullable: true }
+        rating: { type: number }
+        totalSales: { type: integer }
+        totalProducts: { type: integer }
+        commissionRate: { type: number }
+        isVerified: { type: boolean }
+        kycStatus: { type: string }
+
+    UpdateSellerProfileDto:
+      type: object
+      properties:
+        shopName: { type: string }
+        description: { type: string }
+        logo: { type: string }
+        banner: { type: string }
+
+    # ─── Review ───
+    CreateReviewDto:
+      type: object
+      required: [rating]
+      properties:
+        rating: { type: integer, minimum: 1, maximum: 5 }
+        comment: { type: string }
+        isAnonymous: { type: boolean }
+
+    ReviewResponse:
+      type: object
+      properties:
+        id: { type: string }
+        orderId: { type: string }
+        fromUser: { $ref: '#/components/schemas/UserResponse' }
+        rating: { type: integer }
+        comment: { type: string }
+        images: { type: array, items: { type: string } }
+        isAnonymous: { type: boolean }
+        createdAt: { type: string, format: date-time }
+
+    # ─── Notification ───
+    NotificationResponse:
+      type: object
+      properties:
+        id: { type: string }
+        type: { type: string }
+        title: { type: string }
+        body: { type: string }
+        data: { type: object }
+        isRead: { type: boolean }
+        createdAt: { type: string, format: date-time }
+
+    BadRequestError:
+      type: object
+      properties:
+        statusCode: { type: integer, example: 400 }
+        message: { type: string, example: "Validation failed" }
+        errors: { type: array, items: { type: string } }
+    UnauthorizedError:
+      type: object
+      properties:
+        statusCode: { type: integer, example: 401 }
+        message: { type: string, example: "Invalid or expired token" }
+    ForbiddenError:
+      type: object
+      properties:
+        statusCode: { type: integer, example: 403 }
+        message: { type: string, example: "Insufficient permissions" }
+    NotFoundError:
+      type: object
+      properties:
+        statusCode: { type: integer, example: 404 }
+        message: { type: string, example: "Resource not found" }
+    ConflictError:
+      type: object
+      properties:
+        statusCode: { type: integer, example: 409 }
+        message: { type: string, example: "Resource conflict" }
+    UnprocessableEntityError:
+      type: object
+      properties:
+        statusCode: { type: integer, example: 422 }
+        message: { type: string, example: "Business rule violation" }
+        errors: { type: array, items: { type: string } }
+    InternalServerError:
+      type: object
+      properties:
+        statusCode: { type: integer, example: 500 }
+        message: { type: string, example: "Internal server error" }
+
+  responses:
+    # All standard error responses below are reusable across any endpoint via $ref.
+    # Use '#/components/responses/{ErrorName}' in any path's responses section.
+    BadRequest:
+      description: Bad request — validation error
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/BadRequestError' }
+    Unauthorized:
+      description: Unauthorized — invalid or missing token
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/UnauthorizedError' }
+    Forbidden:
+      description: Forbidden — insufficient permissions
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ForbiddenError' }
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/NotFoundError' }
+    Conflict:
+      description: Resource conflict
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ConflictError' }
+    UnprocessableEntity:
+      description: Unprocessable entity — business rule violation
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/UnprocessableEntityError' }
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/InternalServerError' }
+    RateLimitError:
+      description: Too many requests
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/RateLimitError'
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+
+paths:
+  # ─── AUTH ───
+  /auth/register:
+    post:
+      tags: [Auth]
+      summary: Register new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RegisterDto' }
+      responses:
+        '201':
+          description: Registered successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { $ref: '#/components/schemas/TokenResponse' }
+          headers:
+            X-RateLimit-Limit:
+              schema: { type: integer }
+            X-RateLimit-Remaining:
+              schema: { type: integer }
+            X-RateLimit-Reset:
+              schema: { type: integer }
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '429':
+          description: Too many requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RateLimitError'
+          headers:
+            Retry-After:
+              schema: { type: integer }
+
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LoginDto' }
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { $ref: '#/components/schemas/TokenResponse' }
+          headers:
+            X-RateLimit-Limit:
+              schema: { type: integer }
+            X-RateLimit-Remaining:
+              schema: { type: integer }
+            X-RateLimit-Reset:
+              schema: { type: integer }
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '429':
+          description: Too many requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RateLimitError'
+          headers:
+            Retry-After:
+              schema: { type: integer }
+
+  /auth/refresh:
+    post:
+      tags: [Auth]
+      summary: Refresh access token
+      security:
+        - RefreshToken: []
+      responses:
+        '200':
+          description: Token refreshed
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /auth/verify-phone:
+    post:
+      tags: [Auth]
+      summary: Verify phone with OTP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/VerifyPhoneDto' }
+      responses:
+        '200':
+          description: Phone verified
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /auth/logout:
+    post:
+      tags: [Auth]
+      summary: Logout (invalidate refresh token)
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Logged out
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /auth/forgot-password:
+    post:
+      tags: [Auth]
+      summary: Request password reset OTP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [phone]
+              properties:
+                phone: { type: string }
+      responses:
+        '200':
+          description: OTP sent to phone
+          headers:
+            X-RateLimit-Limit:
+              schema: { type: integer }
+            X-RateLimit-Remaining:
+              schema: { type: integer }
+            X-RateLimit-Reset:
+              schema: { type: integer }
+        '429':
+          description: Too many requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RateLimitError'
+          headers:
+            Retry-After:
+              schema: { type: integer }
+
+  /auth/reset-password:
+    post:
+      tags: [Auth]
+      summary: Reset password with OTP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [phone, code, newPassword]
+              properties:
+                phone: { type: string }
+                code: { type: string }
+                newPassword:
+                  type: string
+                  minLength: 8
+                  pattern: '^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$'
+                  description: "Minimum 8 characters, at least one uppercase letter, one lowercase letter, one digit, and one special character"
+      responses:
+        '200':
+          description: Password reset successfully
+          headers:
+            X-RateLimit-Limit:
+              schema: { type: integer }
+            X-RateLimit-Remaining:
+              schema: { type: integer }
+            X-RateLimit-Reset:
+              schema: { type: integer }
+        '429':
+          description: Too many requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RateLimitError'
+          headers:
+            Retry-After:
+              schema: { type: integer }
+
+  /auth/change-password:
+    post:
+      tags: [Auth]
+      summary: Change password (authenticated)
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [currentPassword, newPassword]
+              properties:
+                currentPassword: { type: string }
+                newPassword:
+                  type: string
+                  minLength: 8
+                  pattern: '^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$'
+                  description: "Minimum 8 characters, at least one uppercase letter, one lowercase letter, one digit, and one special character"
+      responses:
+        '200':
+          description: Password changed
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  # ─── USERS ───
+  /users/me:
+    get:
+      tags: [Users]
+      summary: Get current user profile
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: User profile
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { $ref: '#/components/schemas/UserResponse' }
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+    patch:
+      tags: [Users]
+      summary: Update user profile
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateProfileDto' }
+      responses:
+        '200':
+          description: Profile updated
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /users/me/roles:
+    get:
+      tags: [Users]
+      summary: Get current user roles
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: User roles list
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /users/me/device-tokens:
+    post:
+      tags: [Users]
+      summary: Register FCM device token
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token, platform]
+              properties:
+                token: { type: string }
+                platform: { type: string, enum: [ios, android] }
+      responses:
+        '201':
+          description: Token registered
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /users/me/export:
+    get:
+      tags: [Users]
+      summary: Export all user data (GDPR)
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: User data export
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: object
+                    description: Full user data including profile, orders, payments, etc.
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  # ─── ADDRESSES ───
+  /addresses:
+    get:
+      tags: [Addresses]
+      summary: List user addresses
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Address list
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+    post:
+      tags: [Addresses]
+      summary: Create address
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AddressDto' }
+      responses:
+        '201':
+          description: Address created
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /addresses/{id}:
+    patch:
+      tags: [Addresses]
+      summary: Update address
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AddressDto' }
+      responses:
+        '200':
+          description: Address updated
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+    delete:
+      tags: [Addresses]
+      summary: Delete address
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '204':
+          description: Address deleted
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  # ─── SERVICES ───
+  /services/types:
+    get:
+      tags: [Services]
+      summary: List service types with services
+      responses:
+        '200':
+          description: Service types list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/ServiceTypeResponse' }
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /services:
+    get:
+      tags: [Services]
+      summary: List all services
+      parameters:
+        - name: serviceTypeId
+          in: query
+          schema: { type: string }
+        - name: isActive
+          in: query
+          schema: { type: boolean }
+      responses:
+        '200':
+          description: Services list
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /services/search:
+    get:
+      tags: [Services]
+      summary: Search services by name or keyword
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema: { type: string }
+        - name: serviceTypeId
+          in: query
+          schema: { type: string }
+      responses:
+        '200':
+          description: Search results
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /services/{id}/calculate-price:
+    post:
+      tags: [Services]
+      summary: Calculate service price
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                area: { type: number }
+                rooms: { type: integer }
+                extras: { type: array, items: { type: string } }
+      responses:
+        '200':
+          description: Price calculation
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  # ─── CATEGORIES ───
+  /categories:
+    get:
+      tags: [Categories]
+      summary: List all categories (tree)
+      responses:
+        '200':
+          description: Category tree
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  # ─── PRODUCTS ───
+  /products:
+    get:
+      tags: [Products]
+      summary: List products (with filters)
+      parameters:
+        - name: categoryId
+          in: query
+          schema: { type: string }
+        - name: search
+          in: query
+          schema: { type: string }
+        - name: minPrice
+          in: query
+          schema: { type: number }
+        - name: maxPrice
+          in: query
+          schema: { type: number }
+        - name: sellerId
+          in: query
+          schema: { type: string }
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+            enum: [price_asc, price_desc, rating, newest, popular]
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 20 }
+      responses:
+        '200':
+          description: Paginated products
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /products/{slug}:
+    get:
+      tags: [Products]
+      summary: Get product by slug
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Product details
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  # ─── ORDERS ───
+  /orders:
+    post:
+      tags: [Orders]
+      summary: Create order (service, product, or mixed)
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - { $ref: '#/components/schemas/CreateServiceOrderDto' }
+                - { $ref: '#/components/schemas/CreateProductOrderDto' }
+                - { $ref: '#/components/schemas/CreateMixedOrderDto' }
+              discriminator:
+                propertyName: type
+                mapping:
+                  service: '#/components/schemas/CreateServiceOrderDto'
+                  product: '#/components/schemas/CreateProductOrderDto'
+                  mixed: '#/components/schemas/CreateMixedOrderDto'
+      responses:
+        '201':
+          description: Order created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { $ref: '#/components/schemas/OrderResponse' }
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+    get:
+      tags: [Orders]
+      summary: List my orders (role-filtered)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          schema: { type: string }
+        - name: type
+          in: query
+          schema: { type: string, enum: [service, product, mixed] }
+        - name: page
+          in: query
+          schema: { type: integer }
+        - name: limit
+          in: query
+          schema: { type: integer }
+      responses:
+        '200':
+          description: Paginated orders
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /orders/{id}:
+    get:
+      tags: [Orders]
+      summary: Get order details
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Order details
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /orders/{id}/cancel:
+    post:
+      tags: [Orders]
+      summary: Cancel order
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason: { type: string }
+      responses:
+        '200':
+          description: Order cancelled
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /orders/{id}/accept:
+    post:
+      tags: [Orders]
+      summary: Accept order (provider/courier)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Order accepted
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /orders/{id}/status:
+    patch:
+      tags: [Orders]
+      summary: Update order status
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status: { type: string }
+                notes: { type: string }
+      responses:
+        '200':
+          description: Status updated
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  # ─── TRACKING ───
+  /tracking/{orderId}/start:
+    post:
+      tags: [Tracking]
+      summary: Start tracking for order
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Tracking started
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /tracking/{orderId}:
+    get:
+      tags: [Tracking]
+      summary: Get current tracking info
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Current tracking state
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { $ref: '#/components/schemas/TrackingResponse' }
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /tracking/{orderId}/route:
+    get:
+      tags: [Tracking]
+      summary: Get saved route points
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Route points
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  # ─── CHAT ───
+  /chats/{orderId}:
+    get:
+      tags: [Chat]
+      summary: Get chat for order
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Chat with messages
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /chats/{chatId}/messages:
+    get:
+      tags: [Chat]
+      summary: Get chat messages
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: chatId
+          in: path
+          required: true
+          schema: { type: string }
+        - name: before
+          in: query
+          schema: { type: string, format: date-time }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 50 }
+      responses:
+        '200':
+          description: Messages list
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+    post:
+      tags: [Chat]
+      summary: Send message
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: chatId
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SendMessageDto' }
+      responses:
+        '201':
+          description: Message sent
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /chats/{chatId}/messages/{messageId}/read:
+    post:
+      tags: [Chat]
+      summary: Mark message as read
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: chatId
+          in: path
+          required: true
+          schema: { type: string }
+        - name: messageId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Message marked read
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /chats/unread-count:
+    get:
+      tags: [Chat]
+      summary: Get unread messages count
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Unread count per chat
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  # ─── PAYMENTS ───
+  /payments/init:
+    post:
+      tags: [Payments]
+      summary: Initialize payment
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/InitPaymentDto' }
+      responses:
+        '200':
+          description: Payment URL or form
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /payments/{id}/status:
+    get:
+      tags: [Payments]
+      summary: Check payment status
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Payment status
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /payments/webhook/click:
+    post:
+      tags: [Payments]
+      summary: Click webhook handler
+      description: |
+        SECURITY: IP whitelisted (Click IPs only). HMAC signature verified. Nonce + timestamp replay protection (5min TTL).
+        Idempotency: duplicate webhooks ignored via providerTransactionId.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Webhook processed
+        '401':
+          description: Invalid signature
+        '409':
+          description: Duplicate webhook
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /payments/webhook/payme:
+    post:
+      tags: [Payments]
+      summary: Payme webhook handler
+      description: |
+        SECURITY: IP whitelisted (Payme IPs only). HMAC signature verified. Nonce + timestamp replay protection (5min TTL).
+        Idempotency: duplicate webhooks ignored via providerTransactionId.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Webhook processed
+        '401':
+          description: Invalid signature
+        '409':
+          description: Duplicate webhook
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  # ─── KYC ───
+  /kyc/documents:
+    get:
+      tags: [KYC]
+      summary: List my KYC documents
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: KYC documents list
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+    post:
+      tags: [KYC]
+      summary: Submit KYC document
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SubmitKYCDto' }
+      responses:
+        '201':
+          description: Document submitted
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /kyc/documents/{id}:
+    get:
+      tags: [KYC]
+      summary: Get KYC document details
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Document details
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /kyc/status:
+    get:
+      tags: [KYC]
+      summary: Get overall KYC status
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: KYC status summary
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  # ─── SELLER ───
+  /seller/profile:
+    get:
+      tags: [Seller]
+      summary: Get seller profile
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Seller profile
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { $ref: '#/components/schemas/SellerProfileResponse' }
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+    post:
+      tags: [Seller]
+      summary: Create seller profile
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [shopName]
+              properties:
+                shopName: { type: string }
+      responses:
+        '201':
+          description: Seller profile created
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+    patch:
+      tags: [Seller]
+      summary: Update seller profile
+      security:
+        - BearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateSellerProfileDto' }
+      responses:
+        '200':
+          description: Profile updated
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /seller/products:
+    get:
+      tags: [Seller]
+      summary: List seller's products
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          schema: { type: string }
+        - name: page
+          in: query
+          schema: { type: integer }
+      responses:
+        '200':
+          description: Seller's products
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+    post:
+      tags: [Seller]
+      summary: Create product
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ProductCreateDto' }
+      responses:
+        '201':
+          description: Product created
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /seller/products/{id}:
+    patch:
+      tags: [Seller]
+      summary: Update product
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ProductCreateDto' }
+      responses:
+        '200':
+          description: Product updated
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+    delete:
+      tags: [Seller]
+      summary: Delete product (archive)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '204':
+          description: Product archived
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /seller/orders:
+    get:
+      tags: [Seller]
+      summary: List seller's orders (products ordered from seller)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          schema: { type: string }
+        - name: page
+          in: query
+          schema: { type: integer }
+      responses:
+        '200':
+          description: Orders list
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /seller/orders/{id}/mark-ready:
+    post:
+      tags: [Seller]
+      summary: Mark order item as ready for pickup
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Item marked ready
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /seller/analytics:
+    get:
+      tags: [Seller]
+      summary: Get seller analytics
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: period
+          in: query
+          schema:
+            type: string
+            enum: [today, week, month, all]
+      responses:
+        '200':
+          description: Analytics data
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /seller/payouts:
+    get:
+      tags: [Seller]
+      summary: List payouts
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Payout history
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  # ─── ADMIN ───
+  /admin/kyc/pending:
+    get:
+      tags: [Admin]
+      summary: Get pending KYC documents
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Pending KYC list
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /admin/kyc/{id}/review:
+    post:
+      tags: [Admin]
+      summary: Review KYC document
+      security:
+        - BearerAuth: []
+      x-roles: [super_admin]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status: { type: string, enum: [approved, rejected] }
+                rejectionReason: { type: string }
+      responses:
+        '200':
+          description: KYC reviewed
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /admin/sellers/pending:
+    get:
+      tags: [Admin]
+      summary: Get sellers pending verification
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Pending sellers
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /admin/sellers/{id}/verify:
+    post:
+      tags: [Admin]
+      summary: Verify seller
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Seller verified
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /admin/products/pending:
+    get:
+      tags: [Admin]
+      summary: Get pending product approvals
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Pending products
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /admin/products/{id}/moderate:
+    post:
+      tags: [Admin]
+      summary: Moderate product
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status: { type: string, enum: [approved, rejected] }
+                rejectionReason: { type: string }
+      responses:
+        '200':
+          description: Product moderated
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /admin/config:
+    get:
+      tags: [Admin]
+      summary: Get system config
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: System configuration
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+    patch:
+      tags: [Admin]
+      summary: Update system config
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                key: { type: string }
+                value: {}
+      responses:
+        '200':
+          description: Config updated
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  # ─── PROMO / COUPONS ───
+  /promos/validate:
+    post:
+      tags: [Promos]
+      summary: Validate and apply promo code
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [code, orderTotal]
+              properties:
+                code: { type: string }
+                orderTotal: { type: number }
+      responses:
+        '200':
+          description: Promo code valid
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  valid: { type: boolean }
+                  discount: { type: number }
+                  description: { type: string }
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /promos:
+    get:
+      tags: [Promos]
+      summary: List available promos for user
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Available promo codes
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /products/featured:
+    get:
+      tags: [Products]
+      summary: List featured/promoted products for home page
+      parameters:
+        - name: limit
+          in: query
+          schema: { type: integer, default: 10 }
+      responses:
+        '200':
+          description: Featured products list
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  # ─── HEALTH ───
+  /health:
+    get:
+      tags: [System]
+      summary: Health check
+      responses:
+        '200':
+          description: Service healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, example: ok }
+                  uptime: { type: number }
+                  timestamp: { type: string, format: date-time }
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /health/ready:
+    get:
+      tags: [System]
+      summary: Readiness check (DB + Redis + MinIO)
+      responses:
+        '200':
+          description: All dependencies healthy
+        '503':
+          description: Service not ready
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  # ─── REVIEWS ───
+  /reviews:
+    post:
+      tags: [Reviews]
+      summary: Create review
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [orderId, rating]
+              properties:
+                orderId: { type: string }
+                toUserId: { type: string }
+                rating: { type: integer }
+                comment: { type: string }
+                isAnonymous: { type: boolean }
+      responses:
+        '201':
+          description: Review created
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /reviews/user/{userId}:
+    get:
+      tags: [Reviews]
+      summary: Get user reviews
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: User reviews
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  # ─── NOTIFICATIONS ───
+  /notifications:
+    get:
+      tags: [Notifications]
+      summary: List my notifications
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema: { type: integer }
+        - name: limit
+          in: query
+          schema: { type: integer }
+      responses:
+        '200':
+          description: Notifications list
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /notifications/read-all:
+    post:
+      tags: [Notifications]
+      summary: Mark all notifications as read
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: All marked read
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /notifications/unread-count:
+    get:
+      tags: [Notifications]
+      summary: Get unread notifications count
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Unread count
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  # ─── FILES ───
+  /files/upload:
+    post:
+      tags: [Files]
+      summary: Upload file
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                folder:
+                  type: string
+                  enum: [avatars, products, services, kyc, chat]
+      responses:
+        '201':
+          description: File uploaded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: object
+                    properties:
+                      url: { type: string }
+                      filename: { type: string }
+                      size: { type: integer }
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+    get:
+      tags: [Files]
+      summary: List uploaded files
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: folder
+          in: query
+          schema: { type: string }
+      responses:
+        '200':
+          description: Files list
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  # ─── ANALYTICS ───
+  /analytics/overview:
+    get:
+      tags: [Analytics]
+      summary: Get dashboard overview
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Dashboard data
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /analytics/revenue:
+    get:
+      tags: [Analytics]
+      summary: Get revenue analytics
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: period
+          in: query
+          schema:
+            type: string
+            enum: [day, week, month, year]
+        - name: from
+          in: query
+          schema: { type: string, format: date }
+        - name: to
+          in: query
+          schema: { type: string, format: date }
+      responses:
+        '200':
+          description: Revenue data
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /analytics/orders:
+    get:
+      tags: [Analytics]
+      summary: Get order analytics
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: period
+          in: query
+          schema: { type: string }
+      responses:
+        '200':
+          description: Order analytics
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  # ─── COURIER ───
+  /courier/availability:
+    get:
+      tags: [Courier]
+      summary: Get courier availability status
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Availability status
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+    post:
+      tags: [Courier]
+      summary: Toggle courier availability
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [isAvailable]
+              properties:
+                isAvailable: { type: boolean }
+                currentLat: { type: number }
+                currentLng: { type: number }
+      responses:
+        '200':
+          description: Availability updated
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /courier/earnings:
+    get:
+      tags: [Courier]
+      summary: Get courier earnings
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: period
+          in: query
+          schema: { type: string, enum: [today, week, month] }
+      responses:
+        '200':
+          description: Earnings summary
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  # ─── PROVIDER ───
+  /provider/profile:
+    get:
+      tags: [Provider]
+      summary: Get provider profile
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Provider profile
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+    post:
+      tags: [Provider]
+      summary: Create/update provider profile
+      security:
+        - BearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                bio: { type: string }
+                experienceYears: { type: integer }
+                serviceRadiusKm: { type: number }
+                maxOrdersPerSlot: { type: integer }
+      responses:
+        '200':
+          description: Profile updated
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /provider/availability:
+    get:
+      tags: [Provider]
+      summary: Get provider weekly schedule
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Weekly schedule
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+    post:
+      tags: [Provider]
+      summary: Update provider availability
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [dayOfWeek, startTime, endTime]
+              properties:
+                dayOfWeek: { type: integer }
+                startTime: { type: string }
+                endTime: { type: string }
+                isAvailable: { type: boolean }
+      responses:
+        '200':
+          description: Availability updated
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /provider/earnings:
+    get:
+      tags: [Provider]
+      summary: Get provider earnings
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Provider earnings
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  # ─── CART ───
+  /cart:
+    get:
+      tags: [Cart]
+      summary: Get current user's cart
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Current cart
+          headers:
+            X-RateLimit-Limit:
+              schema: { type: integer }
+            X-RateLimit-Remaining:
+              schema: { type: integer }
+            X-RateLimit-Reset:
+              schema: { type: integer }
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /cart/items:
+    post:
+      tags: [Cart]
+      summary: Add item to cart
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [productId, quantity]
+              properties:
+                productId: { type: string }
+                variantId: { type: string }
+                quantity: { type: integer, minimum: 1 }
+      responses:
+        '201':
+          description: Item added to cart
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /cart/items/{id}:
+    put:
+      tags: [Cart]
+      summary: Update cart item quantity
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [quantity]
+              properties:
+                quantity: { type: integer, minimum: 1 }
+      responses:
+        '200':
+          description: Cart item updated
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+    delete:
+      tags: [Cart]
+      summary: Remove item from cart
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '204':
+          description: Item removed from cart
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /cart:
+    delete:
+      tags: [Cart]
+      summary: Clear cart
+      security:
+        - BearerAuth: []
+      responses:
+        '204':
+          description: Cart cleared
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  # ─── WALLET ───
+  /wallet:
+    get:
+      tags: [Wallet]
+      summary: Get wallet balance
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Wallet balance
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /wallet/transactions:
+    get:
+      tags: [Wallet]
+      summary: List wallet transactions
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema: { type: integer }
+        - name: limit
+          in: query
+          schema: { type: integer }
+      responses:
+        '200':
+          description: Transaction list
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /wallet/withdraw:
+    post:
+      tags: [Wallet]
+      summary: Request withdrawal
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [amount]
+              properties:
+                amount: { type: number, minimum: 0.01 }
+                method: { type: string }
+                account: { type: string }
+      responses:
+        '201':
+          description: Withdrawal requested
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  # ─── PAYOUT ───
+  /payouts:
+    get:
+      tags: [Payout]
+      summary: List payouts for current user
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Payout list
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /payouts/batches:
+    get:
+      tags: [Payout]
+      summary: List payout batches
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Payout batch list
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /payouts/batches/{id}:
+    get:
+      tags: [Payout]
+      summary: Get payout batch details
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Payout batch details
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  # ─── DISPUTES ───
+  /disputes:
+    post:
+      tags: [Disputes]
+      summary: Create dispute
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [orderId, reason]
+              properties:
+                orderId: { type: string }
+                reason: { type: string }
+                description: { type: string }
+      responses:
+        '201':
+          description: Dispute created
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+    get:
+      tags: [Disputes]
+      summary: List user disputes
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Dispute list
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /disputes/{id}:
+    get:
+      tags: [Disputes]
+      summary: Get dispute details
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Dispute details
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /admin/disputes/{id}/resolve:
+    post:
+      tags: [Admin]
+      summary: Resolve dispute (admin)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [resolution]
+              properties:
+                resolution: { type: string, enum: [accepted, rejected, refunded] }
+                notes: { type: string }
+      responses:
+        '200':
+          description: Dispute resolved
+
+        '429':
+          $ref: '#/components/responses/RateLimitError'

@@ -1,0 +1,130 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: gloss-backend-blue-servicemonitor
+  namespace: gloss-production
+  labels:
+    app: gloss-backend
+    color: blue
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      app: gloss-backend
+      color: blue
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 15s
+      scheme: http
+      tlsConfig:
+        insecureSkipVerify: true
+  namespaceSelector:
+    matchNames:
+      - gloss-production
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: gloss-backend-green-servicemonitor
+  namespace: gloss-production
+  labels:
+    app: gloss-backend
+    color: green
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      app: gloss-backend
+      color: green
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 15s
+      scheme: http
+      tlsConfig:
+        insecureSkipVerify: true
+  namespaceSelector:
+    matchNames:
+      - gloss-production
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: gloss-nginx-servicemonitor
+  namespace: gloss-production
+  labels:
+    app: nginx
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      app: nginx
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 15s
+  namespaceSelector:
+    matchNames:
+      - gloss-production
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: gloss-postgres-servicemonitor
+  namespace: gloss-production
+  labels:
+    app: postgres
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      app: pgbouncer
+  endpoints:
+    - port: pgbouncer
+      path: /metrics
+      interval: 30s
+  namespaceSelector:
+    matchNames:
+      - gloss-production
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: gloss-redis-servicemonitor
+  namespace: gloss-production
+  labels:
+    app: redis
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      app: redis
+      role: primary
+  endpoints:
+    - port: redis
+      path: /metrics
+      interval: 30s
+  namespaceSelector:
+    matchNames:
+      - gloss-production
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: gloss-minio-servicemonitor
+  namespace: gloss-production
+  labels:
+    app: minio
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      app: minio
+  endpoints:
+    - port: api
+      path: /metrics
+      interval: 30s
+  namespaceSelector:
+    matchNames:
+      - gloss-production

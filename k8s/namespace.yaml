@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: gloss-production
+  labels:
+    name: gloss-production
+    environment: production
+    istio-injection: disabled
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: gloss-staging
+  labels:
+    name: gloss-staging
+    environment: staging
+    istio-injection: disabled
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: gloss-monitoring
+  labels:
+    name: gloss-monitoring
+    environment: monitoring

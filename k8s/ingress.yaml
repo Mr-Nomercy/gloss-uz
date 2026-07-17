@@ -1,0 +1,130 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: gloss-api-ingress
+  namespace: gloss-production
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "90"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "90"
+    nginx.ingress.kubernetes.io/upstream-hash-by: "$request_uri"
+    nginx.ingress.kubernetes.io/rate-limit: "200"
+    nginx.ingress.kubernetes.io/rate-limit-window: "1s"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      add_header X-Deployment-Color $upstream_cookie_color always;
+spec:
+  tls:
+    - hosts:
+        - api.gloss.uz
+        - gloss.uz
+      secretName: gloss-api-tls
+  rules:
+    - host: api.gloss.uz
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: gloss-backend-active
+                port:
+                  number: 3000
+    - host: gloss.uz
+      http:
+        paths:
+          - path: /api/
+            pathType: Prefix
+            backend:
+              service:
+                name: gloss-backend-active
+                port:
+                  number: 3000
+          - path: /socket.io/
+            pathType: Prefix
+            backend:
+              service:
+                name: gloss-backend-active
+                port:
+                  number: 3000
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: gloss-client-ingress
+  namespace: gloss-production
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+spec:
+  tls:
+    - hosts:
+        - client.gloss.uz
+      secretName: gloss-client-tls
+  rules:
+    - host: client.gloss.uz
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: gloss-client
+                port:
+                  number: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: gloss-provider-ingress
+  namespace: gloss-production
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+spec:
+  tls:
+    - hosts:
+        - provider.gloss.uz
+      secretName: gloss-provider-tls
+  rules:
+    - host: provider.gloss.uz
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: gloss-provider
+                port:
+                  number: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: gloss-seller-ingress
+  namespace: gloss-production
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+spec:
+  tls:
+    - hosts:
+        - seller.gloss.uz
+      secretName: gloss-seller-tls
+  rules:
+    - host: seller.gloss.uz
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: gloss-seller
+                port:
+                  number: 80

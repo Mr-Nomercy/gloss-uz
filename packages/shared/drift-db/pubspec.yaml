@@ -1,0 +1,21 @@
+name: drift_db
+version: 0.1.0
+description: Gloss local database (Drift) for offline support
+publish_to: none
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  drift: ^2.15.0
+  sqlite3_flutter_libs: ^0.5.18
+  path_provider: ^2.1.2
+  path: ^1.8.3
+
+dev_dependencies:
+  drift_dev: ^2.15.0
+  build_runner: ^2.4.8
+  flutter_test:
+    sdk: flutter
