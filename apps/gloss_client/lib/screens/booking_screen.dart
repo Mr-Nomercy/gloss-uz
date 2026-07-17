@@ -78,7 +78,14 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
         _appliedPromo = code;
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Promo kod qabul qilindi! $discount% chegirma'), backgroundColor: GlossColors.green, behavior: SnackBarBehavior.floating, shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(12)))),
+        SnackBar(
+          content: Text('Promo kod qabul qilindi! $discount% chegirma'),
+          backgroundColor: GlossColors.green,
+          behavior: SnackBarBehavior.floating,
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(12)),
+          ),
+        ),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
