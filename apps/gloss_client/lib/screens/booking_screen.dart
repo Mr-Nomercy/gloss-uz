@@ -1,22 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:ui_kit/ui_kit.dart';
+import '../providers/booking_provider.dart';
 import 'address_search_screen.dart';
 
-class BookingScreen extends StatefulWidget {
+class BookingScreen extends ConsumerStatefulWidget {
   final String serviceName;
   final String subcategoryName;
+  final String serviceId;
 
   const BookingScreen({
     super.key,
     this.serviceName = '',
     this.subcategoryName = '',
+    this.serviceId = '',
   });
 
   @override
-  State<BookingScreen> createState() => _BookingScreenState();
+  ConsumerState<BookingScreen> createState() => _BookingScreenState();
 }
 
-class _BookingScreenState extends State<BookingScreen> {
+class _BookingScreenState extends ConsumerState<BookingScreen> {
   int _selectedTariff = 0;
   DateTime _selectedDate = DateTime.now();
   AddressResult? _addressResult;
@@ -46,6 +51,14 @@ class _BookingScreenState extends State<BookingScreen> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    if (widget.serviceId.isNotEmpty) {
+      ref.read(bookingProvider.notifier).setService(widget.serviceId, widget.serviceName);
+    }
+  }
+
+  @override
   void dispose() {
     _timeController.dispose();
     _notesController.dispose();
@@ -53,19 +66,45 @@ class _BookingScreenState extends State<BookingScreen> {
     super.dispose();
   }
 
-  void _applyPromo() {
+  void _applyPromo() async {
     final code = _promoController.text.trim().toUpperCase();
     if (code.isEmpty) return;
-    setState(() {
-      _discountPercent = 10;
-      _appliedPromo = code;
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Promo kod qabul qilindi! 10% chegirma'), backgroundColor: GlossColors.green, behavior: SnackBarBehavior.floating, shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(12)))),
-    );
+    final success = await ref.read(bookingProvider.notifier).validatePromoCode(code);
+    if (!mounted) return;
+    if (success) {
+      final discount = ref.read(bookingProvider).discountPercent;
+      setState(() {
+        _discountPercent = discount?.toInt();
+        _appliedPromo = code;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Promo kod qabul qilindi! $discount% chegirma'),
+            backgroundColor: GlossColors.green,
+            behavior: SnackBarBehavior.floating,
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(12)),
+            ),
+          ),
+        );
+      }
+    } else if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Promo kod noto'g'ri yoki muddati tugagan"),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(12)),
+          ),
+        ),
+      );
+    }
   }
 
   void _removePromo() {
+    ref.read(bookingProvider.notifier).removePromo();
     setState(() { _discountPercent = null; _appliedPromo = null; _promoController.clear(); });
   }
 
@@ -92,7 +131,15 @@ class _BookingScreenState extends State<BookingScreen> {
       context,
       MaterialPageRoute(builder: (_) => const AddressSearchScreen()),
     );
-    if (result != null && mounted) setState(() => _addressResult = result);
+    if (result != null && mounted) {
+      setState(() => _addressResult = result);
+      ref.read(bookingProvider.notifier).setAddress(
+        'temp_address',
+        result.address,
+        result.lat,
+        result.lng,
+      );
+    }
   }
 
   void _showPaymentPicker() {
@@ -109,19 +156,23 @@ class _BookingScreenState extends State<BookingScreen> {
             Container(width: 40, height: 4, margin: const EdgeInsets.only(bottom: 20), decoration: BoxDecoration(color: GlossColors.border, borderRadius: BorderRadius.circular(2))),
             const Text("To'lov usulini tanlang", style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: GlossColors.text)),
             const SizedBox(height: 16),
-            _paymentOption('Naqt', Icons.money_rounded, "To'lovni naqd pulda amalga oshiring"),
+            _paymentOption('Naqt', Icons.money_rounded, "To'lovni naqd pulda amalga oshiring", 'cash'),
             const SizedBox(height: 8),
-            _paymentOption('Plastik karta', Icons.credit_card_rounded, 'Visa, Mastercard, UzCard'),
+            _paymentOption('Plastik karta', Icons.credit_card_rounded, 'Visa, Mastercard, UzCard', 'card'),
           ],
         ),
       ),
     );
   }
 
-  Widget _paymentOption(String name, IconData icon, String desc) {
+  Widget _paymentOption(String name, IconData icon, String desc, String value) {
     final selected = _paymentMethod == name;
     return GestureDetector(
-      onTap: () { setState(() => _paymentMethod = name); Navigator.pop(context); },
+      onTap: () {
+        setState(() => _paymentMethod = name);
+        ref.read(bookingProvider.notifier).setPaymentMethod(value);
+        Navigator.pop(context);
+      },
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
@@ -151,6 +202,35 @@ class _BookingScreenState extends State<BookingScreen> {
 
   String formatDate(DateTime d) {
     return '${d.day}.${d.month}.${d.year}';
+  }
+
+  bool get _bookingLoading => ref.watch(bookingProvider).isLoading;
+
+  Future<void> _submitOrder() async {
+    if (_addressResult == null) return;
+    ref.read(bookingProvider.notifier).setDateTime(_selectedDate, _timeController.text);
+    final orderId = await ref.read(bookingProvider.notifier).createOrder();
+    if (!mounted) return;
+    if (orderId != null) {
+      context.push('/order', extra: {
+        'orderId': orderId,
+        'serviceName': widget.serviceName,
+      });
+    } else {
+      final error = ref.read(bookingProvider).error;
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(error ?? 'Xatolik yuz berdi'),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(12)),
+            ),
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -406,14 +486,23 @@ class _BookingScreenState extends State<BookingScreen> {
               child: SizedBox(
                 width: double.infinity, height: 52,
                 child: ElevatedButton(
-                  onPressed: () {},
+                  onPressed: _addressResult != null && !_bookingLoading ? _submitOrder : null,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: GlossColors.green,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                     elevation: 0,
                   ),
-                  child: Text('Buyurtma berish — $_discountedPrice so\'m', style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
+                  child: _bookingLoading
+                      ? const SizedBox(
+                          width: 22,
+                          height: 22,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : Text('Buyurtma berish — $_discountedPrice so\'m', style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
                 ),
               ),
             ),
