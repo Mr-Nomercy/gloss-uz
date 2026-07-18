@@ -153,27 +153,36 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: theme.text),
                 ),
                 const SizedBox(height: 16),
-                RadioListTile<String>(
-                  title: const Text("O'zbekcha"),
-                  value: "O'zbekcha",
+                RadioGroup<String>(
                   groupValue: _selectedLanguage,
-                  toggleable: true,
-                  activeColor: theme.green,
                   onChanged: (v) {
                     setState(() => _selectedLanguage = v!);
                     Navigator.pop(ctx);
                   },
-                ),
-                RadioListTile<String>(
-                  title: const Text('Русский'),
-                  value: 'Русский',
-                  groupValue: _selectedLanguage,
-                  toggleable: true,
-                  activeColor: theme.green,
-                  onChanged: (v) {
-                    setState(() => _selectedLanguage = v!);
-                    Navigator.pop(ctx);
-                  },
+                  child: Column(
+                    children: [
+                      ListTile(
+                        title: const Text("O'zbekcha"),
+                        leading: Radio<String>(
+                          value: "O'zbekcha",
+                          activeColor: theme.green,
+                        ),
+                        onTap: () {
+                          Navigator.pop(ctx);
+                        },
+                      ),
+                      ListTile(
+                        title: const Text('Русский'),
+                        leading: Radio<String>(
+                          value: 'Русский',
+                          activeColor: theme.green,
+                        ),
+                        onTap: () {
+                          Navigator.pop(ctx);
+                        },
+                      ),
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 8),
               ],

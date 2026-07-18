@@ -48,52 +48,52 @@ class SellerDashboardScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          Row(
+          const Row(
             children: [
               Expanded(
                 child: GlossStatCard(
                   label: 'Mahsulotlar',
                   value: '12',
                   icon: Icons.inventory,
-                  padding: const EdgeInsets.symmetric(vertical: 20),
+                  padding: EdgeInsets.symmetric(vertical: 20),
                 ),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: 12),
               Expanded(
                 child: GlossStatCard(
                   label: 'Buyurtmalar',
                   value: '45',
                   icon: Icons.receipt,
-                  padding: const EdgeInsets.symmetric(vertical: 20),
+                  padding: EdgeInsets.symmetric(vertical: 20),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 12),
-          Row(
+          const Row(
             children: [
               Expanded(
                 child: GlossStatCard(
                   label: 'Daromad',
                   value: '2.5M',
                   icon: Icons.money,
-                  padding: const EdgeInsets.symmetric(vertical: 20),
+                  padding: EdgeInsets.symmetric(vertical: 20),
                 ),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: 12),
               Expanded(
                 child: GlossStatCard(
                   label: 'Reyting',
                   value: '4.8',
                   icon: Icons.star,
                   color: GlossColors.star,
-                  padding: const EdgeInsets.symmetric(vertical: 20),
+                  padding: EdgeInsets.symmetric(vertical: 20),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 24),
-          GlossButton(
+          const GlossButton(
             label: "Mahsulot qo'shish",
             onPressed: null,
           ),
