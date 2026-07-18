@@ -56,26 +56,40 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 color: theme.greenBgLight,
                 borderRadius: BorderRadius.circular(20),
               ),
-              child: const Icon(Icons.person_add_alt_rounded, color: GlossColors.green, size: 40),
+              child: Icon(Icons.person_add_alt_rounded, color: theme.green, size: 40),
             ),
             const SizedBox(height: 24),
-            const Text(
+            Text(
               'Hisob yaratish',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: GlossColors.text),
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: theme.text),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
-            const Text(
+            Text(
               "Ma'lumotlaringizni kiriting",
-              style: TextStyle(fontSize: 15, color: GlossColors.hint),
+              style: TextStyle(fontSize: 15, color: theme.hint),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 32),
-            _buildTextField(theme, label: 'Telefon raqam', hint: '+998 XX XXX XX XX', controller: _phoneController, phone: true),
+            GlossTextField(
+              label: 'Telefon raqam',
+              hint: '+998 XX XXX XX XX',
+              controller: _phoneController,
+              keyboardType: TextInputType.phone,
+            ),
             const SizedBox(height: 16),
-            _buildTextField(theme, label: 'Ism familiya', hint: 'Ismingizni kiriting', controller: _nameController),
+            GlossTextField(
+              label: 'Ism familiya',
+              hint: 'Ismingizni kiriting',
+              controller: _nameController,
+            ),
             const SizedBox(height: 16),
-            _buildTextField(theme, label: 'Parol', controller: _passwordController, obscure: true),
+            GlossTextField(
+              label: 'Parol',
+              hint: 'Parolingizni kiriting',
+              controller: _passwordController,
+              obscureText: true,
+            ),
             const SizedBox(height: 16),
             Row(
               children: [
@@ -93,22 +107,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ],
             ),
             const SizedBox(height: 24),
-            SizedBox(
-              height: 52,
-              child: ElevatedButton(
-                onPressed: _isLoading ? null : () => context.go('/'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: theme.green,
-                  foregroundColor: Colors.white,
-                  disabledBackgroundColor: theme.grayLight,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                  elevation: 0,
-                  textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
-                ),
-                child: _isLoading
-                    ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                    : const Text("Ro'yxatdan o'tish"),
-              ),
+            GlossButton(
+              label: "Ro'yxatdan o'tish",
+              isLoading: _isLoading,
+              onPressed: _isLoading ? null : () => context.go('/'),
             ),
             const SizedBox(height: 16),
             TextButton(
@@ -120,43 +122,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildTextField(GlossTheme theme, {
-    required String label,
-    String? hint,
-    required TextEditingController controller,
-    bool obscure = false,
-    bool phone = false,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: theme.bg,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: theme.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(label, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: theme.hint)),
-          const SizedBox(height: 8),
-          TextField(
-            controller: controller,
-            keyboardType: phone ? TextInputType.phone : TextInputType.text,
-            obscureText: obscure,
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: theme.text),
-            decoration: InputDecoration(
-              border: InputBorder.none,
-              hintText: hint,
-              hintStyle: TextStyle(color: theme.disabled, fontWeight: FontWeight.w400),
-              isDense: true,
-              contentPadding: EdgeInsets.zero,
-            ),
-          ),
-        ],
       ),
     );
   }

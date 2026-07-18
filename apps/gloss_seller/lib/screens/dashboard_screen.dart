@@ -50,33 +50,52 @@ class SellerDashboardScreen extends StatelessWidget {
           const SizedBox(height: 16),
           Row(
             children: [
-              Expanded(child: _buildStatCard(theme, 'Mahsulotlar', '12', Icons.inventory)),
+              Expanded(
+                child: GlossStatCard(
+                  label: 'Mahsulotlar',
+                  value: '12',
+                  icon: Icons.inventory,
+                  padding: const EdgeInsets.symmetric(vertical: 20),
+                ),
+              ),
               const SizedBox(width: 12),
-              Expanded(child: _buildStatCard(theme, 'Buyurtmalar', '45', Icons.receipt)),
+              Expanded(
+                child: GlossStatCard(
+                  label: 'Buyurtmalar',
+                  value: '45',
+                  icon: Icons.receipt,
+                  padding: const EdgeInsets.symmetric(vertical: 20),
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 12),
           Row(
             children: [
-              Expanded(child: _buildStatCard(theme, 'Daromad', '2.5M', Icons.money)),
+              Expanded(
+                child: GlossStatCard(
+                  label: 'Daromad',
+                  value: '2.5M',
+                  icon: Icons.money,
+                  padding: const EdgeInsets.symmetric(vertical: 20),
+                ),
+              ),
               const SizedBox(width: 12),
-              Expanded(child: _buildStatCard(theme, 'Reyting', '4.8', Icons.star)),
+              Expanded(
+                child: GlossStatCard(
+                  label: 'Reyting',
+                  value: '4.8',
+                  icon: Icons.star,
+                  color: GlossColors.star,
+                  padding: const EdgeInsets.symmetric(vertical: 20),
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 24),
-          SizedBox(
-            height: 52,
-            child: ElevatedButton(
-              onPressed: () => context.go('/seller/add-product'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: theme.green,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                elevation: 0,
-                textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
-              ),
-              child: const Text("Mahsulot qo'shish"),
-            ),
+          GlossButton(
+            label: "Mahsulot qo'shish",
+            onPressed: () => context.go('/seller/add-product'),
           ),
           const SizedBox(height: 12),
           SizedBox(
@@ -85,32 +104,12 @@ class SellerDashboardScreen extends StatelessWidget {
               onPressed: () => context.go('/seller/kyc'),
               style: OutlinedButton.styleFrom(
                 foregroundColor: theme.green,
-                side: BorderSide(color: theme.green.withAlpha(75)),
+                side: BorderSide(color: theme.green.withValues(alpha: 0.30)),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                 textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
               ),
               child: const Text('KYC tekshiruvi'),
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatCard(GlossTheme theme, String title, String value, IconData icon) {
-    return GlossCard(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        children: [
-          Icon(icon, color: theme.green, size: 28),
-          const SizedBox(height: 8),
-          Text(
-            value,
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: theme.text, height: 1.3),
-          ),
-          Text(
-            title,
-            style: TextStyle(fontSize: 12, fontWeight: FontWeight.normal, color: theme.hint, height: 1.4),
           ),
         ],
       ),

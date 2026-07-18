@@ -31,7 +31,7 @@ class _SplashScreenState extends State<SplashScreen> {
             Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: Colors.white.withAlpha(30),
+                color: Colors.white.withValues(alpha: 0.12),
                 shape: BoxShape.circle,
               ),
               child: const Icon(Icons.cleaning_services_rounded, size: 64, color: Colors.white),
@@ -51,7 +51,7 @@ class _SplashScreenState extends State<SplashScreen> {
               'Tozalash xizmati',
               style: TextStyle(
                 fontSize: 16,
-                color: Colors.white.withAlpha(200),
+                color: Colors.white.withValues(alpha: 0.78),
                 fontWeight: FontWeight.w500,
               ),
             ),

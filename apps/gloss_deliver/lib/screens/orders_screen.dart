@@ -117,10 +117,10 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 decoration: BoxDecoration(
-                  color: statusColor.withAlpha(30),
+                  color: statusColor.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Text(o.status, style: TextStyle(fontSize: 12, color: statusColor, fontWeight: FontWeight.w600)),
+                child: GlossBadge.status(o.status),
               ),
             ],
           ),
@@ -196,8 +196,8 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                       const SizedBox(height: 4),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(color: statusColor.withAlpha(30), borderRadius: BorderRadius.circular(6)),
-                        child: Text(o.status, style: TextStyle(fontSize: 12, color: statusColor, fontWeight: FontWeight.w600)),
+                        decoration: BoxDecoration(color: statusColor.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(6)),
+                        child: GlossBadge.status(o.status),
                       ),
                     ],
                   ),

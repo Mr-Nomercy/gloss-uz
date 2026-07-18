@@ -74,7 +74,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: GlossColors.green.withAlpha(16),
+                  color: GlossColors.green.withValues(alpha: 0.06),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: const Icon(Icons.phone_android_rounded, color: GlossColors.green, size: 40),
@@ -131,22 +131,10 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                 Text(_error!, style: const TextStyle(color: Colors.red, fontSize: 13)),
               ],
               const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                height: 52,
-                child: ElevatedButton(
-                  onPressed: _valid && !isLoading ? _submit : null,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: GlossColors.green,
-                    foregroundColor: Colors.white,
-                    disabledBackgroundColor: GlossColors.disabled,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                    elevation: 0,
-                  ),
-                  child: isLoading
-                      ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                      : const Text('Davom etish', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
-                ),
+              GlossButton(
+                label: 'Davom etish',
+                isLoading: isLoading,
+                onPressed: _valid && !isLoading ? _submit : null,
               ),
               const Spacer(flex: 3),
             ],

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:ui_kit/ui_kit.dart';
 import 'firebase_options.dart';
 import 'app.dart';
 
@@ -27,17 +28,13 @@ class GlossDeliverApp extends ConsumerWidget {
         GlobalCupertinoLocalizations.delegate,
       ],
       routerConfig: ref.watch(routerProvider),
-      theme: ThemeData(
-        colorSchemeSeed: const Color(0xFF00A86B),
-        useMaterial3: true,
-        brightness: Brightness.light,
-      ),
+      theme: AppTheme.light,
       darkTheme: ThemeData(
-        colorSchemeSeed: const Color(0xFF00A86B),
         useMaterial3: true,
         brightness: Brightness.dark,
+        extensions: const [GlossTheme.light],
       ),
-      themeMode: ThemeMode.system,
+      themeMode: ThemeMode.light,
     );
   }
 }

@@ -24,12 +24,15 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: GlossColors.bg,
+      backgroundColor: context.gloss.bg,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: GlossColors.bg,
+        backgroundColor: context.gloss.bg,
         centerTitle: true,
-        title: const Text('Gloss', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: GlossColors.text, letterSpacing: -0.5)),
+        title: const Text(
+          'Gloss',
+          style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: GlossColors.text, letterSpacing: -0.5),
+        ),
         leading: IconButton(
           onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationsScreen())),
           icon: const Icon(Icons.notifications_none_rounded, color: GlossColors.text),
@@ -39,10 +42,10 @@ class _HomeScreenState extends State<HomeScreen> {
             padding: const EdgeInsets.only(right: 12),
             child: GestureDetector(
               onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileScreen())),
-              child: const CircleAvatar(
+              child: CircleAvatar(
                 radius: 18,
-                backgroundColor: GlossColors.green,
-                child: Icon(Icons.person_rounded, color: GlossColors.card, size: 22),
+                backgroundColor: context.gloss.green,
+                child: Icon(Icons.person_rounded, color: context.gloss.card, size: 22),
               ),
             ),
           ),
@@ -73,9 +76,8 @@ class _TopSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12),
-      child: Container(
+      child: GlossCard(
         padding: const EdgeInsets.fromLTRB(12, 12, 12, 16),
-        decoration: BoxDecoration(color: GlossColors.surface, borderRadius: BorderRadius.circular(24)),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -85,16 +87,19 @@ class _TopSection extends StatelessWidget {
               onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const XizmatlarScreen())),
               child: Container(
                 height: 46,
-                decoration: BoxDecoration(color: GlossColors.green, borderRadius: BorderRadius.circular(14)),
-                child: const Row(
+                decoration: BoxDecoration(
+                  color: context.gloss.green,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Row(
                   children: [
-                    SizedBox(width: 14),
-                    Icon(Icons.list_alt_rounded, color: GlossColors.card, size: 22),
-                    SizedBox(width: 10),
-                    Text('Barcha xizmatlar', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: GlossColors.card)),
-                    Spacer(),
-                    Icon(Icons.arrow_forward_rounded, color: GlossColors.card, size: 22),
-                    SizedBox(width: 14),
+                    const SizedBox(width: 14),
+                    Icon(Icons.list_alt_rounded, color: context.gloss.card, size: 22),
+                    const SizedBox(width: 10),
+                    Text('Barcha xizmatlar', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: context.gloss.card)),
+                    const Spacer(),
+                    Icon(Icons.arrow_forward_rounded, color: context.gloss.card, size: 22),
+                    const SizedBox(width: 14),
                   ],
                 ),
               ),
@@ -139,24 +144,31 @@ class _MainCategoryCards extends StatelessWidget {
               if (isMarket) {
                 Navigator.push(context, MaterialPageRoute(builder: (_) => const MarketScreen()));
               } else {
-                Navigator.push(context, MaterialPageRoute(
-                  builder: (_) => BookingScreen(serviceName: title, subcategoryName: title),
-                ));
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => BookingScreen(serviceName: title, subcategoryName: title)),
+                );
               }
             },
             child: Container(
               padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(color: GlossColors.bg, borderRadius: BorderRadius.circular(18)),
+              decoration: BoxDecoration(
+                color: context.gloss.bg,
+                borderRadius: BorderRadius.circular(18),
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Container(
                     padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(color: GlossColors.green, borderRadius: BorderRadius.circular(10)),
-                    child: Icon(icon, color: GlossColors.card, size: 24),
+                    decoration: BoxDecoration(
+                      color: context.gloss.green,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(icon, color: context.gloss.card, size: 24),
                   ),
-                  Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: GlossColors.text)),
+                  Text(title, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: context.gloss.text)),
                 ],
               ),
             ),
@@ -181,16 +193,19 @@ class _SearchPanel extends StatelessWidget {
       },
       child: Container(
         height: 46,
-        decoration: BoxDecoration(color: GlossColors.bg, borderRadius: BorderRadius.circular(14)),
-        child: const Row(
+        decoration: BoxDecoration(
+          color: context.gloss.bg,
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Row(
           children: [
-            SizedBox(width: 14),
-            Icon(Icons.search_rounded, color: GlossColors.hint, size: 22),
-            SizedBox(width: 10),
-            Text("Manzil bo'yicha qidirish...", style: TextStyle(fontSize: 15, color: GlossColors.hint)),
-            Spacer(),
-            Icon(Icons.tune_rounded, color: GlossColors.hint, size: 22),
-            SizedBox(width: 14),
+            const SizedBox(width: 14),
+            Icon(Icons.search_rounded, color: context.gloss.hint, size: 22),
+            const SizedBox(width: 10),
+            Text("Manzil bo'yicha qidirish...", style: TextStyle(fontSize: 15, color: context.gloss.hint)),
+            const Spacer(),
+            Icon(Icons.tune_rounded, color: context.gloss.hint, size: 22),
+            const SizedBox(width: 14),
           ],
         ),
       ),
@@ -201,17 +216,6 @@ class _SearchPanel extends StatelessWidget {
 class _BannerAndProductsBlock extends StatelessWidget {
   final List<(String, String, Color, Color)> banners;
   const _BannerAndProductsBlock({required this.banners});
-
-  String _formatPrice(double price) {
-    final whole = price.toInt();
-    final buf = StringBuffer();
-    final s = whole.toString();
-    for (int i = 0; i < s.length; i++) {
-      if (i > 0 && (s.length - i) % 3 == 0) buf.write(' ');
-      buf.write(s[i]);
-    }
-    return "$buf so'm";
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -252,39 +256,57 @@ class _BannerAndProductsBlock extends StatelessWidget {
           ),
         ),
         Container(
-          decoration: BoxDecoration(color: GlossColors.grayLight, borderRadius: BorderRadius.circular(24)),
+          decoration: BoxDecoration(
+            color: context.gloss.grayLight,
+            borderRadius: BorderRadius.circular(24),
+          ),
           child: GridView.builder(
             padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2, mainAxisSpacing: 10, crossAxisSpacing: 10, childAspectRatio: 0.8,
+              crossAxisCount: 2,
+              mainAxisSpacing: 10,
+              crossAxisSpacing: 10,
+              childAspectRatio: 0.8,
             ),
             itemCount: 4,
             itemBuilder: (context, index) {
               final names = ['Universal tozalash', 'Mebellarni tozalash', 'Oshxona tozalash', 'Gilam yuvish'];
               final prices = [25000.0, 35000.0, 45000.0, 55000.0];
               return GestureDetector(
-                onTap: () {
-                  // Navigate to product detail
-                },
+                onTap: () {},
                 child: Container(
                   padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(color: GlossColors.bg, borderRadius: BorderRadius.circular(14)),
+                  decoration: BoxDecoration(
+                    color: context.gloss.bg,
+                    borderRadius: BorderRadius.circular(14),
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Expanded(
                         child: Container(
                           width: double.infinity,
-                          decoration: BoxDecoration(color: GlossColors.greenShadow, borderRadius: BorderRadius.circular(10)),
-                          child: const Icon(Icons.cleaning_services_rounded, color: GlossColors.green, size: 36),
+                          decoration: BoxDecoration(
+                            color: context.gloss.greenShadow,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Icon(Icons.cleaning_services_rounded, color: context.gloss.green, size: 36),
                         ),
                       ),
                       const SizedBox(height: 8),
-                      Text(names[index], style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: GlossColors.text), maxLines: 2, overflow: TextOverflow.ellipsis),
+                      Text(
+                        names[index],
+                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: context.gloss.text),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                       const SizedBox(height: 3),
-                      Text(_formatPrice(prices[index]), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: GlossColors.greenText)),
+                      Text(
+                        formatPrice(prices[index]),
+                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: context.gloss.greenText),
+                      ),
                     ],
                   ),
                 ),

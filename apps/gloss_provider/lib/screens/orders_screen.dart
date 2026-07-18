@@ -9,7 +9,8 @@ class OrdersScreen extends StatefulWidget {
   State<OrdersScreen> createState() => _OrdersScreenState();
 }
 
-class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderStateMixin {
+class _OrdersScreenState extends State<OrdersScreen>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
   final List<Map<String, dynamic>> _activeOrders = [
@@ -82,19 +83,6 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
     super.dispose();
   }
 
-  Color _statusColor(GlossTheme theme, String status) {
-    switch (status) {
-      case 'Qabul qilingan':
-      case "Xizmat ko'rsatilmoqda":
-        return theme.green;
-      case "Yo'lda":
-      case 'Rejalashtirilgan':
-        return theme.orange;
-      default:
-        return theme.grayMedium;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = context.gloss;
@@ -144,19 +132,7 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
 
   Widget _buildOrdersList(List<Map<String, dynamic>> orders, GlossTheme theme) {
     if (orders.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.inbox_outlined, size: 64, color: theme.grayLight),
-            const SizedBox(height: 16),
-            Text(
-              "Buyurtmalar yo'q",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: theme.hint),
-            ),
-          ],
-        ),
-      );
+      return Center(child: GlossEmptyState.orders());
     }
 
     return ListView.separated(
@@ -166,7 +142,6 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
       itemBuilder: (context, index) {
         final order = orders[index];
         final status = order['status'] as String;
-        final statusColor = _statusColor(theme, status);
 
         return GlossCard(
           padding: const EdgeInsets.all(16),
@@ -206,21 +181,7 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                       ],
                     ),
                   ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: statusColor.withAlpha(25),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      status,
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: statusColor,
-                      ),
-                    ),
-                  ),
+                  GlossBadge.status(status),
                 ],
               ),
               const SizedBox(height: 12),

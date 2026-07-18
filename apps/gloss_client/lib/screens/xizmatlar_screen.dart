@@ -41,16 +41,19 @@ class XizmatlarScreen extends StatelessWidget {
       appBar: AppBar(
         elevation: 0,
         centerTitle: true,
-        backgroundColor: GlossColors.bg,
+        backgroundColor: context.gloss.bg,
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
           icon: Container(
             padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(color: GlossColors.bg, borderRadius: BorderRadius.circular(12)),
-            child: const Icon(Icons.arrow_back_ios_new_rounded, color: GlossColors.text, size: 18),
+            decoration: BoxDecoration(
+              color: context.gloss.bg,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(Icons.arrow_back_ios_new_rounded, color: context.gloss.text, size: 18),
           ),
         ),
-        title: const Text('Xizmatlar', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: GlossColors.text)),
+        title: Text('Xizmatlar', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: context.gloss.text)),
       ),
       body: Stack(
         children: [
@@ -90,22 +93,26 @@ class _LightBg extends StatelessWidget {
           ),
         ),
         Positioned(
-          top: -30, left: -30,
+          top: -30,
+          left: -30,
           child: Container(
-            width: 160, height: 160,
+            width: 160,
+            height: 160,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              gradient: RadialGradient(colors: [GlossColors.green.withAlpha(18), Colors.transparent]),
+              gradient: RadialGradient(colors: [GlossColors.green.withValues(alpha: 0.07), Colors.transparent]),
             ),
           ),
         ),
         Positioned(
-          top: 120, right: -50,
+          top: 120,
+          right: -50,
           child: Container(
-            width: 140, height: 140,
+            width: 140,
+            height: 140,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              gradient: RadialGradient(colors: [GlossColors.green.withAlpha(14), Colors.transparent]),
+              gradient: RadialGradient(colors: [GlossColors.green.withValues(alpha: 0.05), Colors.transparent]),
             ),
           ),
         ),
@@ -120,79 +127,57 @@ class _GlassCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: const [BoxShadow(color: Color(0x0A000000), blurRadius: 12, offset: Offset(0, 4))],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(24),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(24),
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => BookingScreen(
-                serviceName: service['name'] as String,
-                subcategoryName: service['detail'] as String,
-              ),
-            ),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _CardHeader(service: service),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      service['name'] as String,
-                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: GlossColors.text, height: 1.2),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      service['desc'] as String,
-                      style: const TextStyle(fontSize: 14, color: GlossColors.hint, height: 1.5),
-                    ),
-                    const SizedBox(height: 18),
-                    const Divider(height: 1, color: GlossColors.divider),
-                    const SizedBox(height: 16),
-                    _StatsRow(service: service),
-                    const SizedBox(height: 18),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 50,
-                      child: ElevatedButton.icon(
-                        onPressed: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => BookingScreen(
-                              serviceName: service['name'] as String,
-                              subcategoryName: service['name'] as String,
-                            ),
-                          ),
-                        ),
-                        icon: const Icon(Icons.shopping_cart_outlined, size: 18),
-                        label: const Text('Buyurtma berish', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, letterSpacing: 0.3)),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: GlossColors.green,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                          elevation: 0,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                  ],
-                ),
-              ),
-            ],
+    return GlossCard(
+      padding: EdgeInsets.zero,
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => BookingScreen(
+            serviceName: service['name'] as String,
+            subcategoryName: service['detail'] as String,
           ),
         ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _CardHeader(service: service),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  service['name'] as String,
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: context.gloss.text, height: 1.2),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  service['desc'] as String,
+                  style: TextStyle(fontSize: 14, color: context.gloss.hint, height: 1.5),
+                ),
+                const SizedBox(height: 18),
+                Divider(height: 1, color: context.gloss.divider),
+                const SizedBox(height: 16),
+                _StatsRow(service: service),
+                const SizedBox(height: 18),
+                GlossButton(
+                  label: 'Buyurtma berish',
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => BookingScreen(
+                        serviceName: service['name'] as String,
+                        subcategoryName: service['name'] as String,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -204,18 +189,20 @@ class _CardHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isPopular = (service['rating'] as double) >= 4.9;
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
       child: Row(
         children: [
           Container(
-            width: 60, height: 60,
+            width: 60,
+            height: 60,
             decoration: BoxDecoration(
-              color: GlossColors.greenBgSoft,
+              color: context.gloss.greenBgSoft,
               borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: GlossColors.greenBorderLight),
+              border: Border.all(color: context.gloss.greenBorderLight),
             ),
-            child: const Icon(Icons.cleaning_services_rounded, color: GlossColors.green, size: 30),
+            child: Icon(Icons.cleaning_services_rounded, color: context.gloss.green, size: 30),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -227,17 +214,13 @@ class _CardHeader extends StatelessWidget {
                     Flexible(
                       child: Text(
                         service['detail'] as String,
-                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: GlossColors.greenText),
+                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: context.gloss.greenText),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    if ((service['rating'] as double) >= 4.9) ...[
+                    if (isPopular) ...[
                       const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                        decoration: BoxDecoration(color: GlossColors.orangeBgLight, borderRadius: BorderRadius.circular(6)),
-                        child: const Text('Mashhur', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: GlossColors.orange)),
-                      ),
+                      GlossBadge(label: 'Mashhur', variant: BadgeVariant.warning),
                     ],
                   ],
                 ),
@@ -254,12 +237,12 @@ class _CardHeader extends StatelessWidget {
                     const SizedBox(width: 6),
                     Text(
                       (service['rating'] as double).toStringAsFixed(1),
-                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: GlossColors.hint),
+                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: context.gloss.hint),
                     ),
                     const SizedBox(width: 4),
                     Text(
                       '(${service['orders']})',
-                      style: const TextStyle(fontSize: 12, color: GlossColors.disabled),
+                      style: TextStyle(fontSize: 12, color: context.gloss.disabled),
                     ),
                   ],
                 ),
@@ -280,22 +263,22 @@ class _StatsRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        const Icon(Icons.timer_outlined, size: 17, color: GlossColors.hint),
+        Icon(Icons.timer_outlined, size: 17, color: context.gloss.hint),
         const SizedBox(width: 5),
-        Text(service['duration'] as String, style: const TextStyle(fontSize: 14, color: GlossColors.hint)),
+        Text(service['duration'] as String, style: TextStyle(fontSize: 14, color: context.gloss.hint)),
         const SizedBox(width: 8),
-        Container(width: 1, height: 14, color: GlossColors.border),
+        Container(width: 1, height: 14, color: context.gloss.border),
         const SizedBox(width: 8),
-        const Icon(Icons.person_outline_rounded, size: 17, color: GlossColors.hint),
+        Icon(Icons.person_outline_rounded, size: 17, color: context.gloss.hint),
         const SizedBox(width: 5),
-        Text('${service['orders']}+ buyurtma', style: const TextStyle(fontSize: 14, color: GlossColors.hint)),
+        Text('${service['orders']}+ buyurtma', style: TextStyle(fontSize: 14, color: context.gloss.hint)),
         const Spacer(),
         Column(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            const Text('Narxi', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: GlossColors.disabled)),
+            Text('Narxi', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: context.gloss.disabled)),
             const SizedBox(height: 2),
-            Text(service['price'] as String, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: GlossColors.greenText)),
+            Text(service['price'] as String, style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: context.gloss.greenText)),
           ],
         ),
       ],

@@ -112,28 +112,20 @@ class _AddressSearchScreenState extends State<AddressSearchScreen> {
   }
 
   Widget _searchField() {
-    return Material(
-      elevation: 4,
-      borderRadius: BorderRadius.circular(14),
-      child: TextField(
-        controller: _searchCtrl,
-        focusNode: _focusNode,
-        decoration: InputDecoration(
-          hintText: "Ko'cha nomi, manzil...",
-          hintStyle: const TextStyle(fontSize: 14, color: GlossColors.hint),
-          prefixIcon: const Icon(Icons.search_rounded, color: GlossColors.hint),
-          suffixIcon: _searchCtrl.text.isNotEmpty
-              ? IconButton(
-                  icon: const Icon(Icons.clear_rounded, size: 20),
-                  onPressed: () { _searchCtrl.clear(); _focusNode.unfocus(); },
-                )
-              : null,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
-          filled: true,
-          fillColor: Colors.white,
-        ),
-      ),
+    return GlossTextField(
+      hint: "Ko'cha nomi, manzil...",
+      controller: _searchCtrl,
+      focusNode: _focusNode,
+      prefixIcon: const Icon(Icons.search_rounded, color: GlossColors.hint),
+      suffixIcon: _searchCtrl.text.isNotEmpty
+          ? IconButton(
+              icon: const Icon(Icons.clear_rounded, size: 20),
+              onPressed: () {
+                _searchCtrl.clear();
+                _focusNode.unfocus();
+              },
+            )
+          : null,
     );
   }
 
@@ -187,7 +179,7 @@ class _AddressSearchScreenState extends State<AddressSearchScreen> {
                   children: [
                     Container(
                       padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(color: GlossColors.green.withAlpha(16), borderRadius: BorderRadius.circular(12)),
+                      decoration: BoxDecoration(color: GlossColors.green.withValues(alpha: 0.06), borderRadius: BorderRadius.circular(12)),
                       child: const Icon(Icons.location_on_rounded, color: GlossColors.green, size: 24),
                     ),
                     const SizedBox(width: 14),
@@ -208,20 +200,9 @@ class _AddressSearchScreenState extends State<AddressSearchScreen> {
                   ],
                 ),
               SizedBox(height: _resolvedAddress != null ? 16 : 0),
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: _resolvedAddress != null ? _confirm : null,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: GlossColors.green,
-                    foregroundColor: Colors.white,
-                    disabledBackgroundColor: GlossColors.disabled,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                    elevation: 0,
-                  ),
-                  child: const Text('Tasdiqlash', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
-                ),
+              GlossButton(
+                label: 'Tasdiqlash',
+                onPressed: _resolvedAddress != null ? _confirm : null,
               ),
             ],
           ),

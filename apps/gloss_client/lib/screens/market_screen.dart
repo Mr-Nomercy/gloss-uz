@@ -46,9 +46,6 @@ class _MarketScreenState extends State<MarketScreen> {
 
   List<Map<String, dynamic>> get _filteredProducts {
     var products = List<Map<String, dynamic>>.from(_allProducts);
-    if (_selectedCategory > 0) {
-      // simplified - just filter by first letter or something
-    }
     if (_searchQuery.isNotEmpty) {
       products = products.where((p) => (p['name'] as String).toLowerCase().contains(_searchQuery.toLowerCase())).toList();
     }
@@ -87,55 +84,50 @@ class _MarketScreenState extends State<MarketScreen> {
     return '$h:$m:$s';
   }
 
-  String formatPrice(double price) {
-    final whole = price.toInt();
-    final buf = StringBuffer();
-    final str = whole.toString();
-    for (int i = 0; i < str.length; i++) {
-      if (i > 0 && (str.length - i) % 3 == 0) buf.write(' ');
-      buf.write(str[i]);
-    }
-    return "$buf so'm";
-  }
-
   int cartTotalQuantity() => _cart.values.fold(0, (a, b) => a + b);
   bool inCart(String id) => _cart.containsKey(id);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: GlossColors.bg,
+      backgroundColor: context.gloss.bg,
       body: RefreshIndicator(
         onRefresh: () async {},
         child: CustomScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
             SliverAppBar(
-              floating: true, snap: true, elevation: 0,
-              backgroundColor: GlossColors.bg,
+              floating: true,
+              snap: true,
+              elevation: 0,
+              backgroundColor: context.gloss.bg,
               centerTitle: true,
               leading: IconButton(
                 onPressed: () => Navigator.pop(context),
                 icon: Container(
                   padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(color: GlossColors.bg, borderRadius: BorderRadius.circular(12)),
-                  child: const Icon(Icons.arrow_back_ios_new_rounded, color: GlossColors.text, size: 18),
+                  decoration: BoxDecoration(
+                    color: context.gloss.bg,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(Icons.arrow_back_ios_new_rounded, color: context.gloss.text, size: 18),
                 ),
               ),
-              title: Text(widget.title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: GlossColors.text)),
+              title: Text(widget.title, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: context.gloss.text)),
               actions: [
                 IconButton(
                   onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CartScreen())),
                   icon: Stack(
                     children: [
-                      const Icon(Icons.shopping_cart_outlined, color: GlossColors.text, size: 24),
+                      Icon(Icons.shopping_cart_outlined, color: context.gloss.text, size: 24),
                       if (cartTotalQuantity() > 0)
                         Positioned(
-                          right: 0, top: 0,
+                          right: 0,
+                          top: 0,
                           child: Container(
                             padding: const EdgeInsets.all(4),
-                            decoration: const BoxDecoration(color: GlossColors.green, shape: BoxShape.circle),
-                            child: Text('${cartTotalQuantity()}', style: const TextStyle(fontSize: 10, color: GlossColors.card)),
+                            decoration: BoxDecoration(color: context.gloss.green, shape: BoxShape.circle),
+                            child: Text('${cartTotalQuantity()}', style: TextStyle(fontSize: 10, color: context.gloss.card)),
                           ),
                         ),
                     ],
@@ -166,30 +158,23 @@ class _MarketScreenState extends State<MarketScreen> {
   Widget _buildSearchBar() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
-      child: Container(
-        height: 50,
-        decoration: BoxDecoration(
-          color: GlossColors.card,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [BoxShadow(color: Colors.black.withAlpha(8), blurRadius: 10, offset: const Offset(0, 2))],
-        ),
-        child: TextField(
+      child: GlossCard(
+        padding: EdgeInsets.zero,
+        child: GlossTextField(
+          hint: 'Mahsulot qidirish...',
           controller: _searchController,
-          style: const TextStyle(fontSize: 15, color: GlossColors.text),
           onChanged: (v) => setState(() => _searchQuery = v),
-          decoration: InputDecoration(
-            hintText: 'Mahsulot qidirish...',
-            hintStyle: const TextStyle(color: GlossColors.disabled, fontSize: 15),
-            prefixIcon: const Icon(Icons.search_rounded, color: GlossColors.disabled, size: 24),
-            suffixIcon: _searchQuery.isNotEmpty
-                ? IconButton(
-                    onPressed: () { _searchController.clear(); setState(() => _searchQuery = ''); },
-                    icon: const Icon(Icons.close_rounded, color: GlossColors.disabled, size: 22),
-                  )
-                : null,
-            border: InputBorder.none,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          ),
+          prefixIcon: const Icon(Icons.search_rounded, color: GlossColors.disabled, size: 24),
+          suffixIcon: _searchQuery.isNotEmpty
+              ? IconButton(
+                  onPressed: () {
+                    _searchController.clear();
+                    setState(() => _searchQuery = '');
+                  },
+                  icon: const Icon(Icons.close_rounded, color: GlossColors.disabled, size: 22),
+                )
+              : null,
+          filled: false,
         ),
       ),
     );
@@ -215,12 +200,22 @@ class _MarketScreenState extends State<MarketScreen> {
                   child: Stack(
                     children: [
                       Positioned(
-                        right: -20, top: -20,
-                        child: Container(width: 120, height: 120, decoration: BoxDecoration(color: Colors.white.withAlpha(15), shape: BoxShape.circle)),
+                        right: -20,
+                        top: -20,
+                        child: Container(
+                          width: 120,
+                          height: 120,
+                          decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.15), shape: BoxShape.circle),
+                        ),
                       ),
                       Positioned(
-                        right: 10, bottom: -30,
-                        child: Container(width: 100, height: 100, decoration: BoxDecoration(color: Colors.white.withAlpha(10), shape: BoxShape.circle)),
+                        right: 10,
+                        bottom: -30,
+                        child: Container(
+                          width: 100,
+                          height: 100,
+                          decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.10), shape: BoxShape.circle),
+                        ),
                       ),
                       Padding(
                         padding: const EdgeInsets.all(24),
@@ -230,13 +225,13 @@ class _MarketScreenState extends State<MarketScreen> {
                           children: [
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                              decoration: BoxDecoration(color: Colors.white.withAlpha(30), borderRadius: BorderRadius.circular(8)),
+                              decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.30), borderRadius: BorderRadius.circular(8)),
                               child: Text(b.discount, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Colors.white)),
                             ),
                             const SizedBox(height: 10),
                             Text(b.title, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: Colors.white, height: 1.2)),
                             const SizedBox(height: 4),
-                            Text(b.subtitle, style: TextStyle(fontSize: 14, color: Colors.white.withAlpha(180))),
+                            Text(b.subtitle, style: TextStyle(fontSize: 14, color: Colors.white.withValues(alpha: 0.70))),
                           ],
                         ),
                       ),
@@ -254,7 +249,8 @@ class _MarketScreenState extends State<MarketScreen> {
             return AnimatedContainer(
               duration: const Duration(milliseconds: 300),
               margin: const EdgeInsets.symmetric(horizontal: 3),
-              width: i == _currentBanner ? 24 : 8, height: 8,
+              width: i == _currentBanner ? 24 : 8,
+              height: 8,
               decoration: BoxDecoration(
                 color: i == _currentBanner ? GlossColors.green : GlossColors.border,
                 borderRadius: BorderRadius.circular(4),
@@ -277,10 +273,10 @@ class _MarketScreenState extends State<MarketScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('Kategoriyalar', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: GlossColors.text)),
+                Text('Kategoriyalar', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: context.gloss.text)),
                 TextButton(
                   onPressed: () => setState(() => _selectedCategory = 0),
-                  child: const Text('Barchasi', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: GlossColors.green)),
+                  child: Text('Barchasi', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: context.gloss.green)),
                 ),
               ],
             ),
@@ -303,16 +299,27 @@ class _MarketScreenState extends State<MarketScreen> {
                       children: [
                         AnimatedContainer(
                           duration: const Duration(milliseconds: 200),
-                          width: 60, height: 60,
+                          width: 60,
+                          height: 60,
                           decoration: BoxDecoration(
-                            color: selected ? c.color : c.color.withAlpha(20),
+                            color: selected ? c.color : c.color.withValues(alpha: 0.08),
                             borderRadius: BorderRadius.circular(18),
                             border: Border.all(color: selected ? c.color : Colors.transparent, width: 2),
                           ),
                           child: Icon(c.icon, color: selected ? Colors.white : c.color, size: 28),
                         ),
                         const SizedBox(height: 8),
-                        Text(c.name, style: TextStyle(fontSize: 12, fontWeight: selected ? FontWeight.w700 : FontWeight.w500, color: selected ? GlossColors.text : GlossColors.hint), textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis),
+                        Text(
+                          c.name,
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                            color: selected ? GlossColors.text : GlossColors.hint,
+                          ),
+                          textAlign: TextAlign.center,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ],
                     ),
                   ),
@@ -326,6 +333,7 @@ class _MarketScreenState extends State<MarketScreen> {
   }
 
   Widget _buildFlashSaleSection() {
+    // Removed.
     return Padding(
       padding: const EdgeInsets.only(top: 24),
       child: Column(
@@ -337,21 +345,13 @@ class _MarketScreenState extends State<MarketScreen> {
               alignment: WrapAlignment.spaceBetween,
               crossAxisAlignment: WrapCrossAlignment.center,
               children: [
+                const GlossBadge(label: 'Tezkor sotuv'),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                  decoration: BoxDecoration(color: GlossColors.accentOrange, borderRadius: BorderRadius.circular(8)),
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.flash_on_rounded, color: Colors.white, size: 18),
-                      SizedBox(width: 4),
-                      Text('Tezkor sotuv', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Colors.white)),
-                    ],
+                  decoration: BoxDecoration(
+                    color: GlossColors.red.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                  decoration: BoxDecoration(color: GlossColors.red.withAlpha(20), borderRadius: BorderRadius.circular(8)),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -385,72 +385,97 @@ class _MarketScreenState extends State<MarketScreen> {
     final discount = p['oldPrice'] != null ? ((1 - (p['price'] as int) / (p['oldPrice'] as int)) * 100).round() : 0;
     return GestureDetector(
       onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ProductDetailScreen(product: p))),
-      child: Container(
-        width: 140,
-        decoration: BoxDecoration(color: GlossColors.card, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: Colors.black.withAlpha(8), blurRadius: 8, offset: const Offset(0, 2))]),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Stack(
-              children: [
-                Container(
-                  height: 90, width: double.infinity,
-                  decoration: const BoxDecoration(color: Color(0xFFF0FFF4), borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
-                  child: const Icon(Icons.cleaning_services_rounded, color: GlossColors.green, size: 36),
-                ),
-                if (discount > 0)
-                  Positioned(top: 6, left: 6,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-                      decoration: BoxDecoration(color: GlossColors.red, borderRadius: BorderRadius.circular(6)),
-                      child: Text('-$discount%', style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: Colors.white)),
-                    ),
-                  ),
-                Positioned(top: 6, right: 6,
-                  child: GestureDetector(
-                    onTap: () { setState(() { if (isFav) {
-                      _favorites.remove(p['id']);
-                    } else {
-                      _favorites.add(p['id'] as String);
-                    } }); },
-                    child: Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(color: GlossColors.card, borderRadius: BorderRadius.circular(6), boxShadow: [BoxShadow(color: Colors.black.withAlpha(15), blurRadius: 4)]),
-                      child: Icon(isFav ? Icons.favorite_rounded : Icons.favorite_border_rounded, color: isFav ? GlossColors.red : GlossColors.disabled, size: 14),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            Padding(
-              padding: const EdgeInsets.all(10),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+      child: GlossCard(
+        padding: EdgeInsets.zero,
+        child: SizedBox(
+          width: 140,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Stack(
                 children: [
-                  Text(p['name'] as String, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: GlossColors.text), maxLines: 1, overflow: TextOverflow.ellipsis),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      const Icon(Icons.star_rounded, color: GlossColors.star, size: 14),
-                      const SizedBox(width: 2),
-                      Text('${p['rating']}', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
-                      const SizedBox(width: 4),
-                      Text('(${p['reviews']})', style: TextStyle(fontSize: 10, color: Colors.grey[400])),
-                    ],
+                  Container(
+                    height: 90,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: context.gloss.greenBgLight,
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                    ),
+                    child: Icon(Icons.cleaning_services_rounded, color: context.gloss.green, size: 36),
                   ),
-                  const SizedBox(height: 6),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (p['oldPrice'] != null)
-                        Text(formatPrice((p['oldPrice'] as int).toDouble()), style: TextStyle(fontSize: 10, color: Colors.grey[400], decoration: TextDecoration.lineThrough)),
-                      Text(formatPrice((p['price'] as int).toDouble()), style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: GlossColors.red)),
-                    ],
+                  if (discount > 0)
+                    Positioned(
+                      top: 6,
+                      left: 6,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                        decoration: BoxDecoration(color: GlossColors.red, borderRadius: BorderRadius.circular(6)),
+                        child: Text('-$discount%', style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: Colors.white)),
+                      ),
+                    ),
+                  Positioned(
+                    top: 6,
+                    right: 6,
+                    child: GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          if (isFav) {
+                            _favorites.remove(p['id']);
+                          } else {
+                            _favorites.add(p['id'] as String);
+                          }
+                        });
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: context.gloss.card,
+                          borderRadius: BorderRadius.circular(6),
+                          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 4)],
+                        ),
+                        child: Icon(
+                          isFav ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                          color: isFav ? GlossColors.red : GlossColors.disabled,
+                          size: 14,
+                        ),
+                      ),
+                    ),
                   ),
                 ],
               ),
-            ),
-          ],
+              Padding(
+                padding: const EdgeInsets.all(10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(p['name'] as String, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: context.gloss.text), maxLines: 1, overflow: TextOverflow.ellipsis),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        const Icon(Icons.star_rounded, color: GlossColors.star, size: 14),
+                        const SizedBox(width: 2),
+                        Text('${p['rating']}', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
+                        const SizedBox(width: 4),
+                        Text('(${p['reviews']})', style: TextStyle(fontSize: 10, color: context.gloss.hint)),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (p['oldPrice'] != null)
+                          Text(
+                            formatPrice((p['oldPrice'] as int).toDouble()),
+                            style: TextStyle(fontSize: 10, color: context.gloss.hint, decoration: TextDecoration.lineThrough),
+                          ),
+                        Text(formatPrice((p['price'] as int).toDouble()), style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: GlossColors.red)),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -468,7 +493,7 @@ class _MarketScreenState extends State<MarketScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Barcha mahsulotlar (${filtered.length})', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: GlossColors.text)),
+                Text('Barcha mahsulotlar (${filtered.length})', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: context.gloss.text)),
                 const SizedBox(height: 10),
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
@@ -489,14 +514,14 @@ class _MarketScreenState extends State<MarketScreen> {
           ),
           const SizedBox(height: 14),
           if (filtered.isEmpty)
-            Padding(
-              padding: const EdgeInsets.all(32),
+            const Padding(
+              padding: EdgeInsets.all(32),
               child: Center(
                 child: Column(
                   children: [
-                    Icon(Icons.search_off_rounded, size: 48, color: Colors.grey[300]),
-                    const SizedBox(height: 12),
-                    Text('Mahsulot topilmadi', style: TextStyle(fontSize: 16, color: Colors.grey[500])),
+                    Icon(Icons.search_off_rounded, size: 48, color: GlossColors.grayLight),
+                    SizedBox(height: 12),
+                    Text('Hech narsa topilmadi', style: TextStyle(fontSize: 16, color: GlossColors.hint)),
                   ],
                 ),
               ),
@@ -536,8 +561,8 @@ class _MarketScreenState extends State<MarketScreen> {
     final isFav = _favorites.contains(p['id']);
     return GestureDetector(
       onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ProductDetailScreen(product: p))),
-      child: Container(
-        decoration: BoxDecoration(color: GlossColors.card, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: Colors.black.withAlpha(8), blurRadius: 8, offset: const Offset(0, 2))]),
+      child: GlossCard(
+        padding: EdgeInsets.zero,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -547,21 +572,37 @@ class _MarketScreenState extends State<MarketScreen> {
                 children: [
                   Container(
                     width: double.infinity,
-                    decoration: const BoxDecoration(color: Color(0xFFF0FFF4), borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
-                    child: const Icon(Icons.cleaning_services_rounded, color: GlossColors.green, size: 40),
+                    decoration: BoxDecoration(
+                      color: context.gloss.greenBgLight,
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                    ),
+                    child: Icon(Icons.cleaning_services_rounded, color: context.gloss.green, size: 40),
                   ),
                   Positioned(
-                    top: 6, right: 6,
+                    top: 6,
+                    right: 6,
                     child: GestureDetector(
-                      onTap: () { setState(() { if (isFav) {
-                        _favorites.remove(p['id']);
-                      } else {
-                        _favorites.add(p['id'] as String);
-                      } }); },
+                      onTap: () {
+                        setState(() {
+                          if (isFav) {
+                            _favorites.remove(p['id']);
+                          } else {
+                            _favorites.add(p['id'] as String);
+                          }
+                        });
+                      },
                       child: Container(
                         padding: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(color: GlossColors.card, borderRadius: BorderRadius.circular(6), boxShadow: [BoxShadow(color: Colors.black.withAlpha(15), blurRadius: 4)]),
-                        child: Icon(isFav ? Icons.favorite_rounded : Icons.favorite_border_rounded, color: isFav ? GlossColors.red : GlossColors.disabled, size: 14),
+                        decoration: BoxDecoration(
+                          color: context.gloss.card,
+                          borderRadius: BorderRadius.circular(6),
+                          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 4)],
+                        ),
+                        child: Icon(
+                          isFav ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                          color: isFav ? GlossColors.red : GlossColors.disabled,
+                          size: 14,
+                        ),
                       ),
                     ),
                   ),
@@ -575,7 +616,12 @@ class _MarketScreenState extends State<MarketScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(p['name'] as String, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: GlossColors.text, height: 1.2), maxLines: 2, overflow: TextOverflow.ellipsis),
+                    Text(
+                      p['name'] as String,
+                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: context.gloss.text, height: 1.2),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                     const SizedBox(height: 4),
                     Row(
                       children: [
@@ -583,14 +629,14 @@ class _MarketScreenState extends State<MarketScreen> {
                         const SizedBox(width: 2),
                         Text('${p['rating']}', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
                         const SizedBox(width: 4),
-                        Text('(${p['reviews']})', style: TextStyle(fontSize: 10, color: Colors.grey[400])),
+                        Text('(${p['reviews']})', style: TextStyle(fontSize: 10, color: context.gloss.hint)),
                       ],
                     ),
                     const Spacer(),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(formatPrice((p['price'] as int).toDouble()), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: GlossColors.green)),
+                        Text(formatPrice((p['price'] as int).toDouble()), style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: context.gloss.green)),
                         GestureDetector(
                           onTap: () {
                             setState(() {
@@ -603,8 +649,11 @@ class _MarketScreenState extends State<MarketScreen> {
                           },
                           child: Container(
                             padding: const EdgeInsets.all(5),
-                            decoration: BoxDecoration(color: inC ? GlossColors.green.withAlpha(30) : GlossColors.green, borderRadius: BorderRadius.circular(7)),
-                            child: Icon(inC ? Icons.check_rounded : Icons.add_rounded, color: inC ? GlossColors.green : Colors.white, size: 16),
+                            decoration: BoxDecoration(
+                              color: inC ? context.gloss.green.withValues(alpha: 0.12) : context.gloss.green,
+                              borderRadius: BorderRadius.circular(7),
+                            ),
+                            child: Icon(inC ? Icons.check_rounded : Icons.add_rounded, color: inC ? context.gloss.green : Colors.white, size: 16),
                           ),
                         ),
                       ],

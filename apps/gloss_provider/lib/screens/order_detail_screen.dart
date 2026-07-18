@@ -25,16 +25,28 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
   String get _currentAction {
     switch (_currentStep) {
-      case 0: return 'Qabul qilish';
-      case 1: return "Yo'lga chiqdim";
-      case 2: return 'Yetib keldim';
-      case 3: return 'Boshlash';
-      case 4: return 'Tugatish';
-      default: return '';
+      case 0:
+        return 'Qabul qilish';
+      case 1:
+        return "Yo'lga chiqdim";
+      case 2:
+        return 'Yetib keldim';
+      case 3:
+        return 'Boshlash';
+      case 4:
+        return 'Tugatish';
+      default:
+        return '';
     }
   }
 
   bool get _canCancel => _currentStep >= 0 && _currentStep <= 3;
+
+  String get _statusLabel {
+    if (_currentStep == 5) return 'Tugallangan';
+    if (_currentStep == 6) return 'Baholangan';
+    return 'Jarayonda';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -111,21 +123,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               ],
             ),
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: theme.greenBgLight,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Text(
-              _currentStep == 5 ? 'Tugallangan' : _currentStep == 6 ? 'Baholangan' : 'Jarayonda',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: _currentStep >= 5 ? theme.grayMedium : theme.green,
-              ),
-            ),
-          ),
+          GlossBadge.status(_statusLabel),
         ],
       ),
     );
@@ -133,7 +131,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
   Widget _buildAddressCard(GlossTheme theme) {
     return GlossCard(
-      padding: const EdgeInsets.all(0),
+      padding: EdgeInsets.zero,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -151,18 +149,18 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   child: Icon(Icons.location_on_outlined, color: theme.green, size: 18),
                 ),
                 const SizedBox(width: 12),
-                const Expanded(
+                Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         "Mirzo Ulug'bek tumani, Mustaqillik 45",
-                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: theme.text),
                       ),
-                      SizedBox(height: 2),
+                      const SizedBox(height: 2),
                       Text(
                         '2-qavat, 15-xonadon',
-                        style: TextStyle(fontSize: 12),
+                        style: TextStyle(fontSize: 12, color: theme.hint),
                       ),
                     ],
                   ),
@@ -339,59 +337,21 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     return Column(
       children: [
         if (_currentAction.isNotEmpty)
-          SizedBox(
-            height: 52,
-            child: ElevatedButton(
-              onPressed: () {
-                setState(() => _currentStep++);
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: theme.green,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                elevation: 0,
-                textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
-              ),
-              child: Text(_currentAction),
-            ),
+          GlossButton(
+            label: _currentAction,
+            onPressed: () {
+              setState(() => _currentStep++);
+            },
           ),
         if (_canCancel) ...[
           const SizedBox(height: 12),
           SizedBox(
             height: 52,
             child: OutlinedButton(
-              onPressed: () {
-                showDialog(
-                  context: context,
-                  builder: (ctx) => AlertDialog(
-                    title: const Text('Bekor qilish'),
-                    content: const Text('Buyurtmani bekor qilishni xohlaysizmi?'),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(ctx),
-                        child: const Text("Yo'q"),
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.pop(ctx);
-                          context.pop();
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Buyurtma bekor qilindi'),
-                              behavior: SnackBarBehavior.floating,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
-                            ),
-                          );
-                        },
-                        child: Text('Ha', style: TextStyle(color: theme.red)),
-                      ),
-                    ],
-                  ),
-                );
-              },
+              onPressed: () => _showCancelDialog(theme),
               style: OutlinedButton.styleFrom(
                 foregroundColor: theme.red,
-                side: BorderSide(color: theme.red.withAlpha(75)),
+                side: BorderSide(color: theme.red.withValues(alpha: 0.30)),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                 textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
               ),
@@ -399,6 +359,28 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             ),
           ),
         ],
+      ],
+    );
+  }
+
+  void _showCancelDialog(GlossTheme theme) {
+    GlossDialog.show(
+      context: context,
+      title: 'Bekor qilish',
+      content: 'Buyurtmani bekor qilishni xohlaysizmi?',
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text("Yo'q"),
+        ),
+        TextButton(
+          onPressed: () {
+            Navigator.pop(context);
+            context.pop();
+            GlossSnackBar.showInfo(context, 'Buyurtma bekor qilindi');
+          },
+          child: Text('Ha', style: TextStyle(color: theme.red)),
+        ),
       ],
     );
   }

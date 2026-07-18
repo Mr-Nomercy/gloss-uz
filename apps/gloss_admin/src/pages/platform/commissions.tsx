@@ -1,9 +1,16 @@
-import { useState } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { mockCommissions } from '@/lib/data';
+import { useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { mockCommissions } from "@/lib/data";
 
 export default function PlatformCommissions() {
   const [commissions, setCommissions] = useState(mockCommissions);
@@ -11,7 +18,9 @@ export default function PlatformCommissions() {
   const [editVal, setEditVal] = useState(0);
 
   const saveEdit = (id: string) => {
-    setCommissions(commissions.map((c) => (c.id === id ? { ...c, percent: editVal } : c)));
+    setCommissions(
+      commissions.map((c) => (c.id === id ? { ...c, percent: editVal } : c)),
+    );
     setEditId(null);
   };
 
@@ -41,7 +50,9 @@ export default function PlatformCommissions() {
                         className="w-24"
                       />
                     ) : (
-                      <span className="font-semibold text-gloss-green">{c.percent}%</span>
+                      <span className="font-semibold text-gloss-green">
+                        {c.percent}%
+                      </span>
                     )}
                   </TableCell>
                   <TableCell>

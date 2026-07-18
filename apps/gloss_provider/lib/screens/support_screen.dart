@@ -73,7 +73,7 @@ class _SupportScreenState extends State<SupportScreen> {
             const SizedBox(height: 16),
             _buildContactCard(theme),
             const SizedBox(height: 16),
-            _buildMessageButton(theme, context),
+            _buildMessageButton(context),
             const SizedBox(height: 24),
           ],
         ),
@@ -140,8 +140,7 @@ class _SupportScreenState extends State<SupportScreen> {
                         ),
                       ),
                     ),
-                    crossFadeState:
-                        _expanded[index] ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+                    crossFadeState: _expanded[index] ? CrossFadeState.showSecond : CrossFadeState.showFirst,
                     duration: const Duration(milliseconds: 200),
                   ),
                 ],
@@ -187,38 +186,18 @@ class _SupportScreenState extends State<SupportScreen> {
           child: Icon(icon, color: theme.green, size: 16),
         ),
         const SizedBox(width: 12),
-        Text(
-          text,
-          style: TextStyle(fontSize: 14, color: theme.text),
-        ),
+        Text(text, style: TextStyle(fontSize: 14, color: theme.text)),
       ],
     );
   }
 
-  Widget _buildMessageButton(GlossTheme theme, BuildContext context) {
-    return SizedBox(
-      height: 52,
-      child: ElevatedButton.icon(
-        onPressed: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Text('Xabar yuborish funksiyasi tez orada ishga tushadi'),
-              backgroundColor: theme.green,
-              behavior: SnackBarBehavior.floating,
-              shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
-            ),
-          );
-        },
-        style: ElevatedButton.styleFrom(
-          backgroundColor: theme.green,
-          foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-          elevation: 0,
-          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
-        ),
-        icon: const Icon(Icons.chat_outlined, size: 20),
-        label: const Text('Xabar yuborish'),
-      ),
+  Widget _buildMessageButton(BuildContext context) {
+    return GlossButton(
+      label: 'Xabar yuborish',
+      icon: Icons.chat_outlined,
+      onPressed: () {
+        GlossSnackBar.showSuccess(context, 'Xabar yuborish funksiyasi tez orada ishga tushadi');
+      },
     );
   }
 }

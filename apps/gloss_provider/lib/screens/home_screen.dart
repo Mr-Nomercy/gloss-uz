@@ -122,7 +122,7 @@ class _HomeScreenState extends State<HomeScreen> {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: _isOnline ? theme.greenBgLight : theme.red.withAlpha(25),
+              color: _isOnline ? theme.greenBgLight : theme.red.withValues(alpha: 0.10),
               shape: BoxShape.circle,
             ),
             child: Icon(
@@ -163,58 +163,11 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildBalanceCard(GlossTheme theme) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [theme.green, theme.darkGreen],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.account_balance_wallet_outlined, color: Colors.white.withAlpha(200), size: 20),
-              const SizedBox(width: 8),
-              Text(
-                'Mavjud balans',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: Colors.white.withAlpha(200),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            "2 450 000 so'm",
-            style: TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
-          const SizedBox(height: 16),
-          SizedBox(
-            height: 40,
-            child: ElevatedButton(
-              onPressed: () => context.push('/wallet'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: theme.green,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
-                elevation: 0,
-              ),
-              child: const Text('Pul chiqarish'),
-            ),
-          ),
-        ],
-      ),
+    return GlossBalanceCard(
+      title: 'Mavjud balans',
+      balance: "2 450 000 so'm",
+      actionLabel: 'Pul chiqarish',
+      onAction: () => context.push('/wallet'),
     );
   }
 
@@ -226,40 +179,12 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           Row(
             children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: theme.orangeBgLight,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.timer_outlined, size: 14, color: theme.orange),
-                    const SizedBox(width: 4),
-                    Text(
-                      '${_countdown}s',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: theme.orange,
-                      ),
-                    ),
-                  ],
-                ),
+              GlossBadge(
+                label: '${_countdown}s',
+                variant: BadgeVariant.warning,
               ),
               const Spacer(),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: theme.greenBgLight,
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text(
-                  'Yangi',
-                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: theme.green),
-                ),
-              ),
+              const GlossBadge(label: 'Yangi'),
             ],
           ),
           const SizedBox(height: 12),
@@ -317,26 +242,12 @@ class _HomeScreenState extends State<HomeScreen> {
               Expanded(
                 child: SizedBox(
                   height: 44,
-                  child: ElevatedButton(
+                  child: GlossButton(
+                    label: 'Qabul qilish',
                     onPressed: () {
                       setState(() => _hasNewOffer = false);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Buyurtma qabul qilindi'),
-                          backgroundColor: Color(0xFF00AA13),
-                          behavior: SnackBarBehavior.floating,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
-                        ),
-                      );
+                      GlossSnackBar.showSuccess(context, 'Buyurtma qabul qilindi');
                     },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: theme.green,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
-                      elevation: 0,
-                    ),
-                    child: const Text('Qabul qilish'),
                   ),
                 ),
               ),
@@ -350,7 +261,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     },
                     style: OutlinedButton.styleFrom(
                       foregroundColor: theme.red,
-                      side: BorderSide(color: theme.red.withAlpha(75)),
+                      side: BorderSide(color: theme.red.withValues(alpha: 0.30)),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
                     ),

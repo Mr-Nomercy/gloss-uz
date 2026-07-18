@@ -96,13 +96,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             TextButton(
               onPressed: () {
                 setState(() => _notifications.clear());
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text("Bildirishnomalar tozalandi"),
-                    behavior: SnackBarBehavior.floating,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
-                  ),
-                );
+                GlossSnackBar.showSuccess(context, "Bildirishnomalar tozalandi");
               },
               child: Text(
                 'Tozalash',
@@ -112,19 +106,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         ],
       ),
       body: _notifications.isEmpty
-          ? Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.notifications_none_rounded, size: 64, color: theme.grayLight),
-                  const SizedBox(height: 16),
-                  Text(
-                    "Bildirishnomalar yo'q",
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: theme.hint),
-                  ),
-                ],
-              ),
-            )
+          ? Center(child: GlossEmptyState.notifications())
           : ListView.builder(
               padding: const EdgeInsets.all(16),
               itemCount: _notifications.length,
@@ -159,7 +141,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                             width: 44,
                             height: 44,
                             decoration: BoxDecoration(
-                              color: typeColor.withAlpha(25),
+                              color: typeColor.withValues(alpha: 0.10),
                               shape: BoxShape.circle,
                             ),
                             child: Icon(

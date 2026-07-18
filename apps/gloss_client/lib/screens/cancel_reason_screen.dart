@@ -47,15 +47,11 @@ class _CancelReasonScreenState extends State<CancelReasonScreen> {
 
   void _confirm() {
     if (_selectedReason == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Iltimos, sabab tanlang'), backgroundColor: Colors.red),
-      );
+      GlossSnackBar.showError(context, 'Iltimos, sabab tanlang');
       return;
     }
     if (_needsNote && _noteController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Iltimos, izoh yozing'), backgroundColor: Colors.red),
-      );
+      GlossSnackBar.showError(context, 'Iltimos, izoh yozing');
       return;
     }
     Navigator.pop(context, {
@@ -67,17 +63,20 @@ class _CancelReasonScreenState extends State<CancelReasonScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: GlossColors.bg,
+      backgroundColor: context.gloss.bg,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: GlossColors.bg,
+        backgroundColor: context.gloss.bg,
         title: const Text('Bekor qilish sababi'),
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
           icon: Container(
             padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(color: GlossColors.bg, borderRadius: BorderRadius.circular(12)),
-            child: const Icon(Icons.arrow_back_ios_new_rounded, color: GlossColors.text, size: 18),
+            decoration: BoxDecoration(
+              color: context.gloss.bg,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(Icons.arrow_back_ios_new_rounded, color: context.gloss.text, size: 18),
           ),
         ),
       ),
@@ -92,7 +91,7 @@ class _CancelReasonScreenState extends State<CancelReasonScreen> {
                   if (widget.orderNumber != null)
                     Padding(
                       padding: const EdgeInsets.only(bottom: 16),
-                      child: Text('Buyurtma #${widget.orderNumber}', style: const TextStyle(fontSize: 14, color: GlossColors.hint)),
+                      child: Text('Buyurtma #${widget.orderNumber}', style: TextStyle(fontSize: 14, color: context.gloss.hint)),
                     ),
                   ..._reasons.map((reason) => _ReasonTile(
                         id: reason['id'] as String,
@@ -102,25 +101,12 @@ class _CancelReasonScreenState extends State<CancelReasonScreen> {
                       )),
                   if (_needsNote) ...[
                     const SizedBox(height: 20),
-                    const Text('Izoh', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: GlossColors.text)),
+                    Text('Izoh', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: context.gloss.text)),
                     const SizedBox(height: 8),
-                    TextField(
+                    GlossTextField(
+                      hint: "Sababni tushuntiring...",
                       controller: _noteController,
                       maxLines: 3,
-                      decoration: InputDecoration(
-                        hintText: "Sababni tushuntiring...",
-                        hintStyle: const TextStyle(color: GlossColors.hint),
-                        filled: true,
-                        fillColor: GlossColors.card,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: GlossColors.border),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: GlossColors.border),
-                        ),
-                      ),
                     ),
                   ],
                 ],
@@ -135,7 +121,7 @@ class _CancelReasonScreenState extends State<CancelReasonScreen> {
                 child: ElevatedButton(
                   onPressed: _confirm,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: GlossColors.red,
+                    backgroundColor: context.gloss.red,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -173,9 +159,9 @@ class _ReasonTile extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 8),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
-          color: isSelected ? GlossColors.greenBgLight : GlossColors.card,
+          color: isSelected ? context.gloss.greenBgLight : context.gloss.card,
           border: Border.all(
-            color: isSelected ? GlossColors.green : GlossColors.border,
+            color: isSelected ? context.gloss.green : context.gloss.border,
             width: isSelected ? 1.5 : 1,
           ),
           borderRadius: BorderRadius.circular(10),
@@ -184,13 +170,13 @@ class _ReasonTile extends StatelessWidget {
           children: [
             Icon(
               isSelected ? Icons.radio_button_checked_rounded : Icons.radio_button_unchecked_rounded,
-              color: isSelected ? GlossColors.green : GlossColors.disabled,
+              color: isSelected ? context.gloss.green : context.gloss.disabled,
             ),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
                 label,
-                style: TextStyle(fontSize: 15, color: GlossColors.text, fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500),
+                style: TextStyle(fontSize: 15, color: context.gloss.text, fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500),
               ),
             ),
           ],

@@ -52,53 +52,21 @@ class _VerifyPhoneScreenState extends State<VerifyPhoneScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('SMS kod', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: theme.hint)),
-                  const SizedBox(height: 12),
-                  TextFormField(
+                  GlossTextField(
+                    label: 'SMS kod',
+                    hint: '000000',
                     controller: _codeController,
                     keyboardType: TextInputType.number,
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: theme.text, letterSpacing: 8),
-                    textAlign: TextAlign.center,
-                    decoration: InputDecoration(
-                      hintText: '000000',
-                      hintStyle: TextStyle(color: theme.hint),
-                      filled: true,
-                      fillColor: theme.bg,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: theme.border),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: theme.border),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: theme.green, width: 2),
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-                    ),
                   ),
                 ],
               ),
             ),
             const SizedBox(height: 24),
-            SizedBox(
-              height: 52,
-              child: ElevatedButton(
-                onPressed: _isLoading ? null : () => context.go('/'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: theme.green,
-                  foregroundColor: Colors.white,
-                  disabledBackgroundColor: theme.disabled,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                  elevation: 0,
-                  textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
-                ),
-                child: _isLoading
-                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                    : const Text('Tasdiqlash'),
-              ),
+            GlossButton(
+              label: 'Tasdiqlash',
+              isLoading: _isLoading,
+              onPressed: _isLoading ? null : () => context.go('/'),
             ),
             const SizedBox(height: 16),
             TextButton(

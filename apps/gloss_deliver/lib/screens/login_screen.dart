@@ -85,58 +85,18 @@ class LoginScreen extends ConsumerWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 48),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: theme.bg,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: theme.border),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Telefon raqam', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: theme.hint)),
-                  const SizedBox(height: 8),
-                  TextField(
-                    keyboardType: TextInputType.phone,
-                    onChanged: (v) => ref.read(loginFormProvider.notifier).setPhone(v),
-                    style: TextStyle(fontSize: 16, color: theme.text),
-                    decoration: const InputDecoration(
-                      border: InputBorder.none,
-                      hintText: '+998 XX XXX XX XX',
-                      hintStyle: TextStyle(color: GlossColors.disabled),
-                      isDense: true,
-                      contentPadding: EdgeInsets.zero,
-                    ),
-                  ),
-                ],
-              ),
+            GlossTextField(
+              label: 'Telefon raqam',
+              hint: '+998 XX XXX XX XX',
+              keyboardType: TextInputType.phone,
+              onChanged: (v) => ref.read(loginFormProvider.notifier).setPhone(v),
             ),
             const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: theme.bg,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: theme.border),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Parol', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: theme.hint)),
-                  const SizedBox(height: 8),
-                  TextField(
-                    obscureText: true,
-                    onChanged: (v) => ref.read(loginFormProvider.notifier).setPassword(v),
-                    style: TextStyle(fontSize: 16, color: theme.text),
-                    decoration: const InputDecoration(
-                      border: InputBorder.none,
-                      isDense: true,
-                      contentPadding: EdgeInsets.zero,
-                    ),
-                  ),
-                ],
-              ),
+            GlossTextField(
+              label: 'Parol',
+              hint: 'Parolingizni kiriting',
+              obscureText: true,
+              onChanged: (v) => ref.read(loginFormProvider.notifier).setPassword(v),
             ),
             if (form.error != null) ...[
               const SizedBox(height: 8),
@@ -178,7 +138,7 @@ class LoginScreen extends ConsumerWidget {
                 onPressed: () => context.go('/auth/register'),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: theme.green,
-                  side: BorderSide(color: theme.green.withAlpha(75)),
+                  side: BorderSide(color: theme.green.withValues(alpha: 0.30)),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                   textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                 ),

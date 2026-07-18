@@ -38,15 +38,23 @@ class _OrderScreenState extends State<OrderScreen> {
 
   void _startSimulation() {
     _simTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (!mounted) { timer.cancel(); return; }
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
       setState(() {
         _driverProgress += 0.05;
-        if (_driverProgress >= 1.0) { _driverProgress = 1.0; timer.cancel(); }
+        if (_driverProgress >= 1.0) {
+          _driverProgress = 1.0;
+          timer.cancel();
+        }
       });
       if (_driverProgress > 0.35 && _currentStep < 1) _advanceStep();
       if (_driverProgress > 0.8 && _currentStep < 2) _advanceStep();
       if (_driverProgress >= 1.0 && _currentStep < 3) {
-        Future.delayed(const Duration(seconds: 2), () { if (mounted) _advanceStep(); });
+        Future.delayed(const Duration(seconds: 2), () {
+          if (mounted) _advanceStep();
+        });
       }
     });
   }
@@ -57,26 +65,21 @@ class _OrderScreenState extends State<OrderScreen> {
       if (_currentStep == 3) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Buyurtma muvaffaqiyatli yakunlandi!'),
-                backgroundColor: GlossColors.green,
-                behavior: SnackBarBehavior.floating,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
-              ),
-            );
-            showDialog(
+            GlossSnackBar.showSuccess(context, 'Buyurtma muvaffaqiyatli yakunlandi!');
+            GlossDialog.show(
               context: context,
-              barrierDismissible: false,
-              builder: (_) => AlertDialog(
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                title: const Text('Xizmatni baholang', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
-                content: const Text('Buyurtma yakunlandi. Xizmatni baholaysizmi?'),
-                actions: [
-                  TextButton(onPressed: () => Navigator.pop(context), child: const Text('Keyinroq', style: TextStyle(color: GlossColors.hint))),
-                  TextButton(onPressed: () => Navigator.pop(context), child: const Text('Baholash', style: TextStyle(color: GlossColors.green, fontWeight: FontWeight.w700))),
-                ],
-              ),
+              title: 'Xizmatni baholang',
+              content: 'Buyurtma yakunlandi. Xizmatni baholaysizmi?',
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text('Keyinroq', style: TextStyle(color: context.gloss.hint)),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text('Baholash', style: TextStyle(color: context.gloss.green, fontWeight: FontWeight.w700)),
+                ),
+              ],
             );
           }
         });
@@ -89,59 +92,60 @@ class _OrderScreenState extends State<OrderScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          Container(color: GlossColors.bg, child: Center(
-            child: Container(
-              height: 200, width: double.infinity,
-              color: GlossColors.greenBgLight,
-              child: Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.map_rounded, size: 64, color: GlossColors.green.withAlpha(100)),
-                    const SizedBox(height: 8),
-                    const Text("Xarita", style: TextStyle(fontSize: 16, color: GlossColors.hint)),
-                  ],
-                ),
-              ),
-            ),
-          )),
-          Positioned(
-            top: MediaQuery.of(context).padding.top + 8, left: 16, right: 16,
-            child: Material(
-              elevation: 2, borderRadius: BorderRadius.circular(14), color: Colors.white,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                child: Row(
-                  children: [
-                    GestureDetector(
-                      onTap: () => Navigator.of(context).popUntil((r) => r.isFirst),
-                      child: const Icon(Icons.arrow_back_ios_new_rounded, color: GlossColors.text, size: 24),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text('Buyurtma GLS-12345', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: GlossColors.text)),
-                          Text(widget.serviceName.isNotEmpty ? widget.serviceName : 'Tozalash', style: const TextStyle(fontSize: 13, color: GlossColors.hint)),
-                        ],
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                      decoration: BoxDecoration(
-                        color: _currentStep >= 3 ? GlossColors.greenBgPale : GlossColors.orangeBgLight,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(_currentStep >= 3 ? 'Bajarildi' : 'Faol', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: _currentStep >= 3 ? GlossColors.green : GlossColors.orange)),
-                    ),
-                  ],
+          Container(
+            color: context.gloss.bg,
+            child: Center(
+              child: Container(
+                height: 200,
+                width: double.infinity,
+                color: context.gloss.greenBgLight,
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.map_rounded, size: 64, color: GlossColors.green.withValues(alpha: 0.39)),
+                      const SizedBox(height: 8),
+                      Text('Xarita', style: TextStyle(fontSize: 16, color: context.gloss.hint)),
+                    ],
+                  ),
                 ),
               ),
             ),
           ),
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 8,
+            left: 16,
+            right: 16,
+            child: GlossCard(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Row(
+                children: [
+                  GestureDetector(
+                    onTap: () => Navigator.of(context).popUntil((r) => r.isFirst),
+                    child: Icon(Icons.arrow_back_ios_new_rounded, color: context.gloss.text, size: 24),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Buyurtma GLS-12345', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: context.gloss.text)),
+                        Text(
+                          widget.serviceName.isNotEmpty ? widget.serviceName : 'Tozalash',
+                          style: TextStyle(fontSize: 13, color: context.gloss.hint),
+                        ),
+                      ],
+                    ),
+                  ),
+                  GlossBadge(label: _currentStep >= 3 ? 'Bajarildi' : 'Faol'),
+                ],
+              ),
+            ),
+          ),
           DraggableScrollableSheet(
-            initialChildSize: 0.42, minChildSize: 0.18, maxChildSize: 0.6,
+            initialChildSize: 0.42,
+            minChildSize: 0.18,
+            maxChildSize: 0.6,
             builder: (context, scrollController) {
               return Container(
                 decoration: const BoxDecoration(
@@ -155,7 +159,8 @@ class _OrderScreenState extends State<OrderScreen> {
                   children: [
                     Center(
                       child: Container(
-                        width: 40, height: 4,
+                        width: 40,
+                        height: 4,
                         decoration: BoxDecoration(color: GlossColors.border, borderRadius: BorderRadius.circular(2)),
                       ),
                     ),
@@ -163,26 +168,33 @@ class _OrderScreenState extends State<OrderScreen> {
                     Row(
                       children: [
                         Container(
-                          width: 52, height: 52,
-                          decoration: BoxDecoration(color: GlossColors.green.withAlpha(20), borderRadius: BorderRadius.circular(16)),
-                          child: const Icon(Icons.check_circle_rounded, color: GlossColors.green, size: 30),
+                          width: 52,
+                          height: 52,
+                          decoration: BoxDecoration(
+                            color: GlossColors.green.withValues(alpha: 0.08),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Icon(Icons.check_circle_rounded, color: context.gloss.green, size: 30),
                         ),
                         const SizedBox(width: 14),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(widget.serviceName.isNotEmpty ? widget.serviceName : 'Tozalash', style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: GlossColors.text)),
-                              const Text('Standart — 50 000 so\'m', style: TextStyle(fontSize: 13, color: GlossColors.hint)),
+                              Text(
+                                widget.serviceName.isNotEmpty ? widget.serviceName : 'Tozalash',
+                                style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: context.gloss.text),
+                              ),
+                              Text("Standart — 50 000 so'm", style: TextStyle(fontSize: 13, color: context.gloss.hint)),
                             ],
                           ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 16),
-                    _buildDetails(),
+                    _buildDetails(context),
                     const SizedBox(height: 16),
-                    const Divider(height: 1, color: GlossColors.divider),
+                    Divider(height: 1, color: context.gloss.divider),
                     const SizedBox(height: 16),
                     ...List.generate(_steps.length, (i) {
                       final isActive = i <= _currentStep;
@@ -192,7 +204,8 @@ class _OrderScreenState extends State<OrderScreen> {
                     const SizedBox(height: 16),
                     if (_currentStep == 0)
                       SizedBox(
-                        width: double.infinity, height: 50,
+                        width: double.infinity,
+                        height: 50,
                         child: OutlinedButton.icon(
                           onPressed: () => _showCancelDialog(context),
                           icon: const Icon(Icons.close_rounded, size: 18),
@@ -214,7 +227,7 @@ class _OrderScreenState extends State<OrderScreen> {
     );
   }
 
-  Widget _buildDetails() {
+  Widget _buildDetails(BuildContext context) {
     return Column(
       children: [
         _detailRow(Icons.calendar_today_rounded, 'Sana', '15.07.2026'),
@@ -233,9 +246,9 @@ class _OrderScreenState extends State<OrderScreen> {
       children: [
         Icon(icon, size: 16, color: GlossColors.green),
         const SizedBox(width: 8),
-        SizedBox(width: 50, child: Text(label, style: const TextStyle(fontSize: 13, color: GlossColors.hint))),
+        SizedBox(width: 50, child: Text(label, style: TextStyle(fontSize: 13, color: context.gloss.hint))),
         Expanded(
-          child: Text(value, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: GlossColors.text), maxLines: 1, overflow: TextOverflow.ellipsis),
+          child: Text(value, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: context.gloss.text), maxLines: 1, overflow: TextOverflow.ellipsis),
         ),
       ],
     );
@@ -251,12 +264,12 @@ class _OrderScreenState extends State<OrderScreen> {
             child: Column(
               children: [
                 Container(
-                  width: 24, height: 24,
+                  width: 24,
+                  height: 24,
                   decoration: BoxDecoration(color: isActive ? GlossColors.green : GlossColors.border, shape: BoxShape.circle),
                   child: Icon(isActive ? Icons.check_rounded : step.icon, size: 14, color: Colors.white),
                 ),
-                if (!isLast)
-                  Expanded(child: Container(width: 2, color: isActive ? GlossColors.green : GlossColors.border)),
+                if (!isLast) Expanded(child: Container(width: 2, color: isActive ? GlossColors.green : GlossColors.border)),
               ],
             ),
           ),
@@ -269,12 +282,21 @@ class _OrderScreenState extends State<OrderScreen> {
                   height: 24,
                   child: Align(
                     alignment: Alignment.centerLeft,
-                    child: Text(step.title,
-                      style: TextStyle(fontSize: 14, fontWeight: isCurrent ? FontWeight.w700 : FontWeight.w500, color: isActive ? GlossColors.text : GlossColors.disabled)),
+                    child: Text(
+                      step.title,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: isCurrent ? FontWeight.w700 : FontWeight.w500,
+                        color: isActive ? GlossColors.text : GlossColors.disabled,
+                      ),
+                    ),
                   ),
                 ),
                 if (isCurrent)
-                  Padding(padding: const EdgeInsets.only(top: 2, bottom: 12), child: Text(step.subtitle, style: const TextStyle(fontSize: 12, color: GlossColors.hint)))
+                  Padding(
+                    padding: const EdgeInsets.only(top: 2, bottom: 12),
+                    child: Text(step.subtitle, style: TextStyle(fontSize: 12, color: context.gloss.hint)),
+                  )
                 else
                   const SizedBox(height: 12),
               ],
@@ -286,24 +308,24 @@ class _OrderScreenState extends State<OrderScreen> {
   }
 
   void _showCancelDialog(BuildContext context) {
-    showDialog(
+    GlossDialog.show(
       context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Buyurtmani bekor qilish', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
-        content: const Text('Haqiqatan ham buyurtmani bekor qilmoqchisiz?', style: TextStyle(fontSize: 15, color: GlossColors.hint)),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text("Yo'q", style: TextStyle(color: GlossColors.hint, fontWeight: FontWeight.w600))),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              Navigator.of(context).popUntil((r) => r.isFirst);
-            },
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Ha, bekor qilish', style: TextStyle(fontWeight: FontWeight.w700)),
-          ),
-        ],
-      ),
+      title: 'Buyurtmani bekor qilish',
+      content: 'Haqiqatan ham buyurtmani bekor qilmoqchisiz?',
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text("Yo'q", style: TextStyle(color: context.gloss.hint, fontWeight: FontWeight.w600)),
+        ),
+        TextButton(
+          onPressed: () {
+            Navigator.pop(context);
+            Navigator.of(context).popUntil((r) => r.isFirst);
+          },
+          style: TextButton.styleFrom(foregroundColor: Colors.red),
+          child: const Text('Ha, bekor qilish', style: TextStyle(fontWeight: FontWeight.w700)),
+        ),
+      ],
     );
   }
 }

@@ -67,14 +67,7 @@ class _VerifyScreenState extends ConsumerState<VerifyScreen> {
     if (_resendSeconds > 0) return;
     ref.read(authProvider.notifier).login(widget.phone);
     _startResendTimer();
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Kod qayta yuborildi'),
-        backgroundColor: GlossColors.green,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
-      ),
-    );
+    GlossSnackBar.showSuccess(context, 'Kod qayta yuborildi');
   }
 
   @override
@@ -104,7 +97,7 @@ class _VerifyScreenState extends ConsumerState<VerifyScreen> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: GlossColors.green.withAlpha(16),
+                  color: GlossColors.green.withValues(alpha: 0.06),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: const Icon(Icons.sms_rounded, color: GlossColors.green, size: 40),
@@ -133,19 +126,15 @@ class _VerifyScreenState extends ConsumerState<VerifyScreen> {
                   ),
                 ),
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: TextField(
+                child: GlossTextField(
+                  hint: '0000',
                   controller: _codeCtrl,
                   focusNode: _focusNode,
                   keyboardType: TextInputType.number,
                   maxLength: 4,
-                  textAlign: TextAlign.center,
+                  filled: false,
                   style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w700, color: GlossColors.text, letterSpacing: 12),
-                  decoration: const InputDecoration(
-                    counterText: '',
-                    border: InputBorder.none,
-                    hintText: '0000',
-                    hintStyle: TextStyle(color: GlossColors.disabled, fontSize: 28, letterSpacing: 12),
-                  ),
+                  hintStyle: const TextStyle(color: GlossColors.disabled, fontSize: 28, letterSpacing: 12),
                   onChanged: (_) => setState(() => _error = null),
                 ),
               ),
@@ -154,22 +143,10 @@ class _VerifyScreenState extends ConsumerState<VerifyScreen> {
                 Text(_error!, style: const TextStyle(color: Colors.red, fontSize: 13)),
               ],
               const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                height: 52,
-                child: ElevatedButton(
-                  onPressed: _codeCtrl.text.length == 4 && !isLoading ? _submit : null,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: GlossColors.green,
-                    foregroundColor: Colors.white,
-                    disabledBackgroundColor: GlossColors.disabled,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                    elevation: 0,
-                  ),
-                  child: isLoading
-                      ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                      : const Text('Tasdiqlash', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
-                ),
+              GlossButton(
+                label: 'Tasdiqlash',
+                isLoading: isLoading,
+                onPressed: _codeCtrl.text.length == 4 && !isLoading ? _submit : null,
               ),
               const SizedBox(height: 16),
               Center(

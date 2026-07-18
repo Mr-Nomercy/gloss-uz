@@ -1,17 +1,30 @@
-import { useState } from 'react';
-import { Plus } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { mockProducts, Product } from '@/lib/data';
-import { formatCurrency } from '@/lib/utils';
+import { useState } from "react";
+import { Plus } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { mockProducts, Product } from "@/lib/data";
+import { formatCurrency } from "@/lib/utils";
 
 export default function PlatformMarket() {
   const [products, setProducts] = useState(mockProducts);
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ name: '', price: '', category: '' });
+  const [form, setForm] = useState({ name: "", price: "", category: "" });
 
   const addProduct = () => {
     const p: Product = {
@@ -19,10 +32,10 @@ export default function PlatformMarket() {
       name: form.name,
       price: Number(form.price),
       category: form.category,
-      image: '📦',
+      image: "📦",
     };
     setProducts([...products, p]);
-    setForm({ name: '', price: '', category: '' });
+    setForm({ name: "", price: "", category: "" });
     setOpen(false);
   };
 

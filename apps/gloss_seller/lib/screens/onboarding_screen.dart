@@ -68,20 +68,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             const SizedBox(height: 24),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: SizedBox(
-                width: double.infinity,
-                height: 52,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: theme.green,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                    elevation: 0,
-                    textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
-                  ),
-                  onPressed: _nextPage,
-                  child: Text(_currentPage < _pages.length - 1 ? "Keyingi" : "Boshlash"),
-                ),
+              child: GlossButton(
+                label: _currentPage < _pages.length - 1 ? "Keyingi" : "Boshlash",
+                onPressed: _nextPage,
               ),
             ),
             const SizedBox(height: 12),

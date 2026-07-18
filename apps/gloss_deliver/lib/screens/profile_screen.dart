@@ -43,7 +43,7 @@ class ProfileScreen extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: theme.greenBgLight,
                   shape: BoxShape.circle,
-                  border: Border.all(color: theme.green.withAlpha(50), width: 3),
+                  border: Border.all(color: theme.green.withValues(alpha: 0.20), width: 3),
                 ),
                 child: Icon(Icons.person, size: 40, color: theme.green),
               ),
@@ -133,7 +133,7 @@ class ProfileScreen extends StatelessWidget {
         onPressed: () => _showLogoutDialog(context, theme),
         style: OutlinedButton.styleFrom(
           foregroundColor: theme.red,
-          side: BorderSide(color: theme.red.withAlpha(75)),
+          side: BorderSide(color: theme.red.withValues(alpha: 0.30)),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
           textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         ),
