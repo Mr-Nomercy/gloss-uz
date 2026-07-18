@@ -56,26 +56,26 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: GlossColors.green.withAlpha(16),
+                  color: context.gloss.green.withValues(alpha: 0.06),
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: const Icon(Icons.person_outline_rounded, color: GlossColors.green, size: 40),
+                child: Icon(Icons.person_outline_rounded, color: context.gloss.green, size: 40),
               ),
               const SizedBox(height: 24),
-              const Text(
+              Text(
                 'Ismingizni kiriting',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: GlossColors.text),
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: context.gloss.text),
               ),
               const SizedBox(height: 8),
-              const Text(
+              Text(
                 ' profilingizni yaratish uchun ismingizni kiriting',
-                style: TextStyle(fontSize: 15, color: GlossColors.hint),
+                style: TextStyle(fontSize: 15, color: context.gloss.hint),
               ),
               const SizedBox(height: 32),
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: GlossColors.bg,
+                  color: context.gloss.bg,
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: Row(
@@ -83,42 +83,39 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: GlossColors.green.withAlpha(16),
+                        color: context.gloss.green.withValues(alpha: 0.06),
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      child: const Icon(Icons.phone_rounded, color: GlossColors.green, size: 18),
+                      child: Icon(Icons.phone_rounded, color: context.gloss.green, size: 18),
                     ),
                     const SizedBox(width: 12),
-                    Text(widget.phone, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: GlossColors.text)),
+                    Text(widget.phone, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: context.gloss.text)),
                     const Spacer(),
-                    const Icon(Icons.check_circle_rounded, color: GlossColors.green, size: 20),
+                    Icon(Icons.check_circle_rounded, color: context.gloss.green, size: 20),
                   ],
                 ),
               ),
               const SizedBox(height: 16),
               Container(
                 decoration: BoxDecoration(
-                  color: GlossColors.bg,
+                  color: context.gloss.bg,
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(
                     color: _error != null
                         ? Colors.red
                         : _nameCtrl.text.trim().isNotEmpty
-                            ? GlossColors.green
-                            : GlossColors.border,
+                            ? context.gloss.green
+                            : context.gloss.border,
                   ),
                 ),
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: TextField(
+                child: GlossTextField(
+                  hint: 'Ismingiz...',
                   controller: _nameCtrl,
                   focusNode: _nameFocus,
                   textCapitalization: TextCapitalization.words,
-                  style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600, color: GlossColors.text),
-                  decoration: const InputDecoration(
-                    border: InputBorder.none,
-                    hintText: 'Ismingiz...',
-                    hintStyle: TextStyle(color: GlossColors.disabled),
-                  ),
+                  filled: false,
+                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600, color: context.gloss.text),
                   onChanged: (_) => setState(() => _error = null),
                 ),
               ),
@@ -127,22 +124,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 Text(_error!, style: const TextStyle(color: Colors.red, fontSize: 13)),
               ],
               const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                height: 52,
-                child: ElevatedButton(
-                  onPressed: _nameCtrl.text.trim().isNotEmpty && !isLoading ? _submit : null,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: GlossColors.green,
-                    foregroundColor: Colors.white,
-                    disabledBackgroundColor: GlossColors.disabled,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                    elevation: 0,
-                  ),
-                  child: isLoading
-                      ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                      : const Text("Ro'yxatdan o'tish", style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
-                ),
+              GlossButton(
+                label: "Ro'yxatdan o'tish",
+                isLoading: isLoading,
+                onPressed: _nameCtrl.text.trim().isNotEmpty && !isLoading ? _submit : null,
               ),
               const Spacer(flex: 3),
             ],

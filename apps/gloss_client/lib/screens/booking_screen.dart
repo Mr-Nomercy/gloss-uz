@@ -78,34 +78,20 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
         _appliedPromo = code;
       });
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Promo kod qabul qilindi! $discount% chegirma'),
-            backgroundColor: GlossColors.green,
-            behavior: SnackBarBehavior.floating,
-            shape: const RoundedRectangleBorder(
-              borderRadius: BorderRadius.all(Radius.circular(12)),
-            ),
-          ),
-        );
+        GlossSnackBar.showSuccess(context, 'Promo kod qabul qilindi! $discount% chegirma');
       }
     } else if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Promo kod noto'g'ri yoki muddati tugagan"),
-          backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(Radius.circular(12)),
-          ),
-        ),
-      );
+      GlossSnackBar.showError(context, "Promo kod noto'g'ri yoki muddati tugagan");
     }
   }
 
   void _removePromo() {
     ref.read(bookingProvider.notifier).removePromo();
-    setState(() { _discountPercent = null; _appliedPromo = null; _promoController.clear(); });
+    setState(() {
+      _discountPercent = null;
+      _appliedPromo = null;
+      _promoController.clear();
+    });
   }
 
   Future<void> _pickDate() async {
@@ -134,11 +120,11 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
     if (result != null && mounted) {
       setState(() => _addressResult = result);
       ref.read(bookingProvider.notifier).setAddress(
-        'temp_address',
-        result.address,
-        result.lat,
-        result.lng,
-      );
+            'temp_address',
+            result.address,
+            result.lat,
+            result.lng,
+          );
     }
   }
 
@@ -147,14 +133,30 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
       context: context,
       backgroundColor: Colors.transparent,
       builder: (_) => Container(
-        decoration: const BoxDecoration(color: Colors.white, borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-        padding: EdgeInsets.only(left: 24, right: 24, top: 24, bottom: MediaQuery.of(context).padding.bottom + 24),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        padding: EdgeInsets.only(
+          left: 24,
+          right: 24,
+          top: 24,
+          bottom: MediaQuery.of(context).padding.bottom + 24,
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(width: 40, height: 4, margin: const EdgeInsets.only(bottom: 20), decoration: BoxDecoration(color: GlossColors.border, borderRadius: BorderRadius.circular(2))),
-            const Text("To'lov usulini tanlang", style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: GlossColors.text)),
+            Container(
+              width: 40,
+              height: 4,
+              margin: const EdgeInsets.only(bottom: 20),
+              decoration: BoxDecoration(color: GlossColors.border, borderRadius: BorderRadius.circular(2)),
+            ),
+            const Text(
+              "To'lov usulini tanlang",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: GlossColors.text),
+            ),
             const SizedBox(height: 16),
             _paymentOption('Naqt', Icons.money_rounded, "To'lovni naqd pulda amalga oshiring", 'cash'),
             const SizedBox(height: 8),
@@ -176,13 +178,21 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: selected ? GlossColors.green.withAlpha(10) : Colors.white,
+          color: selected ? GlossColors.green.withValues(alpha: 0.04) : Colors.white,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(color: selected ? GlossColors.green : GlossColors.grayLight),
         ),
         child: Row(
           children: [
-            Container(width: 44, height: 44, decoration: BoxDecoration(color: GlossColors.green.withAlpha(20), borderRadius: BorderRadius.circular(12)), child: Icon(icon, color: GlossColors.green, size: 24)),
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: GlossColors.green.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, color: GlossColors.green, size: 24),
+            ),
             const SizedBox(width: 14),
             Expanded(
               child: Column(
@@ -219,16 +229,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
     } else {
       final error = ref.read(bookingProvider).error;
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(error ?? 'Xatolik yuz berdi'),
-            backgroundColor: Colors.red,
-            behavior: SnackBarBehavior.floating,
-            shape: const RoundedRectangleBorder(
-              borderRadius: BorderRadius.all(Radius.circular(12)),
-            ),
-          ),
-        );
+        GlossSnackBar.showError(context, error ?? 'Xatolik yuz berdi');
       }
     }
   }
@@ -236,19 +237,22 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: GlossColors.bg,
+      backgroundColor: context.gloss.bg,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: GlossColors.bg,
+        backgroundColor: context.gloss.bg,
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
           icon: Container(
             padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(color: GlossColors.bg, borderRadius: BorderRadius.circular(12)),
-            child: const Icon(Icons.arrow_back_ios_new_rounded, color: GlossColors.text, size: 18),
+            decoration: BoxDecoration(
+              color: context.gloss.bg,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(Icons.arrow_back_ios_new_rounded, color: context.gloss.text, size: 18),
           ),
         ),
-        title: Text(widget.serviceName, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: GlossColors.text)),
+        title: Text(widget.serviceName, style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: context.gloss.text)),
       ),
       body: Column(
         children: [
@@ -256,90 +260,103 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
             child: ListView(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
               children: [
-                Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)),
+                GlossCard(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _fieldRow(Icons.calendar_today_rounded, GestureDetector(
-                        onTap: _pickDate,
-                        child: Row(
-                          children: [
-                            Text(formatDate(_selectedDate), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: GlossColors.text)),
-                            const Spacer(),
-                            const Icon(Icons.chevron_right_rounded, color: GlossColors.grayMedium, size: 20),
-                          ],
+                      _fieldRow(
+                        Icons.calendar_today_rounded,
+                        GestureDetector(
+                          onTap: _pickDate,
+                          child: Row(
+                            children: [
+                              Text(formatDate(_selectedDate), style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: context.gloss.text)),
+                              const Spacer(),
+                              Icon(Icons.chevron_right_rounded, color: context.gloss.grayMedium, size: 20),
+                            ],
+                          ),
                         ),
-                      )),
+                      ),
                       const SizedBox(height: 24),
-                      _fieldRow(Icons.access_time_rounded, Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          TextField(
-                            controller: _timeController,
-                            keyboardType: TextInputType.datetime,
-                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: GlossColors.text),
-                            decoration: const InputDecoration(hintText: 'HH:MM', border: InputBorder.none, contentPadding: EdgeInsets.zero, isDense: true),
-                          ),
-                          const SizedBox(height: 6),
-                          SizedBox(
-                            height: 32,
-                            child: ListView.separated(
-                              scrollDirection: Axis.horizontal,
-                              itemCount: quickTimes.length,
-                              separatorBuilder: (ctx, i) => const SizedBox(width: 6),
-                              itemBuilder: (context, i) {
-                                final t = quickTimes[i];
-                                final selected = _timeController.text == t;
-                                return GestureDetector(
-                                  onTap: () => _timeController.text = t,
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                                    alignment: Alignment.center,
-                                    decoration: BoxDecoration(
-                                      color: selected ? GlossColors.green : GlossColors.bg,
-                                      borderRadius: BorderRadius.circular(16),
-                                    ),
-                                    child: Text(t, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: selected ? Colors.white : GlossColors.hint)),
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                        ],
-                      )),
-                      const SizedBox(height: 24),
-                      _fieldRow(Icons.location_on_rounded, GestureDetector(
-                        onTap: _pickAddress,
-                        child: Row(
+                      _fieldRow(
+                        Icons.access_time_rounded,
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Expanded(
-                              child: Text(
-                                _addressResult?.address ?? 'Manzilni tanlang',
-                                style: TextStyle(fontSize: 15, fontWeight: _addressResult != null ? FontWeight.w600 : FontWeight.w400, color: _addressResult != null ? GlossColors.text : GlossColors.hint),
+                            GlossTextField(
+                              hint: 'HH:MM',
+                              controller: _timeController,
+                              keyboardType: TextInputType.datetime,
+                              filled: false,
+                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: context.gloss.text),
+                            ),
+                            const SizedBox(height: 6),
+                            SizedBox(
+                              height: 32,
+                              child: ListView.separated(
+                                scrollDirection: Axis.horizontal,
+                                itemCount: quickTimes.length,
+                                separatorBuilder: (ctx, i) => const SizedBox(width: 6),
+                                itemBuilder: (context, i) {
+                                  final t = quickTimes[i];
+                                  final selected = _timeController.text == t;
+                                  return GestureDetector(
+                                    onTap: () => _timeController.text = t,
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                                      alignment: Alignment.center,
+                                      decoration: BoxDecoration(
+                                        color: selected ? GlossColors.green : GlossColors.bg,
+                                        borderRadius: BorderRadius.circular(16),
+                                      ),
+                                      child: Text(t, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: selected ? Colors.white : GlossColors.hint)),
+                                    ),
+                                  );
+                                },
                               ),
                             ),
-                            const Icon(Icons.chevron_right_rounded, color: GlossColors.grayMedium, size: 20),
                           ],
                         ),
-                      )),
+                      ),
                       const SizedBox(height: 24),
-                      _fieldRow(Icons.note_add_rounded, TextField(
-                        controller: _notesController,
-                        maxLines: 1,
-                        style: const TextStyle(fontSize: 15, color: GlossColors.text),
-                        decoration: const InputDecoration(
-                          hintText: "Qo'shimcha ma'lumot...",
-                          hintStyle: TextStyle(color: GlossColors.hint, fontSize: 15),
-                          border: InputBorder.none, contentPadding: EdgeInsets.zero, isDense: true,
+                      _fieldRow(
+                        Icons.location_on_rounded,
+                        GestureDetector(
+                          onTap: _pickAddress,
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  _addressResult?.address ?? 'Manzilni tanlang',
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: _addressResult != null ? FontWeight.w600 : FontWeight.w400,
+                                    color: _addressResult != null ? GlossColors.text : GlossColors.hint,
+                                  ),
+                                ),
+                              ),
+                              Icon(Icons.chevron_right_rounded, color: context.gloss.grayMedium, size: 20),
+                            ],
+                          ),
                         ),
-                      )),
+                      ),
+                      const SizedBox(height: 24),
+                      _fieldRow(
+                        Icons.note_add_rounded,
+                        GlossTextField(
+                          hint: "Qo'shimcha ma'lumot...",
+                          controller: _notesController,
+                          maxLines: 1,
+                          filled: false,
+                          style: TextStyle(fontSize: 15, color: context.gloss.text),
+                          hintStyle: TextStyle(color: context.gloss.hint, fontSize: 15),
+                        ),
+                      ),
                     ],
                   ),
                 ),
                 const SizedBox(height: 28),
-                const Text('Tarifni tanlang', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: GlossColors.text)),
+                Text('Tarifni tanlang', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: context.gloss.text)),
                 const SizedBox(height: 14),
                 SizedBox(
                   height: 130,
@@ -381,34 +398,39 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                   ),
                 ),
                 const SizedBox(height: 28),
-                const Text("To'lov", style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: GlossColors.text)),
+                Text("To'lov", style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: context.gloss.text)),
                 const SizedBox(height: 14),
                 GestureDetector(
                   onTap: _showPaymentPicker,
-                  child: Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)),
+                  child: GlossCard(
                     child: Row(
                       children: [
-                        Container(width: 44, height: 44, decoration: BoxDecoration(color: GlossColors.green.withAlpha(20), borderRadius: BorderRadius.circular(12)),
-                          child: Icon(_paymentMethod == 'Naqt' ? Icons.money_rounded : Icons.credit_card_rounded, color: GlossColors.green, size: 24)),
+                        Container(
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(
+                            color: GlossColors.green.withValues(alpha: 0.08),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Icon(_paymentMethod == 'Naqt' ? Icons.money_rounded : Icons.credit_card_rounded, color: GlossColors.green, size: 24),
+                        ),
                         const SizedBox(width: 14),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text("To'lov usuli", style: TextStyle(fontSize: 13, color: GlossColors.hint)),
-                              Text(_paymentMethod, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: GlossColors.text)),
+                              Text("To'lov usuli", style: TextStyle(fontSize: 13, color: context.gloss.hint)),
+                              Text(_paymentMethod, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: context.gloss.text)),
                             ],
                           ),
                         ),
-                        const Icon(Icons.chevron_right_rounded, color: GlossColors.grayMedium, size: 22),
+                        Icon(Icons.chevron_right_rounded, color: context.gloss.grayMedium, size: 22),
                       ],
                     ),
                   ),
                 ),
                 const SizedBox(height: 28),
-                const Text('Promo kod', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: GlossColors.text)),
+                Text('Promo kod', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: context.gloss.text)),
                 const SizedBox(height: 14),
                 Row(
                   children: [
@@ -420,17 +442,18 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                           border: Border.all(color: _appliedPromo != null ? GlossColors.green : GlossColors.grayLight),
                         ),
                         padding: const EdgeInsets.symmetric(horizontal: 14),
-                        child: TextField(
+                        child: GlossTextField(
+                          hint: 'Kodni kiriting',
                           controller: _promoController,
-                          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: GlossColors.text),
-                          decoration: InputDecoration(
-                            hintText: 'Kodni kiriting',
-                            hintStyle: const TextStyle(color: GlossColors.disabled, fontWeight: FontWeight.w400),
-                            border: InputBorder.none,
-                            suffixIcon: _appliedPromo != null
-                                ? IconButton(icon: const Icon(Icons.close_rounded, size: 18, color: Colors.red), onPressed: _removePromo)
-                                : null,
-                          ),
+                          filled: false,
+                          style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: context.gloss.text),
+                          hintStyle: const TextStyle(color: GlossColors.disabled, fontWeight: FontWeight.w400),
+                          suffixIcon: _appliedPromo != null
+                              ? IconButton(
+                                  icon: const Icon(Icons.close_rounded, size: 18, color: Colors.red),
+                                  onPressed: _removePromo,
+                                )
+                              : null,
                         ),
                       ),
                     ),
@@ -447,17 +470,18 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                           elevation: 0,
                           padding: const EdgeInsets.symmetric(horizontal: 20),
                         ),
-                        child: Text(_appliedPromo != null ? '$_discountPercent%' : 'Tekshirish', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+                        child: Text(
+                          _appliedPromo != null ? '$_discountPercent%' : 'Tekshirish',
+                          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+                        ),
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 28),
-                const Text('Hisob', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: GlossColors.text)),
+                Text('Hisob', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: context.gloss.text)),
                 const SizedBox(height: 14),
-                Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)),
+                GlossCard(
                   child: Column(
                     children: [
                       _priceRow('Xizmat narxi', _tariffs[_selectedTariff]['price'] as String),
@@ -467,9 +491,9 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                       ],
                       const SizedBox(height: 12),
                       _priceRow('Yetib kelish', 'Bepul'),
-                      const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 12),
-                        child: Divider(height: 1, color: GlossColors.divider),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        child: Divider(height: 1, color: context.gloss.divider),
                       ),
                       _priceRow('Jami', '$_discountedPrice so\'m', bold: true),
                     ],
@@ -483,27 +507,10 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
             decoration: const BoxDecoration(color: Colors.white, borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
             child: SafeArea(
               top: false,
-              child: SizedBox(
-                width: double.infinity, height: 52,
-                child: ElevatedButton(
-                  onPressed: _addressResult != null && !_bookingLoading ? _submitOrder : null,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: GlossColors.green,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                    elevation: 0,
-                  ),
-                  child: _bookingLoading
-                      ? const SizedBox(
-                          width: 22,
-                          height: 22,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
-                          ),
-                        )
-                      : Text('Buyurtma berish — $_discountedPrice so\'m', style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
-                ),
+              child: GlossButton(
+                label: 'Buyurtma berish — $_discountedPrice so\'m',
+                isLoading: _bookingLoading,
+                onPressed: _addressResult != null ? _submitOrder : null,
               ),
             ),
           ),
@@ -528,7 +535,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(label, style: TextStyle(fontSize: 14, color: color ?? GlossColors.hint, fontWeight: bold ? FontWeight.w700 : FontWeight.w400)),
-        Text(value, style: TextStyle(fontSize: 14, color: color ?? GlossColors.text, fontWeight: bold ? FontWeight.w700 : FontWeight.w600)),
+        Text(value, style: TextStyle(fontSize: 14, color: color ?? GlossColors.text, fontWeight: bold ? FontWeight.w600 : FontWeight.w700)),
       ],
     );
   }

@@ -45,9 +45,7 @@ class _TimeSlotScreenState extends State<TimeSlotScreen> {
 
   void _confirm() {
     if (_selectedSlotId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Iltimos, vaqt tanlang'), backgroundColor: Colors.red),
-      );
+      GlossSnackBar.showError(context, 'Iltimos, vaqt tanlang');
       return;
     }
     final selected = _slots.firstWhere((s) => s['id'] == _selectedSlotId);
@@ -60,19 +58,22 @@ class _TimeSlotScreenState extends State<TimeSlotScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: GlossColors.bg,
+      backgroundColor: context.gloss.bg,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: GlossColors.bg,
+        backgroundColor: context.gloss.bg,
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
           icon: Container(
             padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(color: GlossColors.bg, borderRadius: BorderRadius.circular(12)),
-            child: const Icon(Icons.arrow_back_ios_new_rounded, color: GlossColors.text, size: 18),
+            decoration: BoxDecoration(
+              color: context.gloss.bg,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(Icons.arrow_back_ios_new_rounded, color: context.gloss.text, size: 18),
           ),
         ),
-        title: const Text('Vaqtni tanlang', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: GlossColors.text)),
+        title: Text('Vaqtni tanlang', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: context.gloss.text)),
       ),
       body: Column(
         children: [
@@ -86,8 +87,8 @@ class _TimeSlotScreenState extends State<TimeSlotScreen> {
                     icon: const Icon(Icons.calendar_today_rounded, size: 18),
                     label: Text('${_selectedDate.day}.${_selectedDate.month}.${_selectedDate.year}'),
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: GlossColors.text,
-                      side: const BorderSide(color: GlossColors.border),
+                      foregroundColor: context.gloss.text,
+                      side: BorderSide(color: context.gloss.border),
                       padding: const EdgeInsets.symmetric(vertical: 12),
                     ),
                   ),
@@ -115,16 +116,16 @@ class _TimeSlotScreenState extends State<TimeSlotScreen> {
                   child: Container(
                     decoration: BoxDecoration(
                       color: isSelected
-                          ? GlossColors.green
+                          ? context.gloss.green
                           : isAvailable
-                              ? GlossColors.card
-                              : GlossColors.divider,
+                              ? context.gloss.card
+                              : context.gloss.divider,
                       border: Border.all(
                         color: isSelected
-                            ? GlossColors.green
+                            ? context.gloss.green
                             : isAvailable
-                                ? GlossColors.border
-                                : GlossColors.divider,
+                                ? context.gloss.border
+                                : context.gloss.divider,
                       ),
                       borderRadius: BorderRadius.circular(10),
                     ),
@@ -137,8 +138,8 @@ class _TimeSlotScreenState extends State<TimeSlotScreen> {
                         color: isSelected
                             ? Colors.white
                             : isAvailable
-                                ? GlossColors.text
-                                : GlossColors.disabled,
+                                ? context.gloss.text
+                                : context.gloss.disabled,
                       ),
                     ),
                   ),
@@ -149,18 +150,9 @@ class _TimeSlotScreenState extends State<TimeSlotScreen> {
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.all(16),
-              child: SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _confirm,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: GlossColors.green,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                  child: const Text('Tasdiqlash', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-                ),
+              child: GlossButton(
+                label: 'Tasdiqlash',
+                onPressed: _confirm,
               ),
             ),
           ),

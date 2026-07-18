@@ -8,7 +8,7 @@ class OrderSuccessScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: GlossColors.bg,
+      backgroundColor: context.gloss.bg,
       body: SafeArea(
         child: Center(
           child: Padding(
@@ -18,40 +18,39 @@ class OrderSuccessScreen extends StatelessWidget {
               children: [
                 Container(
                   padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(color: GlossColors.green.withAlpha(20), shape: BoxShape.circle),
-                  child: const Icon(Icons.check_circle_rounded, color: GlossColors.green, size: 80),
+                  decoration: BoxDecoration(
+                    color: context.gloss.green.withValues(alpha: 0.08),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(Icons.check_circle_rounded, color: context.gloss.green, size: 80),
                 ),
                 const SizedBox(height: 28),
-                const Text('Buyurtma qabul qilindi!', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: GlossColors.text)),
+                Text('Buyurtma qabul qilindi!', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: context.gloss.text)),
                 const SizedBox(height: 12),
                 Text(
                   'Buyurtmangiz muvaffaqiyatli qabul qilindi.\nXodim siz bilan bog\'lanadi.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 15, color: Colors.grey[600], height: 1.5),
+                  style: TextStyle(fontSize: 15, color: context.gloss.hint, height: 1.5),
                 ),
                 const SizedBox(height: 32),
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(color: GlossColors.card, borderRadius: BorderRadius.circular(16)),
+                  decoration: BoxDecoration(color: context.gloss.card, borderRadius: BorderRadius.circular(16)),
                   child: Column(
                     children: [
-                      _buildInfoRow('Buyurtma raqami', orderId),
+                      _buildInfoRow(context, 'Buyurtma raqami', orderId),
                       const SizedBox(height: 10),
-                      _buildInfoRow('Yetkazish vaqti', '30-45 daqiqa'),
+                      _buildInfoRow(context, 'Yetkazish vaqti', '30-45 daqiqa'),
                       const SizedBox(height: 10),
-                      _buildInfoRow('Holat', 'Tayyorlanmoqda'),
+                      _buildInfoRow(context, 'Holat', 'Tayyorlanmoqda'),
                     ],
                   ),
                 ),
                 const SizedBox(height: 40),
-                SizedBox(
-                  width: double.infinity, height: 54,
-                  child: ElevatedButton(
-                    onPressed: () => Navigator.popUntil(context, (route) => route.isFirst),
-                    style: ElevatedButton.styleFrom(backgroundColor: GlossColors.green, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)), elevation: 0),
-                    child: const Text('Bosh sahifaga', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
-                  ),
+                GlossButton(
+                  label: 'Bosh sahifaga',
+                  onPressed: () => Navigator.popUntil(context, (route) => route.isFirst),
                 ),
                 const SizedBox(height: 14),
               ],
@@ -62,12 +61,12 @@ class OrderSuccessScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoRow(String label, String value) {
+  Widget _buildInfoRow(BuildContext context, String label, String value) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: TextStyle(fontSize: 14, color: Colors.grey[500])),
-        Text(value, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: GlossColors.text)),
+        Text(label, style: TextStyle(fontSize: 14, color: context.gloss.hint)),
+        Text(value, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: context.gloss.text)),
       ],
     );
   }

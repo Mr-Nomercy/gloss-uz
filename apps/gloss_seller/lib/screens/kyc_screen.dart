@@ -43,10 +43,7 @@ class _KycScreenState extends State<KycScreen> {
                   child: Icon(Icons.verified_user, color: theme.orange, size: 32),
                 ),
                 const SizedBox(height: 12),
-                Text(
-                  'Tasdiqlanmagan',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: theme.orange, height: 1.4),
-                ),
+                const GlossBadge(label: 'Tasdiqlanmagan', variant: BadgeVariant.warning),
                 const SizedBox(height: 4),
                 Text(
                   "Do'koningizni faollashtirish uchun shaxsingizni tasdiqlang",
@@ -82,7 +79,9 @@ class _KycScreenState extends State<KycScreen> {
               contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
             ),
             hint: Text('Hujjat turini tanlang', style: TextStyle(color: theme.hint)),
-            items: _docTypes.map((t) => DropdownMenuItem(value: t, child: Text(t, style: TextStyle(color: theme.text)))).toList(),
+            items: _docTypes
+                .map((t) => DropdownMenuItem(value: t, child: Text(t, style: TextStyle(color: theme.text))))
+                .toList(),
             onChanged: (v) => setState(() => _selectedDocType = v),
           ),
           const SizedBox(height: 16),
@@ -105,19 +104,9 @@ class _KycScreenState extends State<KycScreen> {
             ),
           ),
           const SizedBox(height: 24),
-          SizedBox(
-            height: 52,
-            child: ElevatedButton(
-              onPressed: () {},
-              style: ElevatedButton.styleFrom(
-                backgroundColor: theme.green,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                elevation: 0,
-                textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
-              ),
-              child: const Text('Yuborish'),
-            ),
+          GlossButton(
+            label: 'Yuborish',
+            onPressed: () {},
           ),
         ],
       ),

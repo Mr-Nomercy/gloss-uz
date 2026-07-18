@@ -31,9 +31,7 @@ class _MultiAspectRatingScreenState extends State<MultiAspectRatingScreen> {
 
   void _submit() {
     if (!_canSubmit) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Iltimos, barcha baholashlarni belgilang'), backgroundColor: Colors.red),
-      );
+      GlossSnackBar.showError(context, 'Iltimos, barcha baholashlarni belgilang');
       return;
     }
     Navigator.pop(context, {
@@ -47,17 +45,20 @@ class _MultiAspectRatingScreenState extends State<MultiAspectRatingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: GlossColors.bg,
+      backgroundColor: context.gloss.bg,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: GlossColors.bg,
+        backgroundColor: context.gloss.bg,
         title: const Text('Baholash'),
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
           icon: Container(
             padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(color: GlossColors.bg, borderRadius: BorderRadius.circular(12)),
-            child: const Icon(Icons.arrow_back_ios_new_rounded, color: GlossColors.text, size: 18),
+            decoration: BoxDecoration(
+              color: context.gloss.bg,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(Icons.arrow_back_ios_new_rounded, color: context.gloss.text, size: 18),
           ),
         ),
       ),
@@ -73,13 +74,13 @@ class _MultiAspectRatingScreenState extends State<MultiAspectRatingScreen> {
                     Center(
                       child: Column(
                         children: [
-                          const CircleAvatar(
+                          CircleAvatar(
                             radius: 32,
-                            backgroundColor: GlossColors.greenBgPale,
-                            child: Icon(Icons.group_rounded, size: 32, color: GlossColors.green),
+                            backgroundColor: context.gloss.greenBgPale,
+                            child: Icon(Icons.group_rounded, size: 32, color: context.gloss.green),
                           ),
                           const SizedBox(height: 12),
-                          Text(widget.teamName!, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: GlossColors.text)),
+                          Text(widget.teamName!, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: context.gloss.text)),
                           const SizedBox(height: 24),
                         ],
                       ),
@@ -91,25 +92,12 @@ class _MultiAspectRatingScreenState extends State<MultiAspectRatingScreen> {
                   const SizedBox(height: 20),
                   _AspectRating(title: 'Muloqot', rating: _communication, onChanged: (v) => setState(() => _communication = v)),
                   const SizedBox(height: 24),
-                  const Text('Izoh (ixtiyoriy)', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: GlossColors.text)),
+                  Text('Izoh (ixtiyoriy)', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: context.gloss.text)),
                   const SizedBox(height: 8),
-                  TextField(
+                  GlossTextField(
+                    hint: "Tajribangizni baham ko'ring...",
                     controller: _commentController,
                     maxLines: 4,
-                    decoration: InputDecoration(
-                      hintText: "Tajribangizni baham ko'ring...",
-                      hintStyle: const TextStyle(color: GlossColors.hint),
-                      filled: true,
-                      fillColor: GlossColors.card,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: GlossColors.border),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: GlossColors.border),
-                      ),
-                    ),
                   ),
                 ],
               ),
@@ -123,9 +111,9 @@ class _MultiAspectRatingScreenState extends State<MultiAspectRatingScreen> {
                 child: ElevatedButton(
                   onPressed: _canSubmit ? _submit : null,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: GlossColors.green,
+                    backgroundColor: context.gloss.green,
                     foregroundColor: Colors.white,
-                    disabledBackgroundColor: GlossColors.disabled,
+                    disabledBackgroundColor: context.gloss.disabled,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
@@ -152,14 +140,14 @@ class _AspectRating extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: GlossColors.card,
+        color: context.gloss.card,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: GlossColors.border),
+        border: Border.all(color: context.gloss.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: GlossColors.text)),
+          Text(title, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: context.gloss.text)),
           const SizedBox(height: 12),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -173,7 +161,7 @@ class _AspectRating extends StatelessWidget {
                   padding: const EdgeInsets.all(4),
                   child: Icon(
                     isSelected ? Icons.star_rounded : Icons.star_outline_rounded,
-                    color: isSelected ? GlossColors.star : GlossColors.disabled,
+                    color: isSelected ? context.gloss.star : context.gloss.disabled,
                     size: 32,
                   ),
                 ),

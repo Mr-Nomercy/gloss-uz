@@ -1,69 +1,90 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback } from "react";
+import { api, ApiError } from "./api";
 
 export interface User {
   id: string;
   email: string;
   name: string;
-  role: 'platform-admin' | 'tenant-admin';
+  role: "platform-admin" | "tenant-admin";
   tenantId?: string;
   tenantName?: string;
 }
 
 interface AuthContextType {
   user: User | null;
+  isLoading: boolean;
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
+  isLoading: true,
   login: async () => false,
   logout: () => {},
+  refreshUser: async () => {},
 });
 
-const MOCK_USERS: Record<string, User> = {
-  'admin@gloss.uz': {
-    id: '1',
-    email: 'admin@gloss.uz',
-    name: 'Platform Administrator',
-    role: 'platform-admin',
-  },
-  'firma@gloss.uz': {
-    id: '2',
-    email: 'firma@gloss.uz',
-    name: 'Firma MCHJ',
-    role: 'tenant-admin',
-    tenantId: 't1',
-    tenantName: 'Firma MCHJ',
-  },
-};
-
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(() => {
-    const stored = localStorage.getItem('gloss_admin_user');
-    return stored ? JSON.parse(stored) : null;
-  });
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const login = useCallback(async (email: string, password: string): Promise<boolean> => {
-    const mockPasswords: Record<string, string> = {
-      'admin@gloss.uz': 'admin123',
-      'firma@gloss.uz': 'firma123',
-    };
-    if (mockPasswords[email] === password && MOCK_USERS[email]) {
-      const u = MOCK_USERS[email];
-      setUser(u);
-      localStorage.setItem('gloss_admin_user', JSON.stringify(u));
-      return true;
+  const refreshUser = useCallback(async () => {
+    const token = localStorage.getItem("gloss_admin_token");
+    if (!token) {
+      setIsLoading(false);
+      return;
     }
-    return false;
+    try {
+      const userData = await api.get<User>("/users/me");
+      setUser(userData);
+    } catch {
+      localStorage.removeItem("gloss_admin_token");
+      setUser(null);
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
+
+  refreshUser();
+
+  const login = useCallback(
+    async (email: string, password: string): Promise<boolean> => {
+      try {
+        const response = await api.post<{
+          accessToken: string;
+          refreshToken: string;
+          user: User;
+        }>("/auth/login", { email, password });
+
+        localStorage.setItem("gloss_admin_token", response.accessToken);
+        localStorage.setItem("gloss_admin_refresh", response.refreshToken);
+        setUser(response.user);
+        return true;
+      } catch (e) {
+        if (e instanceof ApiError) {
+          return false;
+        }
+        return false;
+      }
+    },
+    [],
+  );
 
   const logout = useCallback(() => {
+    localStorage.removeItem("gloss_admin_token");
+    localStorage.removeItem("gloss_admin_refresh");
     setUser(null);
-    localStorage.removeItem('gloss_admin_user');
   }, []);
 
-  return <AuthContext.Provider value={{ user, login, logout }}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider
+      value={{ user, isLoading, login, logout, refreshUser }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
 }
 
 export function useAuth() {

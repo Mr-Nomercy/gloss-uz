@@ -35,39 +35,52 @@ class StatsScreen extends StatelessWidget {
   Widget _buildStatCardsRow(GlossTheme theme) {
     return Row(
       children: [
-        Expanded(child: _statCard('Jami buyurtmalar', '487', Icons.receipt_long, theme.green, theme)),
+        Expanded(
+          child: GlossStatCard(
+            label: 'Jami buyurtmalar',
+            value: '487',
+            icon: Icons.receipt_long,
+            color: theme.green,
+            padding: const EdgeInsets.all(14),
+          ),
+        ),
         const SizedBox(width: 10),
-        Expanded(child: _statCard('Jami daromad', '24.5M', Icons.payments, theme.green, theme)),
+        Expanded(
+          child: GlossStatCard(
+            label: 'Jami daromad',
+            value: '24.5M',
+            icon: Icons.payments,
+            color: theme.green,
+            padding: const EdgeInsets.all(14),
+          ),
+        ),
       ],
     );
   }
 
-  Widget _statCard(String label, String value, IconData icon, Color color, GlossTheme theme) {
-    return GlossCard(
-      padding: const EdgeInsets.all(14),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 40, height: 40,
-            decoration: BoxDecoration(color: color.withAlpha(25), borderRadius: BorderRadius.circular(10)),
-            child: Icon(icon, color: color, size: 22),
-          ),
-          const SizedBox(height: 12),
-          Text(value, style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: theme.text)),
-          const SizedBox(height: 4),
-          Text(label, style: TextStyle(fontSize: 12, color: theme.hint)),
-        ],
-      ),
-    );
-  }
-
   Widget _buildPeriodRow(GlossTheme theme) {
-    return Row(
+    return const Row(
       children: [
-        Expanded(child: _statCard("O'rtacha reyting", '4.8 ⭐', Icons.star, GlossColors.star, theme)),
-        const SizedBox(width: 10),
-        Expanded(child: _statCard('Bu hafta', '32 ta', Icons.calendar_today, theme.green, theme)),
+        Expanded(
+          child: GlossStatCard(
+            label: "O'rtacha reyting",
+            value: '4.8',
+            icon: Icons.star,
+            color: GlossColors.star,
+            suffix: '⭐',
+            padding: EdgeInsets.all(14),
+          ),
+        ),
+        SizedBox(width: 10),
+        Expanded(
+          child: GlossStatCard(
+            label: 'Bu hafta',
+            value: '32 ta',
+            icon: Icons.calendar_today,
+            color: GlossColors.green,
+            padding: EdgeInsets.all(14),
+          ),
+        ),
       ],
     );
   }
@@ -145,7 +158,7 @@ class StatsScreen extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
             decoration: BoxDecoration(
-              color: color.withAlpha(25),
+              color: color.withValues(alpha: 0.10),
               borderRadius: BorderRadius.circular(6),
             ),
             child: Text(label, style: TextStyle(fontSize: 11, color: color, fontWeight: FontWeight.w600)),

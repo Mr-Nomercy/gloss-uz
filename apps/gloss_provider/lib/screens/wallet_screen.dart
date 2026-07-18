@@ -47,43 +47,9 @@ class WalletScreen extends StatelessWidget {
   }
 
   Widget _buildBalanceHeader(GlossTheme theme) {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [theme.green, theme.darkGreen],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.account_balance_wallet_outlined, color: Colors.white.withAlpha(200), size: 20),
-              const SizedBox(width: 8),
-              Text(
-                'Joriy balans',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.white.withAlpha(200),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            "2 450 000 so'm",
-            style: TextStyle(
-              fontSize: 32,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
-        ],
-      ),
+    return const GlossBalanceCard(
+      title: 'Joriy balans',
+      balance: "2 450 000 so'm",
     );
   }
 
@@ -103,28 +69,11 @@ class WalletScreen extends StatelessWidget {
             style: TextStyle(fontSize: 13, color: theme.hint),
           ),
           const SizedBox(height: 16),
-          SizedBox(
-            height: 48,
-            child: ElevatedButton(
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: const Text("Pul chiqarish so'rovi yuborildi"),
-                    backgroundColor: theme.green,
-                    behavior: SnackBarBehavior.floating,
-                    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
-                  ),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: theme.green,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                elevation: 0,
-                textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
-              ),
-              child: const Text('Pul chiqarish'),
-            ),
+          GlossButton(
+            label: 'Pul chiqarish',
+            onPressed: () {
+              GlossSnackBar.showSuccess(context, "Pul chiqarish so'rovi yuborildi");
+            },
           ),
         ],
       ),
@@ -185,7 +134,7 @@ class WalletScreen extends StatelessWidget {
                       width: 40,
                       height: 40,
                       decoration: BoxDecoration(
-                        color: (t['positive'] as bool) ? theme.greenBgLight : theme.red.withAlpha(25),
+                        color: (t['positive'] as bool) ? theme.greenBgLight : theme.red.withValues(alpha: 0.10),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Icon(

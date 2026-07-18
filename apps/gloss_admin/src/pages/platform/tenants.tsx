@@ -1,18 +1,31 @@
-import { useState } from 'react';
-import { Plus, Search, Star } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { mockTenants, Tenant } from '@/lib/data';
+import { useState } from "react";
+import { Plus, Search, Star } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { mockTenants, Tenant } from "@/lib/data";
 
 export default function PlatformTenants() {
   const [tenants, setTenants] = useState(mockTenants);
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ name: '', phone: '', city: '' });
+  const [form, setForm] = useState({ name: "", phone: "", city: "" });
 
   const filtered = tenants.filter(
     (t) =>
@@ -27,12 +40,12 @@ export default function PlatformTenants() {
       name: form.name,
       phone: form.phone,
       city: form.city,
-      status: 'Aktiv',
+      status: "Aktiv",
       orders: 0,
       rating: 0,
     };
     setTenants([...tenants, newTenant]);
-    setForm({ name: '', phone: '', city: '' });
+    setForm({ name: "", phone: "", city: "" });
     setOpen(false);
   };
 
@@ -77,7 +90,11 @@ export default function PlatformTenants() {
                   <TableCell>{t.phone}</TableCell>
                   <TableCell>{t.city}</TableCell>
                   <TableCell>
-                    <Badge variant={t.status === 'Aktiv' ? 'default' : 'secondary'}>{t.status}</Badge>
+                    <Badge
+                      variant={t.status === "Aktiv" ? "default" : "secondary"}
+                    >
+                      {t.status}
+                    </Badge>
                   </TableCell>
                   <TableCell>{t.orders}</TableCell>
                   <TableCell className="flex items-center gap-1">

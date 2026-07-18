@@ -54,10 +54,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 alignment: Alignment.topRight,
                 child: TextButton(
                   onPressed: () => context.go('/auth/login'),
-                  child: Text(
-                    "Skip",
-                    style: TextStyle(color: theme.hint, fontSize: 14),
-                  ),
+                  child: Text("Skip", style: TextStyle(color: theme.hint, fontSize: 14)),
                 ),
               ),
             Expanded(
@@ -80,20 +77,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             if (_currentPage == 0)
               Padding(
                 padding: const EdgeInsets.all(24),
-                child: SizedBox(
-                  width: double.infinity,
-                  height: 52,
-                  child: ElevatedButton(
-                    onPressed: _nextPage,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: theme.green,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                      elevation: 0,
-                      textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
-                    ),
-                    child: const Text("Davom etish"),
-                  ),
+                child: GlossButton(
+                  label: "Davom etish",
+                  onPressed: _nextPage,
                 ),
               )
             else
@@ -101,20 +87,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 padding: const EdgeInsets.all(24),
                 child: Column(
                   children: [
-                    SizedBox(
-                      width: double.infinity,
-                      height: 52,
-                      child: ElevatedButton(
-                        onPressed: _currentPage < _pages.length ? _nextPage : () => context.go('/auth/login'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: theme.green,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                          elevation: 0,
-                          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
-                        ),
-                        child: Text(_currentPage < _pages.length ? "Keyingi" : "Boshlash"),
-                      ),
+                    GlossButton(
+                      label: _currentPage < _pages.length ? "Keyingi" : "Boshlash",
+                      onPressed: _currentPage < _pages.length ? _nextPage : () => context.go('/auth/login'),
                     ),
                     const SizedBox(height: 12),
                     TextButton(
@@ -140,10 +115,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       child: Column(
         children: [
           const SizedBox(height: 16),
-          Text(
-            'Tilni tanlang',
-            style: TextStyle(fontSize: 14, color: theme.hint),
-          ),
+          Text('Tilni tanlang', style: TextStyle(fontSize: 14, color: theme.hint)),
           const SizedBox(height: 12),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,

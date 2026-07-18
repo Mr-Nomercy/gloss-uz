@@ -1,9 +1,16 @@
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { mockPayouts } from '@/lib/data';
-import { formatCurrency } from '@/lib/utils';
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { mockPayouts } from "@/lib/data";
+import { formatCurrency } from "@/lib/utils";
 
 export default function PlatformPayouts() {
   return (
@@ -30,13 +37,21 @@ export default function PlatformPayouts() {
                   <TableCell>
                     <Badge
                       variant={
-                        p.status === "To'langan" ? 'default' : p.status === 'Kutilmoqda' ? 'warning' : 'destructive'
+                        p.status === "To'langan"
+                          ? "default"
+                          : p.status === "Kutilmoqda"
+                            ? "warning"
+                            : "destructive"
                       }
                     >
                       {p.status}
                     </Badge>
                   </TableCell>
-                  <TableCell>{p.status === 'Kutilmoqda' && <Button size="sm">To'lash</Button>}</TableCell>
+                  <TableCell>
+                    {p.status === "Kutilmoqda" && (
+                      <Button size="sm">To'lash</Button>
+                    )}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>

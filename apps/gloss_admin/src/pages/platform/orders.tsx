@@ -1,23 +1,41 @@
-import { useState } from 'react';
-import { Search } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { mockOrders } from '@/lib/data';
-import { formatCurrency } from '@/lib/utils';
+import { useState } from "react";
+import { Search } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { mockOrders } from "@/lib/data";
+import { formatCurrency } from "@/lib/utils";
 
 export default function PlatformOrders() {
-  const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [tenantFilter, setTenantFilter] = useState('all');
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [tenantFilter, setTenantFilter] = useState("all");
 
   const tenants = Array.from(new Set(mockOrders.map((o) => o.tenant)));
   const filtered = mockOrders.filter((o) => {
-    if (statusFilter !== 'all' && o.status !== statusFilter) return false;
-    if (tenantFilter !== 'all' && o.tenant !== tenantFilter) return false;
-    if (search && !o.service.toLowerCase().includes(search.toLowerCase()) && !o.id.includes(search)) return false;
+    if (statusFilter !== "all" && o.status !== statusFilter) return false;
+    if (tenantFilter !== "all" && o.tenant !== tenantFilter) return false;
+    if (
+      search &&
+      !o.service.toLowerCase().includes(search.toLowerCase()) &&
+      !o.id.includes(search)
+    )
+      return false;
     return true;
   });
 
@@ -85,13 +103,13 @@ export default function PlatformOrders() {
                   <TableCell>
                     <Badge
                       variant={
-                        o.status === 'Yetkazilgan'
-                          ? 'default'
-                          : o.status === 'Jarayonda'
-                            ? 'warning'
-                            : o.status === 'Bekor qilingan'
-                              ? 'destructive'
-                              : 'secondary'
+                        o.status === "Yetkazilgan"
+                          ? "default"
+                          : o.status === "Jarayonda"
+                            ? "warning"
+                            : o.status === "Bekor qilingan"
+                              ? "destructive"
+                              : "secondary"
                       }
                     >
                       {o.status}

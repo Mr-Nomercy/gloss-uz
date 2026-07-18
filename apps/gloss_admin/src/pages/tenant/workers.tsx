@@ -1,29 +1,42 @@
-import { useState } from 'react';
-import { Plus, Star } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { mockWorkers, Worker } from '@/lib/data';
+import { useState } from "react";
+import { Plus, Star } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { mockWorkers, Worker } from "@/lib/data";
 
 export default function TenantWorkers() {
   const [workers, setWorkers] = useState(mockWorkers);
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ name: '', phone: '' });
+  const [form, setForm] = useState({ name: "", phone: "" });
 
   const addWorker = () => {
     const w: Worker = {
       id: `w${workers.length + 1}`,
       name: form.name,
       phone: form.phone,
-      status: 'Aktiv',
+      status: "Aktiv",
       orders: 0,
       rating: 0,
     };
     setWorkers([...workers, w]);
-    setForm({ name: '', phone: '' });
+    setForm({ name: "", phone: "" });
     setOpen(false);
   };
 
@@ -53,7 +66,11 @@ export default function TenantWorkers() {
                   <TableCell className="font-medium">{w.name}</TableCell>
                   <TableCell>{w.phone}</TableCell>
                   <TableCell>
-                    <Badge variant={w.status === 'Aktiv' ? 'default' : 'secondary'}>{w.status}</Badge>
+                    <Badge
+                      variant={w.status === "Aktiv" ? "default" : "secondary"}
+                    >
+                      {w.status}
+                    </Badge>
                   </TableCell>
                   <TableCell>{w.orders}</TableCell>
                   <TableCell className="flex items-center gap-1">

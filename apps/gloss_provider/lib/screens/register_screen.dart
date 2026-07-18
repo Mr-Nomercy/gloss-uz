@@ -12,6 +12,7 @@ class RegisterScreen extends StatefulWidget {
 class _RegisterScreenState extends State<RegisterScreen> {
   final _nameController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+
   @override
   void dispose() {
     _nameController.dispose();
@@ -57,7 +58,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   decoration: BoxDecoration(
                     color: theme.greenBgLight,
                     shape: BoxShape.circle,
-                    border: Border.all(color: theme.green.withAlpha(50), width: 2),
+                    border: Border.all(color: theme.green.withValues(alpha: 0.20), width: 2),
                   ),
                   child: Icon(Icons.person_add_alt_rounded, size: 48, color: theme.green),
                 ),
@@ -77,32 +78,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    TextFormField(
+                    GlossTextField(
+                      label: 'Ismingiz',
+                      hint: 'Ismingizni kiriting',
                       controller: _nameController,
-                      style: TextStyle(fontSize: 16, color: theme.text),
-                      decoration: InputDecoration(
-                        hintText: 'Ismingizni kiriting',
-                        hintStyle: TextStyle(color: theme.hint),
-                        filled: true,
-                        fillColor: theme.bg,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(14),
-                          borderSide: BorderSide(color: theme.border),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(14),
-                          borderSide: BorderSide(color: theme.border),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(14),
-                          borderSide: BorderSide(color: theme.green, width: 2),
-                        ),
-                        prefixIcon: Icon(Icons.person_outline, color: theme.hint),
-                      ),
-                      validator: (v) {
-                        if (v == null || v.trim().isEmpty) return 'Ism kiritish shart';
-                        return null;
-                      },
+                      prefixIcon: Icon(Icons.person_outline, color: theme.hint),
+                      validator: GlossFormValidators.required,
                     ),
                   ],
                 ),
@@ -140,30 +121,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
               ),
               const SizedBox(height: 32),
-              SizedBox(
-                height: 52,
-                child: ElevatedButton(
+              GlossButton(
+                label: "Ro'yxatdan o'tish",
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text("Ro'yxatdan muvaffaqiyatli o'tdingiz!"),
-                        behavior: SnackBarBehavior.floating,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
-                      ),
-                    );
+                    GlossSnackBar.showSuccess(context, "Ro'yxatdan muvaffaqiyatli o'tdingiz!");
                     context.go('/');
                   }
                 },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: theme.green,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                  elevation: 0,
-                  textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
-                ),
-                child: const Text("Ro'yxatdan o'tish"),
-                ),
               ),
               const SizedBox(height: 16),
               Text(

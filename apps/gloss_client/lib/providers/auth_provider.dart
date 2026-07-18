@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:constants/constants.dart';
+import 'dart:async';
 
 class AuthState {
   final String? phone;
@@ -40,9 +41,18 @@ class AuthState {
 class AuthNotifier extends StateNotifier<AuthState> {
   final Dio _dio;
   final FlutterSecureStorage _storage;
+  final _authStateController = StreamController<AuthState>.broadcast();
+
+  Stream<AuthState> get authStateStream => _authStateController.stream;
 
   AuthNotifier(this._dio, this._storage) : super(const AuthState()) {
     _loadTokens();
+  }
+
+  @override
+  void dispose() {
+    _authStateController.close();
+    super.dispose();
   }
 
   Future<void> _loadTokens() async {
@@ -57,6 +67,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
         phone: phone,
       );
     }
+    _authStateController.add(state);
   }
 
   Future<void> login(String phone) async {
@@ -128,11 +139,13 @@ class AuthNotifier extends StateNotifier<AuthState> {
     await _storage.write(key: 'access_token', value: accessToken);
     await _storage.write(key: 'refresh_token', value: refreshToken);
     await _storage.write(key: 'user_phone', value: phone);
+    _authStateController.add(state);
   }
 
   Future<void> logout() async {
     await _storage.deleteAll();
     state = const AuthState();
+    _authStateController.add(state);
   }
 
   void clearError() {

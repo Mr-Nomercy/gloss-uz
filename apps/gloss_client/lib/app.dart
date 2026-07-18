@@ -1,5 +1,7 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'providers/auth_provider.dart';
 import 'screens/splash_screen.dart';
 import 'screens/auth_screen.dart';
 import 'screens/verify_screen.dart';
@@ -25,8 +27,26 @@ import 'screens/profile_screen.dart';
 import 'screens/saved_addresses_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
+  final authNotifier = ref.watch(authProvider.notifier);
+  final authState = ref.watch(authProvider);
+
   return GoRouter(
     initialLocation: '/splash',
+    refreshListenable: GoRouterRefreshStream(authNotifier.authStateStream),
+    redirect: (context, state) {
+      final isAuthenticated = authState.isAuthenticated;
+      final isAuthRoute = state.matchedLocation.startsWith('/auth') ||
+          state.matchedLocation.startsWith('/verify') ||
+          state.matchedLocation.startsWith('/register');
+
+      if (!isAuthenticated && !isAuthRoute && state.matchedLocation != '/splash') {
+        return '/auth';
+      }
+      if (isAuthenticated && isAuthRoute) {
+        return '/home';
+      }
+      return null;
+    },
     routes: [
       GoRoute(path: '/splash', builder: (_, __) => const SplashScreen()),
       GoRoute(path: '/auth', builder: (_, __) => const AuthScreen()),
@@ -78,7 +98,19 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/market', builder: (_, __) => const MarketScreen()),
       GoRoute(path: '/product-detail', builder: (_, __) => const ProductDetailScreen()),
       GoRoute(path: '/cart', builder: (_, __) => const CartScreen()),
-      GoRoute(path: '/checkout', builder: (_, __) => const CheckoutScreen(subtotal: 0, discount: 0, delivery: 0, total: 0)),
+      GoRoute(
+        path: '/checkout',
+        builder: (_, state) {
+          final args = state.extra as Map<String, dynamic>? ?? {};
+          return CheckoutScreen(
+            subtotal: args['subtotal'] as double? ?? 0,
+            discount: args['discount'] as double? ?? 0,
+            delivery: args['delivery'] as double? ?? 0,
+            total: args['total'] as double? ?? 0,
+            promoCode: args['promoCode'] as String?,
+          );
+        },
+      ),
       GoRoute(path: '/favorites', builder: (_, __) => const FavoritesScreen()),
       GoRoute(path: '/profile', builder: (_, __) => const ProfileScreen()),
       GoRoute(path: '/saved-addresses', builder: (_, __) => const SavedAddressesScreen()),
@@ -86,3 +118,10 @@ final routerProvider = Provider<GoRouter>((ref) {
     ],
   );
 });
+
+class GoRouterRefreshStream extends ChangeNotifier {
+  GoRouterRefreshStream(Stream<dynamic> stream) {
+    notifyListeners();
+    stream.listen((_) => notifyListeners());
+  }
+}

@@ -103,28 +103,11 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
               ],
             ),
             child: SafeArea(
-              child: SizedBox(
-                height: 52,
-                child: ElevatedButton(
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: const Text('Vaqtlar saqlandi'),
-                        backgroundColor: theme.green,
-                        behavior: SnackBarBehavior.floating,
-                        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
-                      ),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: theme.green,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                    elevation: 0,
-                    textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
-                  ),
-                  child: const Text('Saqlash'),
-                ),
+              child: GlossButton(
+                label: 'Saqlash',
+                onPressed: () {
+                  GlossSnackBar.showSuccess(context, 'Vaqtlar saqlandi');
+                },
               ),
             ),
           ),

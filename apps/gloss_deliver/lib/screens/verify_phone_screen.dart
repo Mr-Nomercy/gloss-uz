@@ -52,18 +52,18 @@ class _VerifyPhoneScreenState extends State<VerifyPhoneScreen> {
                 color: theme.greenBgLight,
                 borderRadius: BorderRadius.circular(20),
               ),
-              child: const Icon(Icons.sms_rounded, color: GlossColors.green, size: 40),
+              child: Icon(Icons.sms_rounded, color: theme.green, size: 40),
             ),
             const SizedBox(height: 24),
-            const Text(
+            Text(
               'SMS kodni kiriting',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: GlossColors.text),
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: theme.text),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
             Text(
               '${widget.phone} raqamiga SMS yuborildi',
-              style: const TextStyle(fontSize: 15, color: GlossColors.hint),
+              style: TextStyle(fontSize: 15, color: theme.hint),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 32),
@@ -79,30 +79,18 @@ class _VerifyPhoneScreenState extends State<VerifyPhoneScreen> {
                 keyboardType: TextInputType.number,
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: theme.text, letterSpacing: 8),
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   border: InputBorder.none,
                   hintText: '000000',
-                  hintStyle: TextStyle(color: GlossColors.disabled, fontSize: 24, letterSpacing: 8),
+                  hintStyle: TextStyle(color: theme.disabled, fontSize: 24, letterSpacing: 8),
                 ),
               ),
             ),
             const SizedBox(height: 24),
-            SizedBox(
-              height: 52,
-              child: ElevatedButton(
-                onPressed: _isLoading ? null : () => context.go('/'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: theme.green,
-                  foregroundColor: Colors.white,
-                  disabledBackgroundColor: theme.grayLight,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                  elevation: 0,
-                  textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
-                ),
-                child: _isLoading
-                    ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                    : const Text('Tasdiqlash'),
-              ),
+            GlossButton(
+              label: 'Tasdiqlash',
+              isLoading: _isLoading,
+              onPressed: _isLoading ? null : () => context.go('/'),
             ),
             const SizedBox(height: 16),
             TextButton(

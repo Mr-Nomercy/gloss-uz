@@ -27,23 +27,23 @@ class _CartScreenState extends State<CartScreen> {
 
   void _applyPromo() {
     final code = _promoController.text.trim().toUpperCase();
-    if (code.isEmpty) { setState(() => _promoError = 'Promo kodni kiriting'); return; }
-    setState(() { _appliedPromo = code; _promoError = null; });
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('$code qo\'llanildi: 10% chegirma'), backgroundColor: GlossColors.green, behavior: SnackBarBehavior.floating, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-    );
+    if (code.isEmpty) {
+      setState(() => _promoError = 'Promo kodni kiriting');
+      return;
+    }
+    setState(() {
+      _appliedPromo = code;
+      _promoError = null;
+    });
+    GlossSnackBar.showSuccess(context, '$code qo\'llanildi: 10% chegirma');
   }
 
-  void _removePromo() { setState(() { _appliedPromo = null; _promoController.clear(); _promoError = null; }); }
-
-  String formatPrice(int price) {
-    final buf = StringBuffer();
-    final s = price.toString();
-    for (int i = 0; i < s.length; i++) {
-      if (i > 0 && (s.length - i) % 3 == 0) buf.write(' ');
-      buf.write(s[i]);
-    }
-    return "$buf so'm";
+  void _removePromo() {
+    setState(() {
+      _appliedPromo = null;
+      _promoController.clear();
+      _promoError = null;
+    });
   }
 
   int get _subtotal => _cartItems.fold(0, (sum, item) => sum + (item['price'] as int) * (item['quantity'] as int));
@@ -51,22 +51,25 @@ class _CartScreenState extends State<CartScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: GlossColors.bg,
+      backgroundColor: context.gloss.bg,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: GlossColors.bg,
+        backgroundColor: context.gloss.bg,
         centerTitle: true,
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
           icon: Container(
             padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(color: GlossColors.bg, borderRadius: BorderRadius.circular(12)),
-            child: const Icon(Icons.arrow_back_ios_new_rounded, color: GlossColors.text, size: 18),
+            decoration: BoxDecoration(
+              color: context.gloss.bg,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(Icons.arrow_back_ios_new_rounded, color: context.gloss.text, size: 18),
           ),
         ),
-        title: const Text('Savat', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: GlossColors.text)),
+        title: Text('Savat', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: context.gloss.text)),
       ),
-      body: _cartItems.isEmpty ? _buildEmptyCart() : Column(
+      body: _cartItems.isEmpty ? _buildEmptyCart(context) : Column(
         children: [
           Expanded(
             child: ListView.builder(
@@ -82,31 +85,10 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
-  Widget _buildEmptyCart() {
+  Widget _buildEmptyCart(BuildContext context) {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(color: GlossColors.green.withAlpha(20), shape: BoxShape.circle),
-            child: const Icon(Icons.shopping_cart_outlined, size: 64, color: GlossColors.green),
-          ),
-          const SizedBox(height: 20),
-          const Text("Savat bo'sh", style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: GlossColors.text)),
-          const SizedBox(height: 8),
-          Text("Mahsulotlarni savatga qo'shing", style: TextStyle(fontSize: 14, color: Colors.grey[500])),
-          const SizedBox(height: 24),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: GlossColors.green, foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
-            ),
-            child: const Text("Xaridni boshlash", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
-          ),
-        ],
+      child: GlossEmptyState.cart(
+        onAction: () => Navigator.pop(context),
       ),
     );
   }
@@ -123,16 +105,17 @@ class _CartScreenState extends State<CartScreen> {
         child: const Icon(Icons.delete_outline_rounded, color: Colors.white, size: 28),
       ),
       onDismissed: (_) => setState(() => _cartItems.removeWhere((i) => i['id'] == item['id'])),
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(color: GlossColors.card, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: Colors.black.withAlpha(8), blurRadius: 8, offset: const Offset(0, 2))]),
+      child: GlossCard(
         child: Row(
           children: [
             Container(
-              width: 60, height: 60,
-              decoration: BoxDecoration(color: GlossColors.greenBgLight, borderRadius: BorderRadius.circular(14)),
-              child: const Icon(Icons.cleaning_services_rounded, color: GlossColors.green, size: 26),
+              width: 60,
+              height: 60,
+              decoration: BoxDecoration(
+                color: context.gloss.greenBgLight,
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Icon(Icons.cleaning_services_rounded, color: context.gloss.green, size: 26),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -140,14 +123,14 @@ class _CartScreenState extends State<CartScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(item['name'] as String, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: GlossColors.text), maxLines: 1, overflow: TextOverflow.ellipsis),
+                  Text(item['name'] as String, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: context.gloss.text), maxLines: 1, overflow: TextOverflow.ellipsis),
                   const SizedBox(height: 4),
-                  Text(formatPrice(item['price'] as int), style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: GlossColors.green)),
+                  Text(formatPrice((item['price'] as int).toDouble()), style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: context.gloss.green)),
                 ],
               ),
             ),
             Container(
-              decoration: BoxDecoration(color: GlossColors.bg, borderRadius: BorderRadius.circular(10)),
+              decoration: BoxDecoration(color: context.gloss.bg, borderRadius: BorderRadius.circular(10)),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -163,13 +146,16 @@ class _CartScreenState extends State<CartScreen> {
                     },
                     child: Padding(
                       padding: const EdgeInsets.all(8),
-                      child: Icon(Icons.remove_rounded, size: 16, color: (item['quantity'] as int) > 1 ? GlossColors.text : Colors.grey[300]),
+                      child: Icon(Icons.remove_rounded, size: 16, color: (item['quantity'] as int) > 1 ? GlossColors.text : context.gloss.disabled),
                     ),
                   ),
-                  Text('${item['quantity']}', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: GlossColors.text)),
+                  Text('${item['quantity']}', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: context.gloss.text)),
                   GestureDetector(
                     onTap: () => setState(() => item['quantity'] = (item['quantity'] as int) + 1),
-                    child: const Padding(padding: EdgeInsets.all(8), child: Icon(Icons.add_rounded, size: 16, color: GlossColors.green)),
+                    child: Padding(
+                      padding: const EdgeInsets.all(8),
+                      child: Icon(Icons.add_rounded, size: 16, color: context.gloss.green),
+                    ),
                   ),
                 ],
               ),
@@ -181,32 +167,28 @@ class _CartScreenState extends State<CartScreen> {
   }
 
   Widget _buildPromoSection() {
-    return Container(
-      margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(color: GlossColors.card, borderRadius: BorderRadius.circular(16)),
+    return GlossCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Promo kod', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: GlossColors.text)),
+          Text('Promo kod', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: context.gloss.text)),
           const SizedBox(height: 8),
           if (_appliedPromo != null)
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              decoration: BoxDecoration(color: GlossColors.green.withAlpha(15), borderRadius: BorderRadius.circular(12), border: Border.all(color: GlossColors.green.withAlpha(50))),
+              decoration: BoxDecoration(
+                color: GlossColors.green.withValues(alpha: 0.06),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: GlossColors.green.withValues(alpha: 0.20)),
+              ),
               child: Row(
                 children: [
-                  const Icon(Icons.local_offer_rounded, color: GlossColors.green, size: 18),
+                  Icon(Icons.local_offer_rounded, color: context.gloss.green, size: 18),
                   const SizedBox(width: 8),
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(_appliedPromo!, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: GlossColors.green)),
-                      ],
-                    ),
+                    child: Text(_appliedPromo!, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: context.gloss.green)),
                   ),
-                  GestureDetector(onTap: _removePromo, child: const Icon(Icons.close_rounded, color: GlossColors.red, size: 20)),
+                  GestureDetector(onTap: _removePromo, child: Icon(Icons.close_rounded, color: context.gloss.red, size: 20)),
                 ],
               ),
             )
@@ -214,20 +196,11 @@ class _CartScreenState extends State<CartScreen> {
             Row(
               children: [
                 Expanded(
-                  child: TextField(
+                  child: GlossTextField(
+                    hint: 'Promo kod kiriting',
                     controller: _promoController,
-                    style: const TextStyle(fontSize: 14, color: GlossColors.text),
+                    errorText: _promoError,
                     textCapitalization: TextCapitalization.characters,
-                    decoration: InputDecoration(
-                      hintText: 'Promo kod kiriting',
-                      hintStyle: TextStyle(fontSize: 14, color: Colors.grey[400]),
-                      errorText: _promoError,
-                      isDense: true,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey[300]!)),
-                      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey[300]!)),
-                      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: GlossColors.green)),
-                    ),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -255,38 +228,31 @@ class _CartScreenState extends State<CartScreen> {
     return Container(
       padding: EdgeInsets.fromLTRB(16, 16, 16, MediaQuery.of(context).padding.bottom + 16),
       decoration: BoxDecoration(
-        color: GlossColors.card,
-        boxShadow: [BoxShadow(color: Colors.black.withAlpha(10), blurRadius: 10, offset: const Offset(0, -2))],
+        color: context.gloss.card,
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 10, offset: const Offset(0, -2))],
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _priceRow('Jami (${_cartItems.length} ta)', formatPrice(subtotal)),
-          if (discount > 0) _priceRow('Chegirma', '-${formatPrice(discount)}', color: GlossColors.red),
-          _priceRow('Yetkazish', delivery == 0 ? 'Bepul' : formatPrice(delivery), color: delivery == 0 ? GlossColors.green : null),
-          const Divider(height: 20),
-          _priceRow("To'lash", formatPrice(total), bold: true),
+          _priceRow('Jami (${_cartItems.length} ta)', formatPrice(subtotal.toDouble())),
+          if (discount > 0) _priceRow('Chegirma', '-${formatPrice(discount.toDouble())}', color: GlossColors.red),
+          _priceRow('Yetkazish', delivery == 0 ? 'Bepul' : formatPrice(delivery.toDouble()), color: delivery == 0 ? GlossColors.green : null),
+          Divider(height: 20, color: context.gloss.divider),
+          _priceRow("To'lash", formatPrice(total.toDouble()), bold: true),
           const SizedBox(height: 14),
-          SizedBox(
-            width: double.infinity, height: 50,
-            child: ElevatedButton(
-              onPressed: () {
-                Navigator.push(context, MaterialPageRoute(
-                  builder: (_) => CheckoutScreen(
-                    subtotal: subtotal.toDouble(),
-                    discount: discount.toDouble(),
-                    delivery: delivery.toDouble(),
-                    total: total.toDouble(),
-                    promoCode: _appliedPromo,
-                  ),
-                ));
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: GlossColors.green, foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)), elevation: 0,
-              ),
-              child: const Text("To'lovga o'tish", style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
-            ),
+          GlossButton(
+            label: "To'lovga o'tish",
+            onPressed: () {
+              Navigator.push(context, MaterialPageRoute(
+                builder: (_) => CheckoutScreen(
+                  subtotal: subtotal.toDouble(),
+                  discount: discount.toDouble(),
+                  delivery: delivery.toDouble(),
+                  total: total.toDouble(),
+                  promoCode: _appliedPromo,
+                ),
+              ));
+            },
           ),
         ],
       ),

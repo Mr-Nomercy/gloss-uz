@@ -6,39 +6,28 @@ class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
   void _showComingSoon(BuildContext context) {
-    final theme = context.gloss;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Tez orada'),
-        backgroundColor: theme.green,
-        behavior: SnackBarBehavior.floating,
-        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
-      ),
-    );
+    GlossSnackBar.showInfo(context, 'Tez orada');
   }
 
   void _showLogoutDialog(BuildContext context) {
     final theme = context.gloss;
-    showDialog(
+    GlossDialog.show(
       context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Chiqish'),
-        content: const Text('Haqiqatan ham hisobdan chiqmoqchimisiz?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text('Bekor qilish', style: TextStyle(color: theme.hint)),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              context.go('/auth/login');
-            },
-            child: Text('Chiqish', style: TextStyle(color: theme.red)),
-          ),
-        ],
-      ),
+      title: 'Chiqish',
+      content: 'Haqiqatan ham hisobdan chiqmoqchimisiz?',
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text('Bekor qilish', style: TextStyle(color: theme.hint)),
+        ),
+        TextButton(
+          onPressed: () {
+            Navigator.pop(context);
+            context.go('/auth/login');
+          },
+          child: Text('Chiqish', style: TextStyle(color: theme.red)),
+        ),
+      ],
     );
   }
 
@@ -89,10 +78,7 @@ class ProfileScreen extends StatelessWidget {
                     const SizedBox(width: 4),
                     Text('4.8', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: theme.text)),
                     const SizedBox(width: 4),
-                    Text(
-                      '(12 ta sharh)',
-                      style: TextStyle(fontSize: 12, color: theme.hint),
-                    ),
+                    Text('(12 ta sharh)', style: TextStyle(fontSize: 12, color: theme.hint)),
                   ],
                 ),
               ],
@@ -100,48 +86,42 @@ class ProfileScreen extends StatelessWidget {
           ),
           const SizedBox(height: 24),
           GlossCard(
-            padding: EdgeInsets.zero,
+            padding: const EdgeInsets.symmetric(vertical: 4),
             child: Column(
               children: [
-                _buildMenuItem(theme, Icons.store, "Do'kon ma'lumotlari", () {}),
-                Divider(height: 1, color: theme.divider, indent: 56),
-                _buildMenuItem(theme, Icons.description, 'KYC hujjatlari', () {}),
-                Divider(height: 1, color: theme.divider, indent: 56),
-                _buildMenuItem(theme, Icons.account_balance_wallet, "To'lov hisobi", () => _showComingSoon(context)),
-                Divider(height: 1, color: theme.divider, indent: 56),
-                _buildMenuItem(theme, Icons.help_outline, 'Yordam', () => _showComingSoon(context)),
-                Divider(height: 1, color: theme.divider, indent: 56),
-                _buildMenuItem(theme, Icons.logout, 'Chiqish', () => _showLogoutDialog(context), isDestructive: true),
+                GlossMenuItem(
+                  icon: Icons.store,
+                  title: "Do'kon ma'lumotlari",
+                  onTap: () {},
+                  showDivider: true,
+                ),
+                GlossMenuItem(
+                  icon: Icons.description,
+                  title: 'KYC hujjatlari',
+                  onTap: () {},
+                  showDivider: true,
+                ),
+                GlossMenuItem(
+                  icon: Icons.account_balance_wallet,
+                  title: "To'lov hisobi",
+                  onTap: () => _showComingSoon(context),
+                  showDivider: true,
+                ),
+                GlossMenuItem(
+                  icon: Icons.help_outline,
+                  title: 'Yordam',
+                  onTap: () => _showComingSoon(context),
+                  showDivider: true,
+                ),
+                GlossMenuItem.destructive(
+                  icon: Icons.logout,
+                  title: 'Chiqish',
+                  onTap: () => _showLogoutDialog(context),
+                ),
               ],
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildMenuItem(GlossTheme theme, IconData icon, String title, VoidCallback onTap, {bool isDestructive = false}) {
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        child: Row(
-          children: [
-            Icon(icon, color: isDestructive ? theme.red : theme.green, size: 22),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Text(
-                title,
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w500,
-                  color: isDestructive ? theme.red : theme.text,
-                ),
-              ),
-            ),
-            Icon(Icons.chevron_right, color: theme.hint, size: 20),
-          ],
-        ),
       ),
     );
   }

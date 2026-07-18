@@ -60,7 +60,7 @@ class ProfileScreen extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: theme.greenBgLight,
                   shape: BoxShape.circle,
-                  border: Border.all(color: theme.green.withAlpha(50), width: 3),
+                  border: Border.all(color: theme.green.withValues(alpha: 0.20), width: 3),
                 ),
                 child: Icon(Icons.person, size: 40, color: theme.green),
               ),
@@ -126,17 +126,7 @@ class ProfileScreen extends StatelessWidget {
               ],
             ),
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: theme.greenBgLight,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Text(
-              'Faol',
-              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: theme.green),
-            ),
-          ),
+          const GlossBadge(label: 'Faol'),
         ],
       ),
     );
@@ -151,44 +141,24 @@ class ProfileScreen extends StatelessWidget {
     ];
 
     return GlossCard(
-      padding: EdgeInsets.zero,
+      padding: const EdgeInsets.symmetric(vertical: 4),
       child: Column(
         children: items.asMap().entries.map((entry) {
           final isLast = entry.key == items.length - 1;
-          return Column(
-            children: [
-              ListTile(
-                leading: Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: theme.bg,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(entry.value['icon'] as IconData, color: theme.green, size: 18),
-                ),
-                title: Text(
-                  entry.value['label'] as String,
-                  style: TextStyle(fontSize: 14, color: theme.text),
-                ),
-                trailing: Icon(Icons.chevron_right, color: theme.hint),
-                onTap: () {
-                  final route = entry.value['route'] as String?;
-                  if (route != null) {
-                    context.push(route);
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Tez orada'),
-                        behavior: SnackBarBehavior.floating,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
-                      ),
-                    );
-                  }
-                },
-              ),
-              if (!isLast) Divider(height: 1, indent: 68, color: theme.divider),
-            ],
+          final item = entry.value;
+          return GlossMenuItem(
+            icon: item['icon'] as IconData,
+            title: item['label'] as String,
+            showDivider: !isLast,
+            iconColor: theme.green,
+            onTap: () {
+              final route = item['route'] as String?;
+              if (route != null) {
+                context.push(route);
+              } else {
+                GlossSnackBar.showInfo(context, 'Tez orada');
+              }
+            },
           );
         }).toList(),
       ),
@@ -199,36 +169,36 @@ class ProfileScreen extends StatelessWidget {
     return SizedBox(
       height: 52,
       child: OutlinedButton(
-        onPressed: () {
-          showDialog(
-            context: context,
-            builder: (ctx) => AlertDialog(
-              title: const Text('Chiqish'),
-              content: const Text('Akkountingizdan chiqishni xohlaysizmi?'),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(ctx),
-                  child: const Text('Bekor qilish'),
-                ),
-                TextButton(
-                  onPressed: () {
-                    Navigator.pop(ctx);
-                    context.go('/splash');
-                  },
-                  child: Text('Chiqish', style: TextStyle(color: theme.red)),
-                ),
-              ],
-            ),
-          );
-        },
+        onPressed: () => _showLogoutDialog(theme, context),
         style: OutlinedButton.styleFrom(
           foregroundColor: theme.red,
-          side: BorderSide(color: theme.red.withAlpha(75)),
+          side: BorderSide(color: theme.red.withValues(alpha: 0.30)),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
           textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         ),
         child: const Text('Chiqish'),
       ),
+    );
+  }
+
+  void _showLogoutDialog(GlossTheme theme, BuildContext context) {
+    GlossDialog.show(
+      context: context,
+      title: 'Chiqish',
+      content: 'Akkountingizdan chiqishni xohlaysizmi?',
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Bekor qilish'),
+        ),
+        TextButton(
+          onPressed: () {
+            Navigator.pop(context);
+            context.go('/splash');
+          },
+          child: Text('Chiqish', style: TextStyle(color: theme.red)),
+        ),
+      ],
     );
   }
 }

@@ -56,84 +56,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Telefon raqam', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: theme.hint)),
-                  const SizedBox(height: 12),
-                  TextFormField(
+                  GlossTextField(
+                    label: 'Telefon raqam',
+                    hint: '+998 XX XXX XX XX',
                     controller: _phoneController,
                     keyboardType: TextInputType.phone,
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: theme.text),
-                    decoration: InputDecoration(
-                      hintText: '+998 XX XXX XX XX',
-                      hintStyle: TextStyle(color: theme.hint),
-                      filled: true,
-                      fillColor: theme.bg,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: theme.border),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: theme.border),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: theme.green, width: 2),
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-                    ),
                   ),
                   const SizedBox(height: 16),
-                  Text('Ism familiya', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: theme.hint)),
-                  const SizedBox(height: 12),
-                  TextFormField(
+                  GlossTextField(
+                    label: 'Ism familiya',
+                    hint: 'Ismingizni kiriting',
                     controller: _nameController,
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: theme.text),
-                    decoration: InputDecoration(
-                      hintText: 'Ismingizni kiriting',
-                      hintStyle: TextStyle(color: theme.hint),
-                      filled: true,
-                      fillColor: theme.bg,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: theme.border),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: theme.border),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: theme.green, width: 2),
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-                    ),
                   ),
                   const SizedBox(height: 16),
-                  Text('Parol', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: theme.hint)),
-                  const SizedBox(height: 12),
-                  TextFormField(
+                  GlossTextField(
+                    label: 'Parol',
+                    hint: 'Parolingizni kiriting',
                     controller: _passwordController,
                     obscureText: true,
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: theme.text),
-                    decoration: InputDecoration(
-                      hintText: 'Parolingizni kiriting',
-                      hintStyle: TextStyle(color: theme.hint),
-                      filled: true,
-                      fillColor: theme.bg,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: theme.border),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: theme.border),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: theme.green, width: 2),
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-                    ),
                   ),
                 ],
               ),
@@ -161,22 +101,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ],
             ),
             const SizedBox(height: 24),
-            SizedBox(
-              height: 52,
-              child: ElevatedButton(
-                onPressed: _isLoading ? null : () => context.go('/'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: theme.green,
-                  foregroundColor: Colors.white,
-                  disabledBackgroundColor: theme.disabled,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                  elevation: 0,
-                  textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
-                ),
-                child: _isLoading
-                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                    : const Text("Ro'yxatdan o'tish"),
-              ),
+            GlossButton(
+              label: "Ro'yxatdan o'tish",
+              isLoading: _isLoading,
+              onPressed: _isLoading ? null : () => context.go('/'),
             ),
             const SizedBox(height: 16),
             TextButton(

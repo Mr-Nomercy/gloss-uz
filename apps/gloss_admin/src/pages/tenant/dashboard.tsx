@@ -1,25 +1,50 @@
-import { Wallet, ShoppingBag, Users, Star } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { mockOrders } from '@/lib/data';
-import { formatCurrency } from '@/lib/utils';
+import { Wallet, ShoppingBag, Users, Star } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { mockOrders } from "@/lib/data";
+import { formatCurrency } from "@/lib/utils";
 
 export default function TenantDashboard() {
   const stats = [
     {
-      label: 'Balans',
+      label: "Balans",
       value: "8 450 000 so'm",
       icon: Wallet,
-      color: 'text-gloss-green',
-      bg: 'bg-gloss-green-bg-light',
+      color: "text-gloss-green",
+      bg: "bg-gloss-green-bg-light",
     },
-    { label: 'Buyurtmalar', value: '234 ta', icon: ShoppingBag, color: 'text-blue-600', bg: 'bg-blue-50' },
-    { label: 'Ishchilar', value: '4 ta', icon: Users, color: 'text-purple-600', bg: 'bg-purple-50' },
-    { label: 'Reyting', value: '4.8 ⭐', icon: Star, color: 'text-gloss-star', bg: 'bg-yellow-50' },
+    {
+      label: "Buyurtmalar",
+      value: "234 ta",
+      icon: ShoppingBag,
+      color: "text-blue-600",
+      bg: "bg-blue-50",
+    },
+    {
+      label: "Ishchilar",
+      value: "4 ta",
+      icon: Users,
+      color: "text-purple-600",
+      bg: "bg-purple-50",
+    },
+    {
+      label: "Reyting",
+      value: "4.8 ⭐",
+      icon: Star,
+      color: "text-gloss-star",
+      bg: "bg-yellow-50",
+    },
   ];
 
-  const tenantOrders = mockOrders.filter((o) => o.tenant === 'Firma MCHJ');
+  const tenantOrders = mockOrders.filter((o) => o.tenant === "Firma MCHJ");
 
   return (
     <div className="space-y-6">
@@ -28,7 +53,9 @@ export default function TenantDashboard() {
         {stats.map((s) => (
           <Card key={s.label}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-gloss-hint">{s.label}</CardTitle>
+              <CardTitle className="text-sm font-medium text-gloss-hint">
+                {s.label}
+              </CardTitle>
               <div className={`rounded-lg p-2 ${s.bg}`}>
                 <s.icon className={`h-4 w-4 ${s.color}`} />
               </div>
@@ -66,13 +93,13 @@ export default function TenantDashboard() {
                   <TableCell>
                     <Badge
                       variant={
-                        o.status === 'Yetkazilgan'
-                          ? 'default'
-                          : o.status === 'Jarayonda'
-                            ? 'warning'
-                            : o.status === 'Bekor qilingan'
-                              ? 'destructive'
-                              : 'secondary'
+                        o.status === "Yetkazilgan"
+                          ? "default"
+                          : o.status === "Jarayonda"
+                            ? "warning"
+                            : o.status === "Bekor qilingan"
+                              ? "destructive"
+                              : "secondary"
                       }
                     >
                       {o.status}

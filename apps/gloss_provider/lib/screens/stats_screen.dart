@@ -54,89 +54,31 @@ class StatsScreen extends StatelessWidget {
       crossAxisSpacing: 12,
       mainAxisSpacing: 12,
       childAspectRatio: 1.4,
-      children: [
-        _statCard(
-          theme: theme,
+      children: const [
+        GlossStatCard(
           icon: Icons.receipt_long_rounded,
           label: 'Jami buyurtmalar',
           value: '247',
-          iconColor: GlossColors.catBlue,
+          color: GlossColors.catBlue,
         ),
-        _statCard(
-          theme: theme,
+        GlossStatCard(
           icon: Icons.account_balance_wallet_rounded,
           label: 'Jami daromad',
-          value: "24 500 000 so'm",
-          iconColor: theme.green,
+          value: '24 500 000 so\'m',
         ),
-        _statCard(
-          theme: theme,
+        GlossStatCard(
           icon: Icons.star_rounded,
           label: "O'rtacha reyting",
           value: '4.8',
-          iconColor: theme.star,
-          suffix: Text(' ⭐', style: TextStyle(fontSize: 14, color: theme.star)),
+          color: GlossColors.star,
         ),
-        _statCard(
-          theme: theme,
+        GlossStatCard(
           icon: Icons.calendar_today_rounded,
           label: 'Bu hafta',
           value: '12',
-          iconColor: theme.orange,
+          color: GlossColors.orange,
         ),
       ],
-    );
-  }
-
-  Widget _statCard({
-    required GlossTheme theme,
-    required IconData icon,
-    required String label,
-    required String value,
-    required Color iconColor,
-    Widget? suffix,
-  }) {
-    return GlossCard(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: iconColor.withAlpha(25),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(icon, color: iconColor, size: 18),
-          ),
-          const Spacer(),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Flexible(
-                child: Text(
-                  value,
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: theme.text,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              if (suffix != null) suffix,
-            ],
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(fontSize: 11, color: theme.hint),
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
-      ),
     );
   }
 
@@ -172,7 +114,7 @@ class StatsScreen extends StatelessWidget {
                               gradient: LinearGradient(
                                 begin: Alignment.bottomCenter,
                                 end: Alignment.topCenter,
-                                colors: [theme.green, theme.green.withAlpha(100)],
+                                colors: [theme.green, theme.green.withValues(alpha: 0.39)],
                               ),
                               borderRadius: BorderRadius.circular(6),
                             ),
@@ -238,7 +180,8 @@ class StatsScreen extends StatelessWidget {
     );
   }
 
-  Widget _perfRow(GlossTheme theme, {
+  Widget _perfRow(
+    GlossTheme theme, {
     required IconData icon,
     required String label,
     required String value,
@@ -250,7 +193,7 @@ class StatsScreen extends StatelessWidget {
           width: 36,
           height: 36,
           decoration: BoxDecoration(
-            color: iconColor.withAlpha(25),
+            color: iconColor.withValues(alpha: 0.10),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Icon(icon, color: iconColor, size: 18),

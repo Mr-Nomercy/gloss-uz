@@ -7,20 +7,23 @@ class TeamInfoScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: GlossColors.bg,
+      backgroundColor: context.gloss.bg,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: GlossColors.bg,
+        backgroundColor: context.gloss.bg,
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
           icon: Container(
             padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(color: GlossColors.bg, borderRadius: BorderRadius.circular(12)),
-            child: const Icon(Icons.arrow_back_ios_new_rounded, color: GlossColors.text, size: 18),
+            decoration: BoxDecoration(
+              color: context.gloss.bg,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(Icons.arrow_back_ios_new_rounded, color: context.gloss.text, size: 18),
           ),
         ),
       ),
-      body: const Center(child: Text("Team Info")),
+      body: const Center(child: Text('Team Info')),
     );
   }
 }

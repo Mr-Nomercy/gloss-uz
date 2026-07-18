@@ -126,11 +126,11 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           Row(
             children: [
-              Icon(Icons.account_balance_wallet_outlined, color: Colors.white.withAlpha(200), size: 20),
+              Icon(Icons.account_balance_wallet_outlined, color: Colors.white.withValues(alpha: 0.78), size: 20),
               const SizedBox(width: 8),
               Text(
                 'Mavjud balans',
-                style: TextStyle(color: Colors.white.withAlpha(200), fontSize: 14),
+                style: TextStyle(color: Colors.white.withValues(alpha: 0.78), fontSize: 14),
               ),
             ],
           ),
@@ -163,31 +163,41 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildStatsRow(GlossTheme theme) {
     return Row(
       children: [
-        _statItem(Icons.today, 'Bugun', '12', theme),
-        _statItem(Icons.star, 'Reyting', '4.8', theme, suffix: '⭐'),
-        _statItem(Icons.check_circle, 'Jami', '487', theme),
-        _statItem(Icons.route, 'Masofa', '234 km', theme),
-      ],
-    );
-  }
-
-  Widget _statItem(IconData icon, String label, String value, GlossTheme theme, {String? suffix}) {
-    return Expanded(
-      child: GlossCard(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        child: Column(
-          children: [
-            Icon(icon, color: theme.green, size: 22),
-            const SizedBox(height: 6),
-            Text(
-              '$value${suffix ?? ''}',
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
-            ),
-            const SizedBox(height: 2),
-            Text(label, style: TextStyle(fontSize: 11, color: theme.hint)),
-          ],
+        const Expanded(
+          child: GlossStatCard(
+            label: 'Bugun',
+            value: '12',
+            icon: Icons.today,
+            padding: EdgeInsets.symmetric(vertical: 12),
+          ),
         ),
-      ),
+        Expanded(
+          child: GlossStatCard(
+            label: 'Reyting',
+            value: '4.8',
+            icon: Icons.star,
+            suffix: '⭐',
+            color: theme.star,
+            padding: const EdgeInsets.symmetric(vertical: 12),
+          ),
+        ),
+        const Expanded(
+          child: GlossStatCard(
+            label: 'Jami',
+            value: '487',
+            icon: Icons.check_circle,
+            padding: EdgeInsets.symmetric(vertical: 12),
+          ),
+        ),
+        const Expanded(
+          child: GlossStatCard(
+            label: 'Masofa',
+            value: '234 km',
+            icon: Icons.route,
+            padding: EdgeInsets.symmetric(vertical: 12),
+          ),
+        ),
+      ],
     );
   }
 
@@ -254,14 +264,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _deliveryTile(_Delivery d, GlossTheme theme) {
-    final statusColor = switch (d.status) {
-      'Yetkazilgan' => theme.green,
-      "Yo'lda" => theme.orange,
-      'Qabul qilingan' => GlossColors.catBlue,
-      'Bekor qilingan' => theme.red,
-      _ => theme.hint,
-    };
-
     return GlossCard(
       padding: const EdgeInsets.all(12),
       child: Row(
@@ -291,14 +293,7 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               Text('${d.price} so\'m', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: theme.green)),
               const SizedBox(height: 4),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: statusColor.withAlpha(30),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text(d.status, style: TextStyle(fontSize: 11, color: statusColor, fontWeight: FontWeight.w600)),
-              ),
+              GlossBadge.status(d.status),
             ],
           ),
         ],

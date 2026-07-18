@@ -12,6 +12,7 @@ class AuthScreen extends StatefulWidget {
 class _AuthScreenState extends State<AuthScreen> {
   final _phoneController = TextEditingController(text: '');
   final _formKey = GlobalKey<FormState>();
+
   @override
   void dispose() {
     _phoneController.dispose();
@@ -78,7 +79,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       "Ro'yxatdan o'tish uchun\ntelefon raqamingizni kiriting",
                       style: TextStyle(
                         fontSize: 14,
-                        color: Colors.white.withAlpha(200),
+                        color: Colors.white.withValues(alpha: 0.78),
                         height: 1.4,
                       ),
                     ),
@@ -130,33 +131,11 @@ class _AuthScreenState extends State<AuthScreen> {
                               ),
                               const SizedBox(width: 12),
                               Expanded(
-                                child: TextFormField(
+                                child: GlossTextField(
+                                  label: '',
+                                  hint: 'XX XXX XX XX',
                                   controller: _phoneController,
                                   keyboardType: TextInputType.phone,
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w500,
-                                    color: theme.text,
-                                  ),
-                                  decoration: InputDecoration(
-                                    hintText: 'XX XXX XX XX',
-                                    hintStyle: TextStyle(color: theme.hint),
-                                    filled: true,
-                                    fillColor: theme.bg,
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                      borderSide: BorderSide(color: theme.border),
-                                    ),
-                                    enabledBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                      borderSide: BorderSide(color: theme.border),
-                                    ),
-                                    focusedBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                      borderSide: BorderSide(color: theme.green, width: 2),
-                                    ),
-                                    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-                                  ),
                                   onChanged: (value) {
                                     final formatted = _formatPhone(value);
                                     if (formatted != value) {
@@ -174,32 +153,16 @@ class _AuthScreenState extends State<AuthScreen> {
                       ),
                     ),
                     const SizedBox(height: 24),
-                    SizedBox(
-                      height: 52,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          final digits = _phoneController.text.replaceAll(RegExp(r'[^\d]'), '');
-                          if (digits.length == 9) {
-                            context.push('/auth/verify', extra: '+998$digits');
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text("To'g'ri telefon raqam kiriting"),
-                                behavior: SnackBarBehavior.floating,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
-                              ),
-                            );
-                          }
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: theme.green,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                          elevation: 0,
-                          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
-                        ),
-                        child: const Text('Kirish'),
-                      ),
+                    GlossButton(
+                      label: 'Kirish',
+                      onPressed: () {
+                        final digits = _phoneController.text.replaceAll(RegExp(r'[^\d]'), '');
+                        if (digits.length == 9) {
+                          context.push('/auth/verify', extra: '+998$digits');
+                        } else {
+                          GlossSnackBar.showError(context, "To'g'ri telefon raqam kiriting");
+                        }
+                      },
                     ),
                     const SizedBox(height: 16),
                     TextButton(
