@@ -48,7 +48,7 @@ class SellerDashboardScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          const Row(
+          Row(
             children: [
               Expanded(
                 child: GlossStatCard(
@@ -70,7 +70,7 @@ class SellerDashboardScreen extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          const Row(
+          Row(
             children: [
               Expanded(
                 child: GlossStatCard(
@@ -93,7 +93,7 @@ class SellerDashboardScreen extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 24),
-          const GlossButton(
+          GlossButton(
             label: "Mahsulot qo'shish",
             onPressed: null,
           ),

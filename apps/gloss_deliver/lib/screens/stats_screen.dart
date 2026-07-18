@@ -62,7 +62,7 @@ class StatsScreen extends StatelessWidget {
     return Row(
       children: [
         const Expanded(
-          child: const GlossStatCard(
+          child: GlossStatCard(
             label: "O'rtacha reyting",
             value: '4.8',
             icon: Icons.star,
@@ -73,7 +73,7 @@ class StatsScreen extends StatelessWidget {
         ),
         const SizedBox(width: 10),
         const Expanded(
-          child: const GlossStatCard(
+          child: GlossStatCard(
             label: 'Bu hafta',
             value: '32 ta',
             icon: Icons.calendar_today,

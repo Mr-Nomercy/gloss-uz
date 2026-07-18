@@ -64,7 +64,7 @@ class StatsScreen extends StatelessWidget {
         const GlossStatCard(
           icon: Icons.account_balance_wallet_rounded,
           label: 'Jami daromad',
-          value: '24 500 000 so\'m',
+          value: formatPrice(24500000),
         ),
         const GlossStatCard(
           icon: Icons.star_rounded,
