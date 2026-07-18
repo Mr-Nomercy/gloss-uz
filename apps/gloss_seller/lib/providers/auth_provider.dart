@@ -233,8 +233,8 @@ final storageProvider = Provider<FlutterSecureStorage>((ref) {
 final dioProvider = Provider<Dio>((ref) {
   return Dio(BaseOptions(
     baseUrl: AppConstants.devBaseUrl,
-    connectTimeout: Duration(milliseconds: AppConstants.connectTimeout),
-    receiveTimeout: Duration(milliseconds: AppConstants.receiveTimeout),
+    connectTimeout: const Duration(milliseconds: 10000),
+    receiveTimeout: const Duration(milliseconds: 15000),
     headers: {'Content-Type': 'application/json'},
   ));
 });

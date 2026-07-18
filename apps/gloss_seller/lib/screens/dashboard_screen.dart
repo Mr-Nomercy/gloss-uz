@@ -48,7 +48,7 @@ class SellerDashboardScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          Row(
+          const Row(
             children: [
               Expanded(
                 child: GlossStatCard(
@@ -70,7 +70,7 @@ class SellerDashboardScreen extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          Row(
+          const Row(
             children: [
               Expanded(
                 child: GlossStatCard(
@@ -93,9 +93,9 @@ class SellerDashboardScreen extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 24),
-          GlossButton(
+          const GlossButton(
             label: "Mahsulot qo'shish",
-            onPressed: () => context.go('/seller/add-product'),
+            onPressed: null,
           ),
           const SizedBox(height: 12),
           SizedBox(

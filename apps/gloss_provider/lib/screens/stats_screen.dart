@@ -61,18 +61,18 @@ class StatsScreen extends StatelessWidget {
           value: '247',
           color: GlossColors.catBlue,
         ),
-        GlossStatCard(
+        const GlossStatCard(
           icon: Icons.account_balance_wallet_rounded,
           label: 'Jami daromad',
-          value: formatPrice(24500000),
+          value: '24 500 000 so\'m',
         ),
-        GlossStatCard(
+        const GlossStatCard(
           icon: Icons.star_rounded,
           label: "O'rtacha reyting",
           value: '4.8',
           color: GlossColors.star,
         ),
-        GlossStatCard(
+        const GlossStatCard(
           icon: Icons.calendar_today_rounded,
           label: 'Bu hafta',
           value: '12',
