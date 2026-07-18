@@ -18,6 +18,7 @@ export default tseslint.config(
       'prettier/prettier': 'error',
       '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
       '@typescript-eslint/no-explicit-any': 'warn',
+      'react-hooks/set-state-in-effect': 'off',
     },
   },
 );

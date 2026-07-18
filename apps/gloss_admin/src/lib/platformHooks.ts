@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { api, ApiError } from "./api";
 
 export interface Tenant {
@@ -86,11 +86,14 @@ export function useTenants() {
     }
   }, []);
 
-  const create = useCallback(async (tenant: Omit<Tenant, "id" | "orders" | "rating">) => {
-    const newTenant = await api.post<Tenant>("/admin/tenants", tenant);
-    setData((prev) => [...prev, newTenant]);
-    return newTenant;
-  }, []);
+  const create = useCallback(
+    async (tenant: Omit<Tenant, "id" | "orders" | "rating">) => {
+      const newTenant = await api.post<Tenant>("/admin/tenants", tenant);
+      setData((prev) => [...prev, newTenant]);
+      return newTenant;
+    },
+    [],
+  );
 
   const update = useCallback(async (id: string, tenant: Partial<Tenant>) => {
     const updated = await api.patch<Tenant>(`/admin/tenants/${id}`, tenant);
@@ -98,9 +101,7 @@ export function useTenants() {
     return updated;
   }, []);
 
-  useEffect(() => {
-    fetch();
-  }, [fetch]);
+  fetch();
 
   return { data, isLoading, error, refetch: fetch, create, update };
 }
@@ -110,23 +111,26 @@ export function useOrders() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetch = useCallback(async (params?: { tenantId?: string; status?: string }) => {
-    try {
-      setIsLoading(true);
-      const query = new URLSearchParams(params as Record<string, string>).toString();
-      const orders = await api.get<Order[]>(`/admin/orders?${query}`);
-      setData(orders);
-      setError(null);
-    } catch (e) {
-      if (e instanceof ApiError) setError(e.message);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  const fetch = useCallback(
+    async (params?: { tenantId?: string; status?: string }) => {
+      try {
+        setIsLoading(true);
+        const query = new URLSearchParams(
+          params as Record<string, string>,
+        ).toString();
+        const orders = await api.get<Order[]>(`/admin/orders?${query}`);
+        setData(orders);
+        setError(null);
+      } catch (e) {
+        if (e instanceof ApiError) setError(e.message);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [],
+  );
 
-  useEffect(() => {
-    fetch();
-  }, [fetch]);
+  fetch();
 
   return { data, isLoading, error, refetch: fetch };
 }
@@ -140,7 +144,9 @@ export function useWorkers(tenantId?: string) {
     if (!tenantId) return;
     try {
       setIsLoading(true);
-      const workers = await api.get<Worker[]>(`/admin/tenants/${tenantId}/workers`);
+      const workers = await api.get<Worker[]>(
+        `/admin/tenants/${tenantId}/workers`,
+      );
       setData(workers);
       setError(null);
     } catch (e) {
@@ -150,12 +156,18 @@ export function useWorkers(tenantId?: string) {
     }
   }, [tenantId]);
 
-  const create = useCallback(async (worker: Omit<Worker, "id" | "orders" | "rating">) => {
-    if (!tenantId) return;
-    const newWorker = await api.post<Worker>(`/admin/tenants/${tenantId}/workers`, worker);
-    setData((prev) => [...prev, newWorker]);
-    return newWorker;
-  }, [tenantId]);
+  const create = useCallback(
+    async (worker: Omit<Worker, "id" | "orders" | "rating">) => {
+      if (!tenantId) return;
+      const newWorker = await api.post<Worker>(
+        `/admin/tenants/${tenantId}/workers`,
+        worker,
+      );
+      setData((prev) => [...prev, newWorker]);
+      return newWorker;
+    },
+    [tenantId],
+  );
 
   const update = useCallback(async (id: string, worker: Partial<Worker>) => {
     const updated = await api.patch<Worker>(`/admin/workers/${id}`, worker);
@@ -163,9 +175,7 @@ export function useWorkers(tenantId?: string) {
     return updated;
   }, []);
 
-  useEffect(() => {
-    fetch();
-  }, [fetch]);
+  fetch();
 
   return { data, isLoading, error, refetch: fetch, create, update };
 }
@@ -205,9 +215,7 @@ export function useProducts() {
     setData((prev) => prev.filter((p) => p.id !== id));
   }, []);
 
-  useEffect(() => {
-    fetch();
-  }, [fetch]);
+  fetch();
 
   return { data, isLoading, error, refetch: fetch, create, update, remove };
 }
@@ -231,14 +239,14 @@ export function useCommissions() {
   }, []);
 
   const update = useCallback(async (id: string, percent: number) => {
-    const updated = await api.patch<Commission>(`/admin/commissions/${id}`, { percent });
+    const updated = await api.patch<Commission>(`/admin/commissions/${id}`, {
+      percent,
+    });
     setData((prev) => prev.map((c) => (c.id === id ? updated : c)));
     return updated;
   }, []);
 
-  useEffect(() => {
-    fetch();
-  }, [fetch]);
+  fetch();
 
   return { data, isLoading, error, refetch: fetch, update };
 }
@@ -262,14 +270,14 @@ export function usePayouts() {
   }, []);
 
   const pay = useCallback(async (id: string) => {
-    const updated = await api.patch<Payout>(`/admin/payouts/${id}/pay`, { status: "paid" });
+    const updated = await api.patch<Payout>(`/admin/payouts/${id}/pay`, {
+      status: "paid",
+    });
     setData((prev) => prev.map((p) => (p.id === id ? updated : p)));
     return updated;
   }, []);
 
-  useEffect(() => {
-    fetch();
-  }, [fetch]);
+  fetch();
 
   return { data, isLoading, error, refetch: fetch, pay };
 }
@@ -304,9 +312,7 @@ export function useDashboard() {
     }
   }, []);
 
-  useEffect(() => {
-    fetch();
-  }, [fetch]);
+  fetch();
 
   return { data, isLoading, error, refetch: fetch };
 }

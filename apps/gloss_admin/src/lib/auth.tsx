@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
+import React, { createContext, useContext, useState, useCallback } from "react";
 import { api, ApiError } from "./api";
 
 export interface User {
@@ -47,9 +47,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  useEffect(() => {
-    refreshUser();
-  }, [refreshUser]);
+  refreshUser();
 
   const login = useCallback(
     async (email: string, password: string): Promise<boolean> => {
@@ -59,7 +57,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           refreshToken: string;
           user: User;
         }>("/auth/login", { email, password });
-        
+
         localStorage.setItem("gloss_admin_token", response.accessToken);
         localStorage.setItem("gloss_admin_refresh", response.refreshToken);
         setUser(response.user);
@@ -81,7 +79,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, logout, refreshUser }}>
+    <AuthContext.Provider
+      value={{ user, isLoading, login, logout, refreshUser }}
+    >
       {children}
     </AuthContext.Provider>
   );

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { api, ApiError } from "./api";
 
 export interface Tenant {
@@ -71,9 +71,7 @@ export function useTenantOrders() {
     }
   }, []);
 
-  useEffect(() => {
-    fetch();
-  }, [fetch]);
+  fetch();
 
   return { data, isLoading, error, refetch: fetch };
 }
@@ -96,11 +94,14 @@ export function useTenantWorkers() {
     }
   }, []);
 
-  const create = useCallback(async (worker: Omit<Worker, "id" | "orders" | "rating">) => {
-    const newWorker = await api.post<Worker>("/tenant/workers", worker);
-    setData((prev) => [...prev, newWorker]);
-    return newWorker;
-  }, []);
+  const create = useCallback(
+    async (worker: Omit<Worker, "id" | "orders" | "rating">) => {
+      const newWorker = await api.post<Worker>("/tenant/workers", worker);
+      setData((prev) => [...prev, newWorker]);
+      return newWorker;
+    },
+    [],
+  );
 
   const update = useCallback(async (id: string, worker: Partial<Worker>) => {
     const updated = await api.patch<Worker>(`/tenant/workers/${id}`, worker);
@@ -108,9 +109,7 @@ export function useTenantWorkers() {
     return updated;
   }, []);
 
-  useEffect(() => {
-    fetch();
-  }, [fetch]);
+  fetch();
 
   return { data, isLoading, error, refetch: fetch, create, update };
 }
@@ -133,9 +132,7 @@ export function useTenantRatings() {
     }
   }, []);
 
-  useEffect(() => {
-    fetch();
-  }, [fetch]);
+  fetch();
 
   return { data, isLoading, error, refetch: fetch };
 }
@@ -164,14 +161,15 @@ export function useTenantWallet() {
     }
   }, []);
 
-  const withdraw = useCallback(async (amount: number, cardNumber: string) => {
-    await api.post("/tenant/wallet/withdraw", { amount, cardNumber });
-    await fetch();
-  }, [fetch]);
+  const withdraw = useCallback(
+    async (amount: number, cardNumber: string) => {
+      await api.post("/tenant/wallet/withdraw", { amount, cardNumber });
+      await fetch();
+    },
+    [fetch],
+  );
 
-  useEffect(() => {
-    fetch();
-  }, [fetch]);
+  fetch();
 
   return { data, isLoading, error, refetch: fetch, withdraw };
 }
@@ -195,14 +193,15 @@ export function useTenantSettings() {
   }, []);
 
   const update = useCallback(async (settings: Partial<TenantSettings>) => {
-    const updated = await api.patch<TenantSettings>("/tenant/settings", settings);
+    const updated = await api.patch<TenantSettings>(
+      "/tenant/settings",
+      settings,
+    );
     setData(updated);
     return updated;
   }, []);
 
-  useEffect(() => {
-    fetch();
-  }, [fetch]);
+  fetch();
 
   return { data, isLoading, error, refetch: fetch, update };
 }

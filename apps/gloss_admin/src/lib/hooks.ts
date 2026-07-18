@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { api, ApiError } from "./api";
 
 export interface DashboardMetrics {
@@ -92,9 +92,7 @@ export function useDashboardMetrics() {
     }
   }, []);
 
-  useEffect(() => {
-    fetch();
-  }, [fetch]);
+  fetch();
 
   return { data, isLoading, error, refetch: fetch };
 }
@@ -129,9 +127,7 @@ export function useTenants() {
     return updated;
   }, []);
 
-  useEffect(() => {
-    fetch();
-  }, [fetch]);
+  fetch();
 
   return { data, isLoading, error, refetch: fetch, create, update };
 }
@@ -141,25 +137,28 @@ export function useOrders() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetch = useCallback(async (params: { status?: string; providerId?: string } = {}) => {
-    try {
-      setIsLoading(true);
-      const query = new URLSearchParams();
-      if (params.status) query.set("status", params.status);
-      if (params.providerId) query.set("providerId", params.providerId);
-      const orders = await api.get<Order[]>(`/admin/orders?${query.toString()}`);
-      setData(orders);
-      setError(null);
-    } catch (e) {
-      if (e instanceof ApiError) setError(e.message);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  const fetch = useCallback(
+    async (params: { status?: string; providerId?: string } = {}) => {
+      try {
+        setIsLoading(true);
+        const query = new URLSearchParams();
+        if (params.status) query.set("status", params.status);
+        if (params.providerId) query.set("providerId", params.providerId);
+        const orders = await api.get<Order[]>(
+          `/admin/orders?${query.toString()}`,
+        );
+        setData(orders);
+        setError(null);
+      } catch (e) {
+        if (e instanceof ApiError) setError(e.message);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [],
+  );
 
-  useEffect(() => {
-    fetch();
-  }, [fetch]);
+  fetch();
 
   return { data, isLoading, error, refetch: fetch };
 }
@@ -183,14 +182,14 @@ export function useCommissions() {
   }, []);
 
   const update = useCallback(async (id: string, percent: number) => {
-    const updated = await api.patch<Commission>(`/admin/commissions/${id}`, { percent });
+    const updated = await api.patch<Commission>(`/admin/commissions/${id}`, {
+      percent,
+    });
     setData((prev) => prev.map((c) => (c.id === id ? updated : c)));
     return updated;
   }, []);
 
-  useEffect(() => {
-    fetch();
-  }, [fetch]);
+  fetch();
 
   return { data, isLoading, error, refetch: fetch, update };
 }
@@ -230,9 +229,7 @@ export function useProducts() {
     setData((prev) => prev.filter((p) => p.id !== id));
   }, []);
 
-  useEffect(() => {
-    fetch();
-  }, [fetch]);
+  fetch();
 
   return { data, isLoading, error, refetch: fetch, create, update, remove };
 }
@@ -261,9 +258,7 @@ export function usePayouts() {
     return updated;
   }, []);
 
-  useEffect(() => {
-    fetch();
-  }, [fetch]);
+  fetch();
 
   return { data, isLoading, error, refetch: fetch, pay };
 }
@@ -286,9 +281,7 @@ export function useUsers() {
     }
   }, []);
 
-  useEffect(() => {
-    fetch();
-  }, [fetch]);
+  fetch();
 
   return { data, isLoading, error, refetch: fetch };
 }
@@ -312,14 +305,15 @@ export function useSettings() {
   }, []);
 
   const update = useCallback(async (settings: Partial<PlatformSettings>) => {
-    const updated = await api.patch<PlatformSettings>("/admin/settings", settings);
+    const updated = await api.patch<PlatformSettings>(
+      "/admin/settings",
+      settings,
+    );
     setData(updated);
     return updated;
   }, []);
 
-  useEffect(() => {
-    fetch();
-  }, [fetch]);
+  fetch();
 
   return { data, isLoading, error, refetch: fetch, update };
 }

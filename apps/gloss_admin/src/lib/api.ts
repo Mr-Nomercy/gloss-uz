@@ -1,7 +1,11 @@
-const API_BASE = (import.meta as any).env?.VITE_API_URL || "http://localhost:3000/api/v1";
+const API_BASE =
+  (import.meta as any).env?.VITE_API_URL || "http://localhost:3000/api/v1";
 
 class ApiError extends Error {
-  constructor(message: string, public status: number) {
+  constructor(
+    message: string,
+    public status: number,
+  ) {
     super(message);
     this.name = "ApiError";
   }
@@ -9,10 +13,10 @@ class ApiError extends Error {
 
 async function request<T>(
   endpoint: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
 ): Promise<T> {
   const token = localStorage.getItem("gloss_admin_token");
-  
+
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     ...(options.headers as Record<string, string>),
@@ -47,21 +51,20 @@ async function request<T>(
 
 export const api = {
   get: <T>(endpoint: string) => request<T>(endpoint, { method: "GET" }),
-  
+
   post: <T>(endpoint: string, data: unknown = {}) =>
     request<T>(endpoint, {
       method: "POST",
       body: JSON.stringify(data),
     }),
-  
+
   patch: <T>(endpoint: string, data: unknown) =>
     request<T>(endpoint, {
       method: "PATCH",
       body: JSON.stringify(data),
     }),
-  
-  delete: (endpoint: string) =>
-    request(endpoint, { method: "DELETE" }),
+
+  delete: (endpoint: string) => request(endpoint, { method: "DELETE" }),
 };
 
 export { ApiError };

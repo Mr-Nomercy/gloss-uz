@@ -220,7 +220,7 @@ class _CardHeader extends StatelessWidget {
                     ),
                     if (isPopular) ...[
                       const SizedBox(width: 8),
-                      GlossBadge(label: 'Mashhur', variant: BadgeVariant.warning),
+                      const GlossBadge(label: 'Mashhur', variant: BadgeVariant.warning),
                     ],
                   ],
                 ),
