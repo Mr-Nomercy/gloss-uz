@@ -54,25 +54,25 @@ class StatsScreen extends StatelessWidget {
       crossAxisSpacing: 12,
       mainAxisSpacing: 12,
       childAspectRatio: 1.4,
-      children: [
-        const GlossStatCard(
+      children: const [
+        GlossStatCard(
           icon: Icons.receipt_long_rounded,
           label: 'Jami buyurtmalar',
           value: '247',
           color: GlossColors.catBlue,
         ),
-        const GlossStatCard(
+        GlossStatCard(
           icon: Icons.account_balance_wallet_rounded,
           label: 'Jami daromad',
           value: '24 500 000 so\'m',
         ),
-        const GlossStatCard(
+        GlossStatCard(
           icon: Icons.star_rounded,
           label: "O'rtacha reyting",
           value: '4.8',
           color: GlossColors.star,
         ),
-        const GlossStatCard(
+        GlossStatCard(
           icon: Icons.calendar_today_rounded,
           label: 'Bu hafta',
           value: '12',

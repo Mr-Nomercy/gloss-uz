@@ -59,9 +59,9 @@ class StatsScreen extends StatelessWidget {
   }
 
   Widget _buildPeriodRow(GlossTheme theme) {
-    return Row(
+    return const Row(
       children: [
-        const Expanded(
+        Expanded(
           child: GlossStatCard(
             label: "O'rtacha reyting",
             value: '4.8',
@@ -71,8 +71,8 @@ class StatsScreen extends StatelessWidget {
             padding: EdgeInsets.all(14),
           ),
         ),
-        const SizedBox(width: 10),
-        const Expanded(
+        SizedBox(width: 10),
+        Expanded(
           child: GlossStatCard(
             label: 'Bu hafta',
             value: '32 ta',
