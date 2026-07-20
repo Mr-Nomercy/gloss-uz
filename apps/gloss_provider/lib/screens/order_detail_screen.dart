@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ui_kit/ui_kit.dart';
@@ -10,8 +12,11 @@ class OrderDetailScreen extends StatefulWidget {
   State<OrderDetailScreen> createState() => _OrderDetailScreenState();
 }
 
-class _OrderDetailScreenState extends State<OrderDetailScreen> {
+class _OrderDetailScreenState extends State<OrderDetailScreen>
+    with TickerProviderStateMixin {
   int _currentStep = 1;
+  bool _isActionLoading = false;
+  late AnimationController _timelineController;
 
   final List<Map<String, String>> _steps = const [
     {'title': 'Buyurtma yuborildi', 'key': 'searching'},
@@ -48,6 +53,53 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     return 'Jarayonda';
   }
 
+  String get _successMessage {
+    switch (_currentStep) {
+      case 0:
+        return 'Buyurtma qabul qilindi';
+      case 1:
+        return "Yo'lga chiqdingiz";
+      case 2:
+        return 'Manzilga yetib keldingiz';
+      case 3:
+        return "Xizmat ko'rsatish boshlandi";
+      case 4:
+        return 'Buyurtma tugallandi';
+      default:
+        return 'Amal bajarildi';
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _timelineController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    );
+    _timelineController.forward();
+  }
+
+  @override
+  void dispose() {
+    _timelineController.dispose();
+    super.dispose();
+  }
+
+  void _advanceStep() async {
+    setState(() => _isActionLoading = true);
+    await Future.delayed(const Duration(milliseconds: 800));
+    if (mounted) {
+      setState(() {
+        _currentStep++;
+        _isActionLoading = false;
+      });
+      _timelineController.reset();
+      _timelineController.forward();
+      GlossSnackBar.showSuccess(context, _successMessage);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = context.gloss;
@@ -58,7 +110,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         elevation: 0,
         title: Text(
           'Buyurtma #${widget.orderId}',
-          style: TextStyle(color: theme.text, fontWeight: FontWeight.w700, fontSize: 18),
+          style: TextStyle(
+            color: theme.text,
+            fontWeight: FontWeight.w700,
+            fontSize: 18,
+          ),
         ),
         leading: IconButton(
           onPressed: () => context.pop(),
@@ -68,7 +124,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               color: theme.bg,
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(Icons.arrow_back_ios_new_rounded, color: theme.text, size: 18),
+            child: Icon(
+              Icons.arrow_back_ios_new_rounded,
+              color: theme.text,
+              size: 18,
+            ),
           ),
         ),
       ),
@@ -104,7 +164,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               color: theme.greenBgLight,
               borderRadius: BorderRadius.circular(14),
             ),
-            child: Icon(Icons.cleaning_services_rounded, color: theme.green, size: 28),
+            child:
+                Icon(Icons.cleaning_services_rounded, color: theme.green, size: 28),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -146,7 +207,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                     color: theme.greenBgLight,
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Icon(Icons.location_on_outlined, color: theme.green, size: 18),
+                  child: Icon(Icons.location_on_outlined,
+                      color: theme.green, size: 18),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -155,7 +217,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                     children: [
                       Text(
                         "Mirzo Ulug'bek tumani, Mustaqillik 45",
-                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: theme.text),
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: theme.text,
+                        ),
                       ),
                       const SizedBox(height: 2),
                       Text(
@@ -172,7 +238,15 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             height: 140,
             width: double.infinity,
             decoration: BoxDecoration(
-              color: theme.grayLight,
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  theme.greenBgSoft,
+                  theme.greenBgLight,
+                  theme.grayLight,
+                ],
+              ),
               borderRadius: const BorderRadius.only(
                 bottomLeft: Radius.circular(12),
                 bottomRight: Radius.circular(12),
@@ -182,9 +256,24 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.map_outlined, size: 32, color: theme.hint),
-                  const SizedBox(height: 4),
-                  Text('Xarita', style: TextStyle(color: theme.hint, fontSize: 12)),
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: theme.card.withValues(alpha: 0.7),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(Icons.map_outlined,
+                        size: 28, color: theme.green),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    'Xarita',
+                    style: TextStyle(
+                      color: theme.greenText,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -211,22 +300,37 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           const SizedBox(height: 10),
           _priceRow(theme, 'Komissiya (10%)', "12 000 so'm"),
           const SizedBox(height: 12),
-          Divider(color: theme.divider),
-          const SizedBox(height: 8),
-          _priceRow(theme, 'Jami', "132 000 so'm", isBold: true, isGreen: true),
+          Container(
+            height: 1,
+            color: theme.divider,
+          ),
+          const SizedBox(height: 12),
+          _priceRow(
+            theme,
+            'Jami',
+            "132 000 so'm",
+            isBold: true,
+            isGreen: true,
+          ),
         ],
       ),
     );
   }
 
-  Widget _priceRow(GlossTheme theme, String label, String value, {bool isBold = false, bool isGreen = false}) {
+  Widget _priceRow(
+    GlossTheme theme,
+    String label,
+    String value, {
+    bool isBold = false,
+    bool isGreen = false,
+  }) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
           label,
           style: TextStyle(
-            fontSize: 14,
+            fontSize: isBold ? 16 : 14,
             color: isBold ? theme.text : theme.hint,
             fontWeight: isBold ? FontWeight.w600 : FontWeight.normal,
           ),
@@ -234,7 +338,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         Text(
           value,
           style: TextStyle(
-            fontSize: 14,
+            fontSize: isBold ? 16 : 14,
             fontWeight: isBold ? FontWeight.bold : FontWeight.w500,
             color: isGreen ? theme.greenText : theme.text,
           ),
@@ -255,10 +359,42 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           ),
           const SizedBox(height: 20),
           ...List.generate(_steps.length, (index) {
-            final isCompleted = index <= _currentStep;
-            final isLast = index == _steps.length - 1;
+            return _buildTimelineStep(index, theme);
+          }),
+        ],
+      ),
+    );
+  }
 
-            return IntrinsicHeight(
+  Widget _buildTimelineStep(int index, GlossTheme theme) {
+    final isCompleted = index <= _currentStep;
+    final isLast = index == _steps.length - 1;
+    final totalSteps = _steps.length;
+    final stepSize = 1.0 / math.max(totalSteps, 1);
+    final begin = (index * stepSize * 0.5).clamp(0.0, 1.0);
+    final end = ((index + 1) * stepSize * 0.5 + 0.5).clamp(0.0, 1.0);
+
+    return AnimatedBuilder(
+      animation: _timelineController,
+      builder: (context, child) {
+        final animationValue = _timelineController.value;
+        final slideProgress =
+            ((animationValue - begin) / (end - begin)).clamp(0.0, 1.0);
+        final easedProgress = Curves.easeOutCubic.transform(slideProgress);
+
+        return SlideTransition(
+          position: Tween<Offset>(
+            begin: const Offset(0.1, 0),
+            end: Offset.zero,
+          ).animate(
+            CurvedAnimation(
+              parent: _timelineController,
+              curve: Interval(begin, end, curve: Curves.easeOutCubic),
+            ),
+          ),
+          child: Opacity(
+            opacity: easedProgress.clamp(0.0, 1.0),
+            child: IntrinsicHeight(
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -266,19 +402,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                     width: 24,
                     child: Column(
                       children: [
-                        Container(
-                          width: 24,
-                          height: 24,
-                          decoration: BoxDecoration(
-                            color: isCompleted ? theme.green : theme.grayLight,
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(
-                            isCompleted ? Icons.check : Icons.circle,
-                            size: 14,
-                            color: isCompleted ? Colors.white : theme.grayMedium,
-                          ),
-                        ),
+                        _buildStepDot(index, isCompleted, theme),
                         if (!isLast)
                           Expanded(
                             child: Container(
@@ -296,17 +420,67 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                       _steps[index]['title']!,
                       style: TextStyle(
                         fontSize: 14,
-                        fontWeight: isCompleted ? FontWeight.w600 : FontWeight.normal,
+                        fontWeight:
+                            isCompleted ? FontWeight.w600 : FontWeight.normal,
                         color: isCompleted ? theme.text : theme.hint,
                       ),
                     ),
                   ),
                 ],
               ),
-            );
-          }),
-        ],
-      ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildStepDot(int index, bool isCompleted, GlossTheme theme) {
+    return AnimatedBuilder(
+      animation: _timelineController,
+      builder: (context, child) {
+        final totalSteps = _steps.length;
+        final stepSize = 1.0 / math.max(totalSteps, 1);
+        final begin = (index * stepSize * 0.5).clamp(0.0, 1.0);
+        final end = ((index + 1) * stepSize * 0.5 + 0.5).clamp(0.0, 1.0);
+        final checkProgress =
+            ((_timelineController.value - begin) / (end - begin)).clamp(0.0, 1.0);
+        final bounceProgress =
+            Curves.elasticOut.transform(checkProgress).clamp(0.0, 1.0);
+
+        if (!isCompleted) {
+          return Container(
+            width: 24,
+            height: 24,
+            decoration: BoxDecoration(
+              color: theme.grayLight,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.circle,
+              size: 14,
+              color: theme.grayMedium,
+            ),
+          );
+        }
+
+        return Container(
+          width: 24,
+          height: 24,
+          decoration: BoxDecoration(
+            color: theme.green,
+            shape: BoxShape.circle,
+          ),
+          child: Transform.scale(
+            scale: bounceProgress,
+            child: const Icon(
+              Icons.check,
+              size: 15,
+              color: Colors.white,
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -339,21 +513,24 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         if (_currentAction.isNotEmpty)
           GlossButton(
             label: _currentAction,
-            onPressed: () {
-              setState(() => _currentStep++);
-            },
+            isLoading: _isActionLoading,
+            onPressed: _isActionLoading ? null : _advanceStep,
           ),
         if (_canCancel) ...[
           const SizedBox(height: 12),
           SizedBox(
             height: 52,
             child: OutlinedButton(
-              onPressed: () => _showCancelDialog(theme),
+              onPressed:
+                  _isActionLoading ? null : () => _showCancelDialog(theme),
               style: OutlinedButton.styleFrom(
                 foregroundColor: theme.red,
                 side: BorderSide(color: theme.red.withValues(alpha: 0.30)),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                textStyle:
+                    const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
               ),
               child: const Text('Bekor qilish'),
             ),
@@ -371,7 +548,13 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text("Yo'q"),
+          child: Text(
+            "Yo'q",
+            style: TextStyle(
+              color: theme.text,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
         ),
         TextButton(
           onPressed: () {
@@ -379,7 +562,13 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             context.pop();
             GlossSnackBar.showInfo(context, 'Buyurtma bekor qilindi');
           },
-          child: Text('Ha', style: TextStyle(color: theme.red)),
+          child: Text(
+            'Ha, bekor qilish',
+            style: TextStyle(
+              color: theme.red,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
         ),
       ],
     );

@@ -8,7 +8,11 @@ import 'app.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(options: firebaseOptions);
+  try {
+    await Firebase.initializeApp(options: firebaseOptions);
+  } catch (_) {
+    // Firebase not available on web/desktop — ignore
+  }
   runApp(const ProviderScope(child: GlossProviderApp()));
 }
 

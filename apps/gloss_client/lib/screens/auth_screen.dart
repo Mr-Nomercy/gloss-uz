@@ -50,12 +50,22 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     if (!_valid) return;
     setState(() => _error = null);
     await ref.read(authProvider.notifier).login(_fullPhone);
-    final state = ref.read(authProvider);
     if (!mounted) return;
+    final state = ref.read(authProvider);
     if (state.error != null) {
       setState(() => _error = state.error);
-    } else {
+    } else if (!state.isLoading) {
       context.push('/verify', extra: _fullPhone);
+    } else {
+      // Wait for state to update via listener
+      ref.listenManual(authProvider, (prev, next) {
+        if (!next.isLoading && !mounted) return;
+        if (next.error != null) {
+          setState(() => _error = next.error);
+        } else if (!next.isLoading) {
+          context.push('/verify', extra: _fullPhone);
+        }
+      });
     }
   }
 

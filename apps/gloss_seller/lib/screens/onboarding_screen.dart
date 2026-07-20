@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ui_kit/ui_kit.dart';
+import 'animations.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -17,23 +18,26 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     _OnboardingPage(
       icon: Icons.store,
       title: "O'z do'koningizni yarating",
-      description: "Mahsulotlaringizni platformamizda soting",
+      description: 'Mahsulotlaringizni platformamizda soting',
     ),
     _OnboardingPage(
       icon: Icons.list_alt,
-      title: "Buyurtmalarni boshqaring",
-      description: "Real vaqt rejimida buyurtmalarni qabul qiling va kuzatib boring",
+      title: 'Buyurtmalarni boshqaring',
+      description: 'Real vaqt rejimida buyurtmalarni qabul qiling va kuzatib boring',
     ),
     _OnboardingPage(
       icon: Icons.trending_up,
-      title: "Daromadingizni oshiring",
+      title: 'Daromadingizni oshiring',
       description: "Analitika va hisobotlar bilan o'sish strategiyangizni belgilang",
     ),
   ];
 
   void _nextPage() {
     if (_currentPage < _pages.length - 1) {
-      _pageController.nextPage(duration: const Duration(milliseconds: 300), curve: Curves.easeIn);
+      _pageController.nextPage(
+        duration: const Duration(milliseconds: 400),
+        curve: Curves.easeInOutCubic,
+      );
     } else {
       context.go('/auth/login');
     }
@@ -61,24 +65,31 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 itemBuilder: (_, i) => _buildPage(_pages[i], theme),
               ),
             ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(_pages.length, (i) => _buildDot(i, theme)),
-            ),
-            const SizedBox(height: 24),
+            _buildDotRow(theme),
+            const SizedBox(height: 28),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: GlossButton(
-                label: _currentPage < _pages.length - 1 ? "Keyingi" : "Boshlash",
-                onPressed: _nextPage,
+              child: FadeSlideOnMount(
+                delay: const Duration(milliseconds: 400),
+                child: GlossButton(
+                  label: _currentPage < _pages.length - 1 ? 'Keyingi' : 'Boshlash',
+                  onPressed: _nextPage,
+                ),
               ),
             ),
-            const SizedBox(height: 12),
-            TextButton(
-              onPressed: () => context.go('/auth/login'),
-              child: Text(
-                "Hisobingiz bormi? Kirish",
-                style: TextStyle(color: theme.green, fontSize: 14, fontWeight: FontWeight.w600),
+            const SizedBox(height: 14),
+            FadeSlideOnMount(
+              delay: const Duration(milliseconds: 500),
+              child: TextButton(
+                onPressed: () => context.go('/auth/login'),
+                child: Text(
+                  'Hisobingiz bormi? Kirish',
+                  style: TextStyle(
+                    color: theme.green,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ),
             ),
             const SizedBox(height: 24),
@@ -89,39 +100,96 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   Widget _buildPage(_OnboardingPage page, GlossTheme theme) {
-    return Padding(
-      padding: const EdgeInsets.all(48),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(page.icon, size: 120, color: theme.green),
-          const SizedBox(height: 48),
-          Text(
-            page.title,
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600, color: theme.text, height: 1.3),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            page.description,
-            style: TextStyle(fontSize: 14, fontWeight: FontWeight.normal, color: theme.hint, height: 1.5),
-            textAlign: TextAlign.center,
-          ),
-        ],
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.0, end: 1.0),
+      duration: const Duration(milliseconds: 600),
+      curve: Curves.easeOutCubic,
+      builder: (_, value, child) => Opacity(
+        opacity: value,
+        child: Transform.scale(
+          scale: 0.9 + (0.1 * value),
+          child: child,
+        ),
+      ),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(48),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 160,
+              height: 160,
+              decoration: BoxDecoration(
+                color: theme.greenBgPale,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(page.icon, size: 80, color: theme.green),
+            ),
+            const SizedBox(height: 48),
+            Text(
+              page.title,
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.w700,
+                color: theme.text,
+                height: 1.3,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              page.description,
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.normal,
+                color: theme.hint,
+                height: 1.5,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDotRow(GlossTheme theme) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: List.generate(
+        _pages.length,
+        (i) => _buildDot(i, theme),
       ),
     );
   }
 
   Widget _buildDot(int index, GlossTheme theme) {
     final isActive = _currentPage == index;
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      margin: const EdgeInsets.symmetric(horizontal: 4),
-      width: isActive ? 24 : 8,
-      height: 8,
-      decoration: BoxDecoration(
-        color: isActive ? theme.green : theme.border,
-        borderRadius: BorderRadius.circular(4),
+    return GestureDetector(
+      onTap: () => _pageController.animateToPage(
+        index,
+        duration: const Duration(milliseconds: 400),
+        curve: Curves.easeInOutCubic,
+      ),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 350),
+        curve: Curves.easeOutCubic,
+        margin: const EdgeInsets.symmetric(horizontal: 5),
+        width: isActive ? 28 : 10,
+        height: 10,
+        decoration: BoxDecoration(
+          color: isActive ? theme.green : theme.border,
+          borderRadius: BorderRadius.circular(5),
+          boxShadow: isActive
+              ? [
+                  BoxShadow(
+                    color: theme.greenShadow.withValues(alpha: 0.4),
+                    blurRadius: 6,
+                    offset: const Offset(0, 1),
+                  ),
+                ]
+              : null,
+        ),
       ),
     );
   }
@@ -131,5 +199,9 @@ class _OnboardingPage {
   final IconData icon;
   final String title;
   final String description;
-  const _OnboardingPage({required this.icon, required this.title, required this.description});
+  const _OnboardingPage({
+    required this.icon,
+    required this.title,
+    required this.description,
+  });
 }

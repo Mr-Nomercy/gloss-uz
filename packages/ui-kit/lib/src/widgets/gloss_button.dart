@@ -7,6 +7,7 @@ class GlossButton extends StatelessWidget {
   final bool isOutlined;
   final IconData? icon;
   final Widget? leading;
+  final bool fitWidth;
 
   const GlossButton({
     super.key,
@@ -16,6 +17,7 @@ class GlossButton extends StatelessWidget {
     this.isOutlined = false,
     this.icon,
     this.leading,
+    this.fitWidth = true,
   });
 
   @override
@@ -34,26 +36,33 @@ class GlossButton extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           if (iconWidget != null) ...[
-            iconWidget,
+            Flexible(child: iconWidget),
             const SizedBox(width: 8),
           ],
-          Text(label),
+          Flexible(
+            child: Text(
+              label,
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+            ),
+          ),
         ],
       );
     }
 
-    if (isOutlined) {
-      return OutlinedButton(
-        onPressed: isLoading ? null : onPressed,
-        child: content,
-      );
+    final button = isOutlined
+        ? OutlinedButton(
+            onPressed: isLoading ? null : onPressed,
+            child: content,
+          )
+        : ElevatedButton(
+            onPressed: isLoading ? null : onPressed,
+            child: content,
+          );
+
+    if (fitWidth) {
+      return SizedBox(width: double.infinity, child: button);
     }
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton(
-        onPressed: isLoading ? null : onPressed,
-        child: content,
-      ),
-    );
+    return button;
   }
 }

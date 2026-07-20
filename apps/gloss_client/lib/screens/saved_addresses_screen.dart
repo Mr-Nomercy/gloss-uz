@@ -30,7 +30,11 @@ class _SavedAddressesScreenState extends State<SavedAddressesScreen> {
         title: Text("Manzillarim", style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: context.gloss.text)),
       ),
       body: Center(
-        child: GlossEmptyState.addresses(),
+        child: GlossEmptyState.addresses(
+          onAction: () {
+            GlossSnackBar.showInfo(context, 'Manzil qo\'shish');
+          },
+        ),
       ),
     );
   }

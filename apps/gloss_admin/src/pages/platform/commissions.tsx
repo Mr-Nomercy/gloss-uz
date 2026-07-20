@@ -25,23 +25,27 @@ export default function PlatformCommissions() {
   };
 
   return (
-    <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-gloss-text">Komissiyalar</h2>
-      <Card>
+    <div className="animate-slide-up space-y-6">
+      <Card className="shadow-gloss-sm border-gray-100">
         <CardContent className="p-0">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Xizmat</TableHead>
-                <TableHead>Komissiya %</TableHead>
-                <TableHead className="w-[100px]"></TableHead>
+                <TableHead className="py-2">Xizmat</TableHead>
+                <TableHead className="py-2">Komissiya %</TableHead>
+                <TableHead className="w-[100px] py-2"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {commissions.map((c) => (
-                <TableRow key={c.id}>
-                  <TableCell className="font-medium">{c.service}</TableCell>
-                  <TableCell>
+                <TableRow
+                  key={c.id}
+                  className="hover:bg-gloss-green-bg-light/50"
+                >
+                  <TableCell className="px-4 py-2 font-medium">
+                    {c.service}
+                  </TableCell>
+                  <TableCell className="px-4 py-2">
                     {editId === c.id ? (
                       <Input
                         type="number"
@@ -55,7 +59,7 @@ export default function PlatformCommissions() {
                       </span>
                     )}
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="px-4 py-2">
                     {editId === c.id ? (
                       <Button size="sm" onClick={() => saveEdit(c.id)}>
                         Saqlash
