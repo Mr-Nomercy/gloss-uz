@@ -8,7 +8,9 @@ import 'app.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(options: firebaseOptions);
+  try {
+    await Firebase.initializeApp(options: firebaseOptions);
+  } catch (_) {}
   runApp(const ProviderScope(child: GlossDeliverApp()));
 }
 

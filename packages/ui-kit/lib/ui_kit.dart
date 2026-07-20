@@ -10,6 +10,8 @@ export 'src/widgets/gloss_badge.dart';
 export 'src/widgets/gloss_dialog.dart';
 export 'src/widgets/gloss_snackbar.dart';
 export 'src/widgets/gloss_empty_state.dart';
+export 'src/widgets/gloss_error_view.dart';
+export 'src/widgets/gloss_loading_view.dart';
 export 'src/widgets/gloss_app_bar.dart';
 export 'src/widgets/gloss_menu_item.dart';
 export 'src/widgets/gloss_section_header.dart';

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../theme/app_theme.dart';
 
 class GlossTextField extends StatelessWidget {
@@ -11,6 +12,7 @@ class GlossTextField extends StatelessWidget {
   final ValueChanged<String>? onChanged;
   final int? maxLength;
   final int? maxLines;
+  final List<TextInputFormatter>? inputFormatters;
   final Widget? prefixIcon;
   final Widget? suffixIcon;
   final bool filled;
@@ -35,6 +37,7 @@ class GlossTextField extends StatelessWidget {
     this.onChanged,
     this.maxLength,
     this.maxLines = 1,
+    this.inputFormatters,
     this.prefixIcon,
     this.suffixIcon,
     this.filled = true,
@@ -60,6 +63,7 @@ class GlossTextField extends StatelessWidget {
       onChanged: onChanged,
       maxLength: maxLength,
       maxLines: obscureText ? 1 : maxLines,
+      inputFormatters: inputFormatters,
       readOnly: readOnly,
       onTap: onTap,
       autofocus: autofocus,

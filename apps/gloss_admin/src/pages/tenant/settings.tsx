@@ -14,7 +14,6 @@ export default function TenantSettings() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gloss-text">Sozlamalar</h2>
         <Button onClick={() => alert("Sozlamalar saqlandi!")}>
           <Save className="mr-2 h-4 w-4" /> Saqlash
         </Button>

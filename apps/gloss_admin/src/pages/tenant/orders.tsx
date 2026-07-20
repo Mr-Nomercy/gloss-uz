@@ -39,7 +39,6 @@ export default function TenantOrders() {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-gloss-text">Buyurtmalar</h2>
       <div className="flex flex-wrap gap-4">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gloss-hint" />

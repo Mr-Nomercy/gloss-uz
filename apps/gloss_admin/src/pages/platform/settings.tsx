@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Save } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -17,18 +17,14 @@ export default function PlatformSettings() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="animate-slide-up space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gloss-text">Sozlamalar</h2>
         <Button onClick={handleSave}>
           <Save className="mr-2 h-4 w-4" /> Saqlash
         </Button>
       </div>
-      <Card>
-        <CardHeader>
-          <CardTitle>Platforma sozlamalari</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <Card className="shadow-gloss-sm border-gray-100">
+        <CardContent className="space-y-4 pt-6">
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <label className="text-sm font-medium">Platforma nomi</label>

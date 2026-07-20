@@ -61,36 +61,58 @@ const users = [
   },
 ];
 
+const roleBadge = (role: string) => {
+  const map: Record<
+    string,
+    {
+      variant: "default" | "warning" | "destructive" | "secondary";
+      className?: string;
+    }
+  > = {
+    "Platform admin": { variant: "default" },
+    "Tenant admin": {
+      variant: "secondary",
+      className: "bg-blue-100 text-blue-700 border-blue-200",
+    },
+    Kuryer: { variant: "warning" },
+    Mijoz: { variant: "secondary" },
+  };
+  const cfg = map[role] ?? { variant: "secondary" as const };
+  return (
+    <Badge variant={cfg.variant} className={cfg.className}>
+      {role}
+    </Badge>
+  );
+};
+
 export default function PlatformUsers() {
   return (
-    <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-gloss-text">Foydalanuvchilar</h2>
-      <Card>
+    <div className="animate-slide-up space-y-6">
+      <Card className="shadow-gloss-sm border-gray-100">
         <CardContent className="p-0">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Ism</TableHead>
-                <TableHead>Telefon</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>Sana</TableHead>
+                <TableHead className="py-2">Ism</TableHead>
+                <TableHead className="py-2">Telefon</TableHead>
+                <TableHead className="py-2">Role</TableHead>
+                <TableHead className="py-2">Sana</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {users.map((u) => (
-                <TableRow key={u.id}>
-                  <TableCell className="font-medium">{u.name}</TableCell>
-                  <TableCell>{u.phone}</TableCell>
-                  <TableCell>
-                    <Badge
-                      variant={
-                        u.role === "Platform admin" ? "default" : "secondary"
-                      }
-                    >
-                      {u.role}
-                    </Badge>
+                <TableRow
+                  key={u.id}
+                  className="hover:bg-gloss-green-bg-light/50"
+                >
+                  <TableCell className="px-4 py-2 font-medium">
+                    {u.name}
                   </TableCell>
-                  <TableCell>{u.date}</TableCell>
+                  <TableCell className="px-4 py-2">{u.phone}</TableCell>
+                  <TableCell className="px-4 py-2">
+                    {roleBadge(u.role)}
+                  </TableCell>
+                  <TableCell className="px-4 py-2">{u.date}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

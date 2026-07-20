@@ -8,8 +8,6 @@ export default function TenantRatings() {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-gloss-text">Reytinglar</h2>
-
       <Card>
         <CardContent className="p-8 text-center">
           <div className="text-5xl font-bold text-gloss-green">
