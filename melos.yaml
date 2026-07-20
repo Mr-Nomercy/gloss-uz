@@ -13,10 +13,9 @@ scripts:
   backend:seed: melos run --scope=backend -- seed
 
   # Flutter apps
-  client:dev: melos run --scope=gloss_client -- dev
-  provider:dev: melos run --scope=gloss_provider -- dev
-  deliver:dev: melos run --scope=gloss_deliver -- dev
-  seller:dev: melos run --scope=gloss_seller -- dev
+  user:dev: melos run --scope=gloss_user -- dev
+  firm:dev: melos run --scope=gloss_firm -- dev
+  delivery:dev: melos run --scope=gloss_delivery -- dev
 
   # Shared packages
   shared:build: "cd packages/shared/models && dart run build_runner build --delete-conflicting-outputs"

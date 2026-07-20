@@ -11,7 +11,7 @@ jobs:
   flutter-analyze:
     strategy:
       matrix:
-        app: [client, provider, deliver, seller]
+        app: [user, firm, delivery, admin]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -31,8 +31,8 @@ jobs:
         with:
           node-version: 20
       - run: npm ci
-        working-directory: apps/gloss_admin
+        working-directory: apps/gloss_admin_new
       - run: npm run lint
-        working-directory: apps/gloss_admin
+        working-directory: apps/gloss_admin_new
       - run: npm run build
-        working-directory: apps/gloss_admin
+        working-directory: apps/gloss_admin_new
