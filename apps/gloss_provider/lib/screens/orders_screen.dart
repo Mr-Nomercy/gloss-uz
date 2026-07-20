@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ui_kit/ui_kit.dart';
@@ -10,8 +12,13 @@ class OrdersScreen extends StatefulWidget {
 }
 
 class _OrdersScreenState extends State<OrdersScreen>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   late TabController _tabController;
+  late AnimationController _shimmerController;
+  late AnimationController _listAnimationController;
+  bool _isLoading = true;
+  bool _hasError = false;
+  int _previousTabIndex = 0;
 
   final List<Map<String, dynamic>> _activeOrders = [
     {
@@ -71,15 +78,82 @@ class _OrdersScreenState extends State<OrdersScreen>
     },
   ];
 
+  List<Map<String, dynamic>> get _currentOrders {
+    switch (_tabController.index) {
+      case 0:
+        return _activeOrders;
+      case 1:
+        return _scheduledOrders;
+      case 2:
+        return _completedOrders;
+      default:
+        return _activeOrders;
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+    _tabController.addListener(_onTabChanged);
+
+    _shimmerController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    );
+
+    _listAnimationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 700),
+    );
+
+    _simulateLoad();
+  }
+
+  Future<void> _simulateLoad() async {
+    _shimmerController.repeat();
+    _listAnimationController.reset();
+    try {
+      await Future.delayed(const Duration(milliseconds: 600));
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _hasError = false;
+        });
+        _shimmerController.stop();
+        _listAnimationController.forward();
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _hasError = true;
+        });
+        _shimmerController.stop();
+        _shimmerController.reset();
+      }
+    }
+  }
+
+  void _onTabChanged() {
+    if (!_tabController.indexIsChanging &&
+        _tabController.index != _previousTabIndex) {
+      _previousTabIndex = _tabController.index;
+      _simulateLoad();
+    }
+  }
+
+  Future<void> _onRefresh() async {
+    setState(() => _isLoading = true);
+    await _simulateLoad();
   }
 
   @override
   void dispose() {
+    _tabController.removeListener(_onTabChanged);
     _tabController.dispose();
+    _shimmerController.dispose();
+    _listAnimationController.dispose();
     super.dispose();
   }
 
@@ -93,7 +167,11 @@ class _OrdersScreenState extends State<OrdersScreen>
         elevation: 0,
         title: Text(
           'Buyurtmalar',
-          style: TextStyle(color: theme.text, fontWeight: FontWeight.w700, fontSize: 20),
+          style: TextStyle(
+            color: theme.text,
+            fontWeight: FontWeight.w700,
+            fontSize: 20,
+          ),
         ),
         leading: IconButton(
           onPressed: () => context.pop(),
@@ -103,7 +181,11 @@ class _OrdersScreenState extends State<OrdersScreen>
               color: theme.bg,
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(Icons.arrow_back_ios_new_rounded, color: theme.text, size: 18),
+            child: Icon(
+              Icons.arrow_back_ios_new_rounded,
+              color: theme.text,
+              size: 18,
+            ),
           ),
         ),
         bottom: TabBar(
@@ -111,118 +193,440 @@ class _OrdersScreenState extends State<OrdersScreen>
           indicatorColor: theme.green,
           labelColor: theme.green,
           unselectedLabelColor: theme.hint,
-          labelStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
-          tabs: const [
-            Tab(text: 'Faol'),
-            Tab(text: 'Rejalashtirilgan'),
-            Tab(text: 'Tugallangan'),
+          labelStyle:
+              const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+          tabs: [
+            _buildTab('Faol', _activeOrders.length),
+            _buildTab('Rejalashtirilgan', _scheduledOrders.length),
+            _buildTab('Tugallangan', _completedOrders.length),
           ],
         ),
       ),
-      body: TabBarView(
-        controller: _tabController,
-        children: [
-          _buildOrdersList(_activeOrders, theme),
-          _buildOrdersList(_scheduledOrders, theme),
-          _buildOrdersList(_completedOrders, theme),
-        ],
+      body: RefreshIndicator(
+        color: theme.green,
+        backgroundColor: theme.card,
+        onRefresh: _onRefresh,
+        child: _isLoading
+            ? _buildShimmerList(theme)
+            : _hasError
+                ? GlossErrorView.connection(onRetry: _onRefresh)
+                : _buildOrdersWithAnimation(theme),
       ),
     );
   }
 
-  Widget _buildOrdersList(List<Map<String, dynamic>> orders, GlossTheme theme) {
+  Widget _buildTab(String label, int count) {
+    return Tab(
+      child: FittedBox(
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(label),
+            const SizedBox(width: 6),
+            Container(
+            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+            decoration: BoxDecoration(
+              color: context.gloss.green.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Text(
+              '$count',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                color: context.gloss.green,
+              ),
+            ),
+          ),
+        ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildOrdersWithAnimation(GlossTheme theme) {
+    final orders = _currentOrders;
     if (orders.isEmpty) {
-      return Center(child: GlossEmptyState.orders());
+      return GlossEmptyState.orders();
     }
 
-    return ListView.separated(
+    final itemCount = orders.length;
+    return ListView.builder(
       padding: const EdgeInsets.all(16),
-      itemCount: orders.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 12),
+      itemCount: itemCount,
       itemBuilder: (context, index) {
         final order = orders[index];
-        final status = order['status'] as String;
+        return _buildOrderCard(order, index, itemCount, theme);
+      },
+    );
+  }
 
-        return GlossCard(
-          padding: const EdgeInsets.all(16),
-          onTap: () => context.push('/orders/${order['id']}'),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: theme.greenBgLight,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Icon(order['icon'] as IconData, color: theme.green, size: 22),
+  Widget _buildOrderCard(
+    Map<String, dynamic> order,
+    int index,
+    int totalItems,
+    GlossTheme theme,
+  ) {
+    final status = order['status'] as String;
+    final borderColor = _statusBorderColor(status, theme);
+
+    return _SlideItem(
+      index: index,
+      totalItems: totalItems,
+      controller: _listAnimationController,
+      child: _TapCard(
+        onTap: () => context.push('/orders/${order['id']}'),
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          decoration: BoxDecoration(
+            color: theme.card,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: theme.blackTint10,
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Container(width: 4, color: borderColor),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: _CardContent(order: order, theme: theme),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          order['service'] as String,
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
-                            color: theme.text,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Color _statusBorderColor(String status, GlossTheme theme) {
+    final lower = status.toLowerCase();
+    if (lower.contains('tugallangan') ||
+        lower.contains('completed') ||
+        lower.contains('baholangan') ||
+        lower.contains('rated')) {
+      return theme.grayMedium;
+    }
+    if (lower.contains('rejalashtirilgan') ||
+        lower.contains('scheduled') ||
+        lower.contains("yo'lda") ||
+        lower.contains("en route") ||
+        lower.contains("xizmat ko'rsatilmoqda") ||
+        lower.contains('in progress') ||
+        lower.contains('jarayonda')) {
+      return theme.orange;
+    }
+    return theme.green;
+  }
+
+  Widget _buildShimmerList(GlossTheme theme) {
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: 3,
+      itemBuilder: (context, index) {
+        return AnimatedBuilder(
+          animation: _shimmerController,
+          builder: (context, child) {
+            final shimmerValue = _shimmerController.value;
+            return Container(
+              height: 110,
+              margin: const EdgeInsets.only(bottom: 12),
+              decoration: BoxDecoration(
+                color: theme.card,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Stack(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                width: 44,
+                                height: 44,
+                                decoration: BoxDecoration(
+                                  color: theme.grayLight,
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Container(
+                                      width: 140,
+                                      height: 14,
+                                      decoration: BoxDecoration(
+                                        color: theme.grayLight,
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 6),
+                                    Container(
+                                      width: 80,
+                                      height: 10,
+                                      decoration: BoxDecoration(
+                                        color: theme.grayLight,
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Container(
+                                width: 80,
+                                height: 24,
+                                decoration: BoxDecoration(
+                                  color: theme.grayLight,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              Container(
+                                width: 14,
+                                height: 14,
+                                decoration: BoxDecoration(
+                                  color: theme.grayLight,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Expanded(
+                                child: Container(
+                                  height: 10,
+                                  decoration: BoxDecoration(
+                                    color: theme.grayLight,
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Container(
+                                width: 70,
+                                height: 14,
+                                decoration: BoxDecoration(
+                                  color: theme.grayLight,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    Positioned(
+                      left: (shimmerValue * 2 - 1) * 400,
+                      top: 0,
+                      bottom: 0,
+                      child: Container(
+                        width: 60,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              theme.card.withValues(alpha: 0),
+                              Colors.white.withValues(alpha: 0.5),
+                              theme.card.withValues(alpha: 0),
+                            ],
                           ),
                         ),
-                        const SizedBox(height: 2),
-                        Text(
-                          order['id'] as String,
-                          style: TextStyle(fontSize: 12, color: theme.hint),
-                        ),
-                      ],
-                    ),
-                  ),
-                  GlossBadge.status(status),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Icon(Icons.location_on_outlined, size: 14, color: theme.hint),
-                  const SizedBox(width: 4),
-                  Expanded(
-                    child: Text(
-                      order['address'] as String,
-                      style: TextStyle(fontSize: 12, color: theme.hint),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  Text(
-                    order['price'] as String,
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                      color: theme.greenText,
-                    ),
-                  ),
-                ],
-              ),
-              if (order.containsKey('date')) ...[
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Icon(Icons.calendar_today_outlined, size: 13, color: theme.hint),
-                    const SizedBox(width: 4),
-                    Text(
-                      order['date'] as String,
-                      style: TextStyle(fontSize: 12, color: theme.hint),
+                      ),
                     ),
                   ],
                 ),
-              ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
+class _CardContent extends StatelessWidget {
+  final Map<String, dynamic> order;
+  final GlossTheme theme;
+
+  const _CardContent({required this.order, required this.theme});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: theme.greenBgLight,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child:
+                  Icon(order['icon'] as IconData, color: theme.green, size: 22),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    order['service'] as String,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: theme.text,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    order['id'] as String,
+                    style: TextStyle(fontSize: 12, color: theme.hint),
+                  ),
+                ],
+              ),
+            ),
+            GlossBadge.status(order['status'] as String),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Icon(Icons.location_on_outlined, size: 14, color: theme.hint),
+            const SizedBox(width: 4),
+            Expanded(
+              child: Text(
+                order['address'] as String,
+                style: TextStyle(fontSize: 12, color: theme.hint),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            Text(
+              order['price'] as String,
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.bold,
+                color: theme.greenText,
+              ),
+            ),
+          ],
+        ),
+        if (order.containsKey('date')) ...[
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Icon(Icons.calendar_today_outlined,
+                  size: 13, color: theme.hint),
+              const SizedBox(width: 4),
+              Text(
+                order['date'] as String,
+                style: TextStyle(fontSize: 12, color: theme.hint),
+              ),
             ],
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _SlideItem extends StatelessWidget {
+  final Widget child;
+  final int index;
+  final int totalItems;
+  final AnimationController controller;
+
+  const _SlideItem({
+    required this.child,
+    required this.index,
+    required this.totalItems,
+    required this.controller,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final step = 1.0 / math.max(totalItems, 1);
+    final begin = (index * step * 0.6).clamp(0.0, 1.0);
+    final end = ((index + 1) * step * 0.6 + 0.4).clamp(0.0, 1.0);
+
+    return AnimatedBuilder(
+      animation: controller,
+      builder: (context, child) {
+        return SlideTransition(
+          position: Tween<Offset>(
+            begin: const Offset(0, 0.15),
+            end: Offset.zero,
+          ).animate(
+            CurvedAnimation(
+              parent: controller,
+              curve: Interval(begin, end, curve: Curves.easeOutCubic),
+            ),
+          ),
+          child: FadeTransition(
+            opacity: Tween<double>(begin: 0, end: 1).animate(
+              CurvedAnimation(
+                parent: controller,
+                curve: Interval(begin, end),
+              ),
+            ),
+            child: child,
           ),
         );
       },
+      child: child,
+    );
+  }
+}
+
+class _TapCard extends StatefulWidget {
+  final Widget child;
+  final VoidCallback onTap;
+
+  const _TapCard({required this.child, required this.onTap});
+
+  @override
+  State<_TapCard> createState() => _TapCardState();
+}
+
+class _TapCardState extends State<_TapCard> {
+  bool _pressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: (_) => setState(() => _pressed = true),
+      onTapUp: (_) {
+        setState(() => _pressed = false);
+        widget.onTap();
+      },
+      onTapCancel: () => setState(() => _pressed = false),
+      child: AnimatedScale(
+        scale: _pressed ? 0.97 : 1.0,
+        duration: const Duration(milliseconds: 150),
+        curve: Curves.easeOutCubic,
+        child: widget.child,
+      ),
     );
   }
 }

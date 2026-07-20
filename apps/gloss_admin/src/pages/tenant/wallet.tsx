@@ -22,8 +22,6 @@ export default function TenantWallet() {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-gloss-text">Hamyon</h2>
-
       <Card className="bg-gradient-to-r from-gloss-green to-gloss-dark-green text-white">
         <CardContent className="p-8">
           <div className="flex items-center gap-4">

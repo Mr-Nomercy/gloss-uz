@@ -40,31 +40,39 @@ export default function PlatformMarket() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="animate-slide-up space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gloss-text">Market</h2>
         <Button onClick={() => setOpen(true)}>
           <Plus className="mr-2 h-4 w-4" /> Qo'shish
         </Button>
       </div>
-      <Card>
+      <Card className="shadow-gloss-sm border-gray-100">
         <CardContent className="p-0">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Rasm</TableHead>
-                <TableHead>Nomi</TableHead>
-                <TableHead>Narx</TableHead>
-                <TableHead>Kategoriya</TableHead>
+                <TableHead className="py-2">Rasm</TableHead>
+                <TableHead className="py-2">Nomi</TableHead>
+                <TableHead className="py-2">Narx</TableHead>
+                <TableHead className="py-2">Kategoriya</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {products.map((p) => (
-                <TableRow key={p.id}>
-                  <TableCell className="text-2xl">{p.image}</TableCell>
-                  <TableCell className="font-medium">{p.name}</TableCell>
-                  <TableCell>{formatCurrency(p.price)}</TableCell>
-                  <TableCell>{p.category}</TableCell>
+                <TableRow
+                  key={p.id}
+                  className="hover:bg-gloss-green-bg-light/50"
+                >
+                  <TableCell className="px-4 py-2 text-2xl">
+                    {p.image}
+                  </TableCell>
+                  <TableCell className="px-4 py-2 font-medium">
+                    {p.name}
+                  </TableCell>
+                  <TableCell className="px-4 py-2">
+                    {formatCurrency(p.price)}
+                  </TableCell>
+                  <TableCell className="px-4 py-2">{p.category}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

@@ -78,6 +78,70 @@ class GlossEmptyState extends StatelessWidget {
     );
   }
 
+  factory GlossEmptyState.error({String? message, VoidCallback? onRetry}) {
+    return GlossEmptyState(
+      icon: Icons.error_outline_rounded,
+      title: 'Xatolik yuz berdi',
+      subtitle: message ?? "Noma'lum xatolik",
+      iconSize: 64,
+      action: onRetry != null
+          ? GlossButton(
+              label: 'Qayta urinish',
+              onPressed: onRetry,
+              fitWidth: false,
+            )
+          : null,
+    );
+  }
+
+  factory GlossEmptyState.offline({VoidCallback? onRetry}) {
+    return GlossEmptyState(
+      icon: Icons.wifi_off_rounded,
+      title: 'Internetga ulanishda xatolik',
+      subtitle: null,
+      action: onRetry != null
+          ? GlossButton(
+              label: 'Qayta urinish',
+              onPressed: onRetry,
+              fitWidth: false,
+            )
+          : null,
+    );
+  }
+
+  factory GlossEmptyState.serverError({VoidCallback? onRetry}) {
+    return GlossEmptyState(
+      icon: Icons.dns_outlined,
+      title: 'Serverda xatolik',
+      subtitle: null,
+      action: onRetry != null
+          ? GlossButton(
+              label: 'Qayta urinish',
+              onPressed: onRetry,
+              fitWidth: false,
+            )
+          : null,
+    );
+  }
+
+  factory GlossEmptyState.noResults({String? query}) {
+    return GlossEmptyState(
+      icon: Icons.search_off_rounded,
+      title: 'Hech narsa topilmadi',
+      subtitle: query != null ? '"$query" bo\'yicha natija topilmadi' : 'Boshqa so\'z bilan qidirib ko\'ring',
+      action: null,
+    );
+  }
+
+  factory GlossEmptyState.comingSoon() {
+    return GlossEmptyState(
+      icon: Icons.schedule_rounded,
+      title: 'Tez orada',
+      subtitle: null,
+      action: null,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Center(

@@ -30,7 +30,11 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
         title: Text("Buyurtmalarim", style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: context.gloss.text)),
       ),
       body: Center(
-        child: GlossEmptyState.orders(),
+        child: GlossEmptyState.orders(
+          onAction: () {
+            GlossSnackBar.showInfo(context, 'Marketga o\'tish');
+          },
+        ),
       ),
     );
   }

@@ -14,27 +14,33 @@ import { formatCurrency } from "@/lib/utils";
 
 export default function PlatformPayouts() {
   return (
-    <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-gloss-text">To'lovlar</h2>
-      <Card>
+    <div className="animate-slide-up space-y-6">
+      <Card className="shadow-gloss-sm border-gray-100">
         <CardContent className="p-0">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Tenant</TableHead>
-                <TableHead>Summa</TableHead>
-                <TableHead>Sana</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="w-[100px]"></TableHead>
+                <TableHead className="py-2">Tenant</TableHead>
+                <TableHead className="py-2">Summa</TableHead>
+                <TableHead className="py-2">Sana</TableHead>
+                <TableHead className="py-2">Status</TableHead>
+                <TableHead className="w-[100px] py-2"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {mockPayouts.map((p) => (
-                <TableRow key={p.id}>
-                  <TableCell className="font-medium">{p.tenant}</TableCell>
-                  <TableCell>{formatCurrency(p.amount)}</TableCell>
-                  <TableCell>{p.date}</TableCell>
-                  <TableCell>
+                <TableRow
+                  key={p.id}
+                  className="hover:bg-gloss-green-bg-light/50"
+                >
+                  <TableCell className="px-4 py-2 font-medium">
+                    {p.tenant}
+                  </TableCell>
+                  <TableCell className="px-4 py-2">
+                    {formatCurrency(p.amount)}
+                  </TableCell>
+                  <TableCell className="px-4 py-2">{p.date}</TableCell>
+                  <TableCell className="px-4 py-2">
                     <Badge
                       variant={
                         p.status === "To'langan"
@@ -47,7 +53,7 @@ export default function PlatformPayouts() {
                       {p.status}
                     </Badge>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="px-4 py-2">
                     {p.status === "Kutilmoqda" && (
                       <Button size="sm">To'lash</Button>
                     )}
