@@ -183,9 +183,8 @@ void main() {
 
   group('GlossErrorView', () {
     testWidgets('renders connection error with retry button', (tester) async {
-      var retried = false;
       await tester.pumpWidget(wrapWithTheme(
-        GlossErrorView.connection(onRetry: () => retried = true),
+        GlossErrorView.connection(onRetry: () {}),
       ));
       expect(find.text('Xatolik yuz berdi'), findsOneWidget);
       expect(find.text('Internetga ulanishda xatolik'), findsOneWidget);
@@ -230,12 +229,11 @@ void main() {
 
   group('GlossMenuItem', () {
     testWidgets('renders icon and title', (tester) async {
-      var tapped = false;
       await tester.pumpWidget(wrapWithTheme(
         GlossMenuItem(
           icon: Icons.person_outline,
           title: "Shaxsiy ma'lumotlar",
-          onTap: () => tapped = true,
+          onTap: () {},
         ),
       ));
       expect(find.text("Shaxsiy ma'lumotlar"), findsOneWidget);

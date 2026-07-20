@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:go_router/go_router.dart';
 import 'package:ui_kit/ui_kit.dart';
 
 import 'package:gloss_deliver/main.dart';
@@ -11,7 +10,7 @@ Widget buildTestApp() {
   return ProviderScope(
     child: MaterialApp(
       theme: AppTheme.light,
-      home: Scaffold(
+      home: const Scaffold(
         body: Center(child: Text('Test')),
       ),
     ),
@@ -20,7 +19,7 @@ Widget buildTestApp() {
 
 void main() {
   testWidgets('GlossDeliverApp renders without error', (tester) async {
-    await tester.pumpWidget(ProviderScope(
+    await tester.pumpWidget(const ProviderScope(
       child: GlossDeliverApp(),
     ));
     await tester.pump();
