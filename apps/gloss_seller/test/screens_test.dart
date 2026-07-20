@@ -4,15 +4,15 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ui_kit/ui_kit.dart';
 
-import '../lib/screens/splash_screen.dart';
-import '../lib/screens/onboarding_screen.dart';
-import '../lib/screens/login_screen.dart';
-import '../lib/screens/register_screen.dart';
-import '../lib/screens/home_screen.dart';
-import '../lib/screens/dashboard_screen.dart';
-import '../lib/screens/add_product_screen.dart';
-import '../lib/screens/kyc_screen.dart';
-import '../lib/screens/profile_screen.dart';
+import 'package:gloss_seller/screens/splash_screen.dart';
+import 'package:gloss_seller/screens/onboarding_screen.dart';
+import 'package:gloss_seller/screens/login_screen.dart';
+import 'package:gloss_seller/screens/register_screen.dart';
+import 'package:gloss_seller/screens/home_screen.dart';
+import 'package:gloss_seller/screens/dashboard_screen.dart';
+import 'package:gloss_seller/screens/add_product_screen.dart';
+import 'package:gloss_seller/screens/kyc_screen.dart';
+import 'package:gloss_seller/screens/profile_screen.dart';
 
 Widget wrapWithRouter(Widget child) {
   return ProviderScope(

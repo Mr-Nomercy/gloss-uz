@@ -10,7 +10,6 @@ import 'package:gloss_client/screens/market_screen.dart';
 import 'package:gloss_client/screens/cart_screen.dart';
 import 'package:gloss_client/screens/order_screen.dart';
 import 'package:gloss_client/screens/profile_screen.dart';
-import 'package:gloss_client/providers/auth_provider.dart';
 import 'package:ui_kit/ui_kit.dart';
 
 import 'test_helpers.dart';
@@ -32,7 +31,7 @@ extension _TesterScreen on WidgetTester {
 
 void main() {
   group('SplashScreen', () {
-    Widget _wrap(Widget child) => ProviderScope(
+    Widget wrap(Widget child) => ProviderScope(
           overrides: baseOverrides(),
           child: MaterialApp(
             theme: AppTheme.light,
@@ -41,7 +40,7 @@ void main() {
         );
 
     testWidgets('renders Gloss brand name', (tester) async {
-      await tester.pumpWidget(_wrap(const SplashScreen()));
+      await tester.pumpWidget(wrap(const SplashScreen()));
       await tester.pump();
 
       expect(find.text('Gloss'), findsOneWidget);
@@ -49,14 +48,14 @@ void main() {
     }, skip: true);
 
     testWidgets('renders cleaning icon', (tester) async {
-      await tester.pumpWidget(_wrap(const SplashScreen()));
+      await tester.pumpWidget(wrap(const SplashScreen()));
       await tester.pump();
 
       expect(find.byIcon(Icons.cleaning_services_rounded), findsOneWidget);
     }, skip: true);
 
     testWidgets('has green background', (tester) async {
-      await tester.pumpWidget(_wrap(const SplashScreen()));
+      await tester.pumpWidget(wrap(const SplashScreen()));
       await tester.pump();
 
       final scaffold = tester.widget<Scaffold>(find.byType(Scaffold));
@@ -64,7 +63,7 @@ void main() {
     }, skip: true);
 
     testWidgets('does not show loading indicator', (tester) async {
-      await tester.pumpWidget(_wrap(const SplashScreen()));
+      await tester.pumpWidget(wrap(const SplashScreen()));
       await tester.pump();
 
       expect(find.byType(CircularProgressIndicator), findsNothing);

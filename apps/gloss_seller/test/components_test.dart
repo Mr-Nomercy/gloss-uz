@@ -73,8 +73,8 @@ void main() {
   group('GlossCard', () {
     testWidgets('renders child widget', (tester) async {
       await tester.pumpWidget(
-        wrapComponent(GlossCard(
-          child: const Text('Card Content'),
+        wrapComponent(const GlossCard(
+          child: Text('Card Content'),
         )),
       );
       expect(find.text('Card Content'), findsOneWidget);
@@ -83,9 +83,9 @@ void main() {
 
     testWidgets('applies custom padding', (tester) async {
       await tester.pumpWidget(
-        wrapComponent(GlossCard(
-          padding: const EdgeInsets.all(32),
-          child: const Text('Padded'),
+        wrapComponent(const GlossCard(
+          padding: EdgeInsets.all(32),
+          child: Text('Padded'),
         )),
       );
       final card = tester.widget<Card>(find.byType(Card));

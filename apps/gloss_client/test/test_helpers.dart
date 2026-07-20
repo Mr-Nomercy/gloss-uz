@@ -3,8 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:dio/dio.dart';
 import 'package:gloss_client/providers/auth_provider.dart';
-import 'package:gloss_client/providers/booking_provider.dart';
-import 'package:gloss_client/providers/cart_provider.dart';
 import 'package:ui_kit/ui_kit.dart';
 
 class FakeFlutterSecureStorage extends FlutterSecureStorage {
