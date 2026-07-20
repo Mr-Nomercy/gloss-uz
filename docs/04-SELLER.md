@@ -1,5 +1,7 @@
 # Gloss Seller App
 
+> ⚠️ **Deprecated.** Yangilangan biznes-model bo'yicha (`12-END-TO-END-ROADMAP.md`) Product Owner = Gloss'ning o'zi — market mahsulotlarini faqat `platform_admin` (`gloss_admin`) orqali boshqaradi. Alohida `gloss_seller` app/rol endi rejada yo'q. Bu hujjat mavjud `apps/gloss_seller` kodini tasvirlaydi (hali repo'da turibdi), lekin kelajakda foydalanilmaydi/olib tashlanadi.
+
 Sotuvchi ilovasi. Gloss marketiga mahsulotlar joylash, omborni boshqarish va shaxsiy profilingizni ko'rish imkonini beradi.
 
 ## Texnologiyalar

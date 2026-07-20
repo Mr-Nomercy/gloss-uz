@@ -4,13 +4,11 @@ packages:
   - "apps/**"
 
 scripts:
-  # Backend
-  backend:dev: melos run --scope=backend -- dev
-  backend:build: melos run --scope=backend -- build
-  backend:lint: melos run --scope=backend -- lint
-  backend:test: melos run --scope=backend -- test
-  backend:migrate: melos run --scope=backend -- migrate
-  backend:seed: melos run --scope=backend -- seed
+  # Backend (Django, not managed by melos — run from backend/ directly)
+  backend:dev: "cd backend && python manage.py runserver"
+  backend:lint: "cd backend && ruff check ."
+  backend:test: "cd backend && pytest"
+  backend:migrate: "cd backend && python manage.py migrate"
 
   # Flutter apps
   client:dev: melos run --scope=gloss_client -- dev

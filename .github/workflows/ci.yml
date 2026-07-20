@@ -36,3 +36,45 @@ jobs:
         working-directory: apps/gloss_admin
       - run: npm run build
         working-directory: apps/gloss_admin
+
+  backend-test:
+    runs-on: ubuntu-latest
+    services:
+      db:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_USER: gloss
+          POSTGRES_PASSWORD: gloss
+          POSTGRES_DB: gloss
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U gloss"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgis://gloss:gloss@localhost:5432/gloss
+      REDIS_URL: redis://localhost:6379/0
+      SECRET_KEY: ci-test-key
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: sudo apt-get update && sudo apt-get install -y gdal-bin libgdal-dev
+      - run: pip install -r requirements/dev.txt
+        working-directory: backend
+      - run: ruff check .
+        working-directory: backend
+      - run: python manage.py migrate
+        working-directory: backend
+      - run: pytest
+        working-directory: backend
