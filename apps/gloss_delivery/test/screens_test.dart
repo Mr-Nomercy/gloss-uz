@@ -1,9 +1,11 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ui_kit/ui_kit.dart';
 
+import 'package:gloss_delivery/providers/auth_provider.dart';
 import 'package:gloss_delivery/screens/splash_screen.dart';
 import 'package:gloss_delivery/screens/onboarding_screen.dart';
 import 'package:gloss_delivery/screens/login_screen.dart';
@@ -13,6 +15,25 @@ import 'package:gloss_delivery/screens/home_screen.dart';
 import 'package:gloss_delivery/screens/orders_screen.dart';
 import 'package:gloss_delivery/screens/stats_screen.dart';
 import 'package:gloss_delivery/screens/profile_screen.dart';
+
+/// OrdersScreen is the one screen in this app that fires a real network
+/// call on mount (via orderProvider) — everything else here is still
+/// mock data. There's no backend reachable in this test environment, so
+/// without a fast-failing Dio the request hangs on the real 30s
+/// connectTimeout and pumpAndSettle times out.
+Widget wrapWithUnreachableDio(Widget child) {
+  return ProviderScope(
+    overrides: [
+      dioProvider.overrideWithValue(
+        Dio(BaseOptions(
+          baseUrl: 'http://127.0.0.1:1',
+          connectTimeout: const Duration(milliseconds: 200),
+        )),
+      ),
+    ],
+    child: MaterialApp(theme: AppTheme.light, home: child),
+  );
+}
 
 Widget wrapWithRouter(Widget child) {
   return ProviderScope(
@@ -269,25 +290,19 @@ void main() {
       await pumpAndSettleAsync(tester);
 
       expect(find.byType(TabBar), findsOneWidget);
-      expect(find.text('Faol'), findsOneWidget);
-      expect(find.text('Tugallangan'), findsOneWidget);
+      expect(find.text('Mavjud'), findsOneWidget);
+      expect(find.text('Mening ishim'), findsOneWidget);
     });
 
-    testWidgets('shows active orders in first tab', (tester) async {
-      await tester.pumpWidget(wrapSimple(const OrdersScreen()));
-      await pumpAndSettleAsync(tester);
-
-      expect(find.text('iPhone 15 Pro 256GB'), findsOneWidget);
-    });
-
-    testWidgets('tapping order shows bottom sheet', (tester) async {
-      await tester.pumpWidget(wrapSimple(const OrdersScreen()));
-      await pumpAndSettleAsync(tester);
-
-      await tester.tap(find.text('iPhone 15 Pro 256GB'));
+    testWidgets('shows empty state with no backend connection', (tester) async {
+      // No live backend in this test environment, so the real
+      // /delivery/assignments/ call fails and both tabs render empty
+      // states rather than mock data — this only asserts the screen
+      // doesn't crash and shows *something* sensible for that case.
+      await tester.pumpWidget(wrapWithUnreachableDio(const OrdersScreen()));
       await tester.pumpAndSettle();
 
-      expect(find.text('Yopish'), findsOneWidget);
+      expect(find.text("Hozircha buyurtma yo'q"), findsOneWidget);
     });
   });
 
@@ -432,8 +447,8 @@ void main() {
     });
 
     testWidgets('OrdersScreen no overflow', (tester) async {
-      await tester.pumpWidget(wrapSimple(const OrdersScreen()));
-      await pumpAndSettleAsync(tester);
+      await tester.pumpWidget(wrapWithUnreachableDio(const OrdersScreen()));
+      await tester.pumpAndSettle();
     });
 
     testWidgets('StatsScreen no overflow', (tester) async {

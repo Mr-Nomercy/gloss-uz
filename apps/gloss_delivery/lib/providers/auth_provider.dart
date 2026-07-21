@@ -239,12 +239,49 @@ final storageProvider = Provider<FlutterSecureStorage>((ref) {
 });
 
 final dioProvider = Provider<Dio>((ref) {
-  return Dio(BaseOptions(
+  final dio = Dio(BaseOptions(
     baseUrl: AppConstants.devBaseUrl,
     connectTimeout: const Duration(milliseconds: 30000),
     receiveTimeout: const Duration(milliseconds: 30000),
     headers: {'Content-Type': 'application/json'},
   ));
+
+  // Without this, every request went out with no Authorization header at
+  // all — /delivery/assignments/ etc. would 401 unconditionally.
+  dio.interceptors.add(InterceptorsWrapper(
+    onRequest: (options, handler) async {
+      const storage = FlutterSecureStorage();
+      final token = await storage.read(key: 'access_token');
+      if (token != null) {
+        options.headers['Authorization'] = 'Bearer $token';
+      }
+      handler.next(options);
+    },
+    onError: (error, handler) async {
+      if (error.response?.statusCode == 401) {
+        const storage = FlutterSecureStorage();
+        final rt = await storage.read(key: 'refresh_token');
+        if (rt != null) {
+          try {
+            final response = await Dio(BaseOptions(baseUrl: AppConstants.devBaseUrl))
+                .post('/auth/refresh', data: {'refreshToken': rt});
+            final newToken = response.data['accessToken'] as String;
+            await storage.write(key: 'access_token', value: newToken);
+            error.requestOptions.headers['Authorization'] = 'Bearer $newToken';
+            final retryResponse = await Dio(BaseOptions(baseUrl: AppConstants.devBaseUrl))
+                .fetch(error.requestOptions);
+            handler.resolve(retryResponse);
+            return;
+          } catch (_) {
+            await storage.deleteAll();
+          }
+        }
+      }
+      handler.next(error);
+    },
+  ));
+
+  return dio;
 });
 
 final authProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
