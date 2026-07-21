@@ -31,6 +31,14 @@ class TenantScopedModel(models.Model):
 
     class Meta:
         abstract = True
+        # Django uses the base manager (not `objects`) for things like
+        # forward FK descriptor lookups (`some_offer.team`), cascade
+        # deletes, etc. Without this, those internal lookups would go
+        # through TenantScopedManager and silently return nothing (or
+        # raise) whenever the current request's tenant context doesn't
+        # happen to match — a trap for any code that isn't a direct,
+        # deliberate `Team.objects.filter(...)` call.
+        base_manager_name = "all_tenants"
 
 
 class AuditLog(models.Model):

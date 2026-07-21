@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     "apps.catalog",
     "apps.addresses",
     "apps.orders",
+    "apps.dispatch",
 ]
 
 OTP_FORCE_CONSOLE_PROVIDER = env.bool("OTP_FORCE_CONSOLE_PROVIDER", default=True)
@@ -76,6 +77,11 @@ ASGI_APPLICATION = "config.asgi.application"
 DATABASES = {
     "default": env.db("DATABASE_URL", default="postgis://gloss:gloss@localhost:5432/gloss"),
 }
+
+# Only consulted when DATABASE_URL uses the spatialite:// scheme (local
+# dev/test fallback when Postgres+PostGIS isn't available) — ignored by
+# the postgis backend used in Docker/prod.
+SPATIALITE_LIBRARY_PATH = env("SPATIALITE_LIBRARY_PATH", default="mod_spatialite")
 
 CHANNEL_LAYERS = {
     "default": {

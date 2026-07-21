@@ -42,5 +42,20 @@ services:
     volumes:
       - .:/app
 
+  celery-worker:
+    build: .
+    env_file: .env
+    environment:
+      DATABASE_URL: postgis://gloss:gloss@db:5432/gloss
+      REDIS_URL: redis://redis:6379/0
+    command: celery -A config worker --loglevel=info
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - .:/app
+
 volumes:
   gloss_db_data:

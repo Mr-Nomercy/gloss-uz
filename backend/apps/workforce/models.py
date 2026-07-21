@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.contrib.gis.db import models as gis_models
 from django.db import IntegrityError, models, transaction
 from django.utils import timezone
 from django.utils.crypto import get_random_string
@@ -15,6 +16,7 @@ class Team(TenantScopedModel):
     name = models.CharField(max_length=255)
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.OFFLINE)
     rating_avg = models.DecimalField(max_digits=3, decimal_places=2, default=0)
+    location = gis_models.PointField(geography=True, null=True, blank=True, srid=4326)
 
     def __str__(self):
         return self.name

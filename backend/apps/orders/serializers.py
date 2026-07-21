@@ -65,4 +65,8 @@ class OrderCreateSerializer(serializers.Serializer):
         )
         if addons:
             order.addons.set(addons)
+
+        from apps.dispatch.services import dispatch_order
+
+        dispatch_order(order)
         return order
