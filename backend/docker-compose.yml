@@ -9,6 +9,7 @@ services:
       - "5432:5432"
     volumes:
       - gloss_db_data:/var/lib/postgresql/data
+      - ./docker/postgres-init:/docker-entrypoint-initdb.d
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U gloss"]
       interval: 5s

@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import connection
 from django.db.utils import OperationalError
 from redis import Redis
@@ -7,8 +8,6 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from django.conf import settings
-
 
 @permission_classes([AllowAny])
 class HealthCheckView(APIView):
@@ -17,7 +16,10 @@ class HealthCheckView(APIView):
     def get(self, request):
         checks = {"database": self._check_database(), "redis": self._check_redis()}
         status_code = 200 if all(checks.values()) else 503
-        return Response({"status": "ok" if status_code == 200 else "degraded", "checks": checks}, status=status_code)
+        return Response(
+            {"status": "ok" if status_code == 200 else "degraded", "checks": checks},
+            status=status_code,
+        )
 
     def _check_database(self):
         try:

@@ -74,6 +74,8 @@ jobs:
         working-directory: backend
       - run: ruff check .
         working-directory: backend
+      - name: Strip superuser from the app DB role (superusers bypass RLS)
+        run: PGPASSWORD=gloss psql -h localhost -U gloss -d gloss -c "ALTER ROLE gloss NOSUPERUSER;"
       - run: python manage.py migrate
         working-directory: backend
       - run: pytest
