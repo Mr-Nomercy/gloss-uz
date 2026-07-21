@@ -1,6 +1,34 @@
 from rest_framework import serializers
 
+from apps.core.serializers import StringPKModelSerializer
 from apps.otp.models import OtpRequest
+
+from .models import User
+from .role_mapping import frontend_roles_for_user
+
+
+class UserSerializer(StringPKModelSerializer):
+    roles = serializers.SerializerMethodField()
+    avatar = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = [
+            "id",
+            "phone",
+            "email",
+            "full_name",
+            "avatar",
+            "roles",
+            "is_blocked",
+            "created_at",
+        ]
+
+    def get_roles(self, user):
+        return frontend_roles_for_user(user)
+
+    def get_avatar(self, user):
+        return None
 
 
 class OtpSendSerializer(serializers.Serializer):

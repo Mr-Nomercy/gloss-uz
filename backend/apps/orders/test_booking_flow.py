@@ -35,7 +35,7 @@ class BookingFlowTests(APITestCase):
 
     def test_creates_real_order_with_server_computed_price(self):
         response = self.client.post(
-            "/api/orders/",
+            "/api/v1/orders/",
             {
                 "tariff_id": self.tariff.id,
                 "addon_ids": [self.addon.id],
@@ -54,7 +54,7 @@ class BookingFlowTests(APITestCase):
 
     def test_client_supplied_total_price_is_ignored(self):
         response = self.client.post(
-            "/api/orders/",
+            "/api/v1/orders/",
             {
                 "tariff_id": self.tariff.id,
                 "address_id": self.address.id,
@@ -73,7 +73,7 @@ class BookingFlowTests(APITestCase):
         )
 
         response = self.client.post(
-            "/api/orders/",
+            "/api/v1/orders/",
             {
                 "tariff_id": self.tariff.id,
                 "address_id": other_address.id,
@@ -90,7 +90,7 @@ class BookingFlowTests(APITestCase):
         foreign_addon = Addon.objects.create(tariff=other_tariff, name="Ekspress", price="20000.00")
 
         response = self.client.post(
-            "/api/orders/",
+            "/api/v1/orders/",
             {
                 "tariff_id": self.tariff.id,
                 "addon_ids": [foreign_addon.id],
@@ -114,7 +114,7 @@ class BookingFlowTests(APITestCase):
             total_price="50000.00",
         )
 
-        response = self.client.get("/api/orders/")
+        response = self.client.get("/api/v1/orders/")
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data["results"]), 0)

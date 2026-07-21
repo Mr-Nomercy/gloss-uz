@@ -23,17 +23,21 @@ class OtpAndRegistrationFlowTests(APITestCase):
     def test_new_customer_registers_via_otp(self, mock_send):
         phone = "+998911111111"
 
-        send_response = self.client.post("/api/auth/otp/send/", {"phone": phone, "channel": "sms"})
+        send_response = self.client.post(
+            "/api/v1/auth/otp/send/", {"phone": phone, "channel": "sms"}
+        )
         self.assertEqual(send_response.status_code, 200)
         code = self._sent_code(mock_send)
 
-        verify_response = self.client.post("/api/auth/otp/verify/", {"phone": phone, "code": code})
+        verify_response = self.client.post(
+            "/api/v1/auth/otp/verify/", {"phone": phone, "code": code}
+        )
         self.assertEqual(verify_response.status_code, 200)
         self.assertEqual(verify_response.data["status"], "new_user")
         verified_token = verify_response.data["verified_token"]
 
         register_response = self.client.post(
-            "/api/auth/register/",
+            "/api/v1/auth/register/",
             {
                 "verified_token": verified_token,
                 "full_name": "Test Customer",
@@ -54,10 +58,12 @@ class OtpAndRegistrationFlowTests(APITestCase):
         user = User.objects.create_user(phone=phone, full_name="Existing")
         user.roles.create(role=Role.CUSTOMER, tenant=None)
 
-        self.client.post("/api/auth/otp/send/", {"phone": phone, "channel": "sms"})
+        self.client.post("/api/v1/auth/otp/send/", {"phone": phone, "channel": "sms"})
         code = self._sent_code(mock_send)
 
-        verify_response = self.client.post("/api/auth/otp/verify/", {"phone": phone, "code": code})
+        verify_response = self.client.post(
+            "/api/v1/auth/otp/verify/", {"phone": phone, "code": code}
+        )
 
         self.assertEqual(verify_response.status_code, 200)
         self.assertEqual(verify_response.data["status"], "login")
@@ -69,13 +75,15 @@ class OtpAndRegistrationFlowTests(APITestCase):
         tenant = Tenant.objects.create(name="Firma A", phone="+998900000001", city="Toshkent")
         invite = WorkerInviteCode.generate(tenant)
 
-        self.client.post("/api/auth/otp/send/", {"phone": phone, "channel": "telegram"})
+        self.client.post("/api/v1/auth/otp/send/", {"phone": phone, "channel": "telegram"})
         code = self._sent_code(mock_send)
-        verify_response = self.client.post("/api/auth/otp/verify/", {"phone": phone, "code": code})
+        verify_response = self.client.post(
+            "/api/v1/auth/otp/verify/", {"phone": phone, "code": code}
+        )
         verified_token = verify_response.data["verified_token"]
 
         response = self.client.post(
-            "/api/auth/worker/register/",
+            "/api/v1/auth/worker/register/",
             {
                 "verified_token": verified_token,
                 "invite_code": invite.code,
@@ -103,13 +111,15 @@ class OtpAndRegistrationFlowTests(APITestCase):
         invite.save(update_fields=["is_used"])
 
         phone = "+998944444444"
-        self.client.post("/api/auth/otp/send/", {"phone": phone, "channel": "sms"})
+        self.client.post("/api/v1/auth/otp/send/", {"phone": phone, "channel": "sms"})
         code = self._sent_code(mock_send)
-        verify_response = self.client.post("/api/auth/otp/verify/", {"phone": phone, "code": code})
+        verify_response = self.client.post(
+            "/api/v1/auth/otp/verify/", {"phone": phone, "code": code}
+        )
         verified_token = verify_response.data["verified_token"]
 
         response = self.client.post(
-            "/api/auth/worker/register/",
+            "/api/v1/auth/worker/register/",
             {"verified_token": verified_token, "invite_code": invite.code, "full_name": "Someone"},
         )
 
@@ -119,8 +129,8 @@ class OtpAndRegistrationFlowTests(APITestCase):
     def test_wrong_otp_code_is_rejected(self):
         phone = "+998955555555"
         with patch("apps.otp.providers.ConsoleOtpProvider.send"):
-            self.client.post("/api/auth/otp/send/", {"phone": phone, "channel": "sms"})
+            self.client.post("/api/v1/auth/otp/send/", {"phone": phone, "channel": "sms"})
 
-        response = self.client.post("/api/auth/otp/verify/", {"phone": phone, "code": "0000"})
+        response = self.client.post("/api/v1/auth/otp/verify/", {"phone": phone, "code": "0000"})
 
         self.assertEqual(response.status_code, 400)

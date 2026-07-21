@@ -7,41 +7,41 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('workforce', '0003_team_location'),
+        ("workforce", "0003_team_location"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='team',
-            options={'base_manager_name': 'all_tenants'},
+            name="team",
+            options={"base_manager_name": "all_tenants"},
         ),
         migrations.AlterModelOptions(
-            name='workerinvitecode',
-            options={'base_manager_name': 'all_tenants'},
+            name="workerinvitecode",
+            options={"base_manager_name": "all_tenants"},
         ),
         migrations.AlterModelOptions(
-            name='workerprofile',
-            options={'base_manager_name': 'all_tenants'},
+            name="workerprofile",
+            options={"base_manager_name": "all_tenants"},
         ),
         migrations.AlterModelManagers(
-            name='team',
+            name="team",
             managers=[
-                ('objects', django.db.models.manager.Manager()),
-                ('all_tenants', django.db.models.manager.Manager()),
+                ("objects", django.db.models.manager.Manager()),
+                ("all_tenants", django.db.models.manager.Manager()),
             ],
         ),
         migrations.AlterModelManagers(
-            name='workerinvitecode',
+            name="workerinvitecode",
             managers=[
-                ('objects', django.db.models.manager.Manager()),
-                ('all_tenants', django.db.models.manager.Manager()),
+                ("objects", django.db.models.manager.Manager()),
+                ("all_tenants", django.db.models.manager.Manager()),
             ],
         ),
         migrations.AlterModelManagers(
-            name='workerprofile',
+            name="workerprofile",
             managers=[
-                ('objects', django.db.models.manager.Manager()),
-                ('all_tenants', django.db.models.manager.Manager()),
+                ("objects", django.db.models.manager.Manager()),
+                ("all_tenants", django.db.models.manager.Manager()),
             ],
         ),
     ]

@@ -35,6 +35,8 @@ INSTALLED_APPS = [
     "apps.addresses",
     "apps.orders",
     "apps.dispatch",
+    "apps.market",
+    "apps.admin_api",
 ]
 
 OTP_FORCE_CONSOLE_PROVIDER = env.bool("OTP_FORCE_CONSOLE_PROVIDER", default=True)
@@ -121,6 +123,15 @@ REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 20,
     "EXCEPTION_HANDLER": "apps.core.exceptions.exception_handler",
+    # The Flutter apps (gloss_admin/user/worker/delivery) are hardcoded to
+    # camelCase JSON keys — this translates automatically at the render/
+    # parse boundary so serializers/models can stay idiomatic snake_case.
+    "DEFAULT_RENDERER_CLASSES": ("djangorestframework_camel_case.render.CamelCaseJSONRenderer",),
+    "DEFAULT_PARSER_CLASSES": ("djangorestframework_camel_case.parser.CamelCaseJSONParser",),
+    # Real clients (Dio/Flutter) only ever send JSON bodies — match that
+    # in tests too rather than DRF's browsable-API-oriented default of
+    # multipart form, which the JSON-only parser above now rejects.
+    "TEST_REQUEST_DEFAULT_FORMAT": "json",
 }
 
 CORS_ALLOWED_ORIGINS = env.list("CORS_ALLOWED_ORIGINS", default=[])

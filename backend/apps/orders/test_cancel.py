@@ -36,7 +36,7 @@ class OrderCancelGuardTests(APITestCase):
 
     def _cancel(self, reason=None):
         data = {"reason": reason} if reason else {}
-        return self.client.post(f"/api/orders/{self.order.id}/cancel/", data)
+        return self.client.post(f"/api/v1/orders/{self.order.id}/cancel/", data)
 
     def test_searching_cancels_without_reason(self):
         response = self._cancel()

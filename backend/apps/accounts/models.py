@@ -19,9 +19,14 @@ class UserManager(BaseUserManager):
 
 class User(AbstractBaseUser, PermissionsMixin):
     phone = models.CharField(max_length=20, unique=True)
+    # Only set for platform_admin/tenant_admin — they log in with
+    # email+password (gloss_admin), not the phone+OTP flow every other
+    # role uses.
+    email = models.EmailField(null=True, blank=True, unique=True)
     full_name = models.CharField(max_length=255, blank=True)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
+    is_blocked = models.BooleanField(default=False)
     marketing_consent = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 

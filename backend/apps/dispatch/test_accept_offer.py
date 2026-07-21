@@ -73,7 +73,7 @@ class AcceptOfferConcurrencyTests(TransactionTestCase):
 
         def accept(name, client):
             try:
-                response = client.post(f"/api/dispatch/orders/{self.order.id}/accept/")
+                response = client.post(f"/api/v1/dispatch/orders/{self.order.id}/accept/")
                 results[name] = response.status_code
             finally:
                 connections.close_all()
@@ -104,8 +104,8 @@ class AcceptOfferConcurrencyTests(TransactionTestCase):
         client_a = _make_worker_client(self.tenant_a, self.team_a)
         client_b = _make_worker_client(self.tenant_b, self.team_b)
 
-        response_a = client_a.post(f"/api/dispatch/orders/{self.order.id}/accept/")
-        response_b = client_b.post(f"/api/dispatch/orders/{self.order.id}/accept/")
+        response_a = client_a.post(f"/api/v1/dispatch/orders/{self.order.id}/accept/")
+        response_b = client_b.post(f"/api/v1/dispatch/orders/{self.order.id}/accept/")
 
         self.assertEqual(response_a.status_code, 200)
         self.assertEqual(response_b.status_code, 409)
@@ -117,6 +117,6 @@ class AcceptOfferConcurrencyTests(TransactionTestCase):
         client = APIClient()
         client.credentials(HTTP_AUTHORIZATION=f"Bearer {token.access_token}")
 
-        response = client.post(f"/api/dispatch/orders/{self.order.id}/accept/")
+        response = client.post(f"/api/v1/dispatch/orders/{self.order.id}/accept/")
 
         self.assertEqual(response.status_code, 403)
