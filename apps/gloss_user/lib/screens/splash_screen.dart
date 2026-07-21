@@ -41,6 +41,14 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
   }
 
   @override
+  void dispose() {
+    _timer?.cancel();
+    _scaleController.dispose();
+    _fadeController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: GlossColors.green,
@@ -48,13 +56,17 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.12),
-                shape: BoxShape.circle,
+            ScaleTransition(
+              scale: _scaleAnimation,
+              child: Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.12),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.cleaning_services_rounded,
+                    size: 64, color: Colors.white),
               ),
-              child: const Icon(Icons.cleaning_services_rounded, size: 64, color: Colors.white),
             ),
             const SizedBox(height: 24),
             const Text(
