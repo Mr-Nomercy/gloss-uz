@@ -18,13 +18,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   bool _obscurePassword = true;
 
   @override
-  void initState() {
-    super.initState();
-    _emailController.text = 'admin@gloss.uz';
-    _passwordController.text = 'admin123';
-  }
-
-  @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
@@ -39,6 +32,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     ref.listen<AuthState>(authProvider, (prev, next) {
       if (next.isAuthenticated) {
         context.go('/dashboard');
+      } else if (next.totpSetupRequired) {
+        context.go('/login/totp-setup');
+      } else if (next.totpVerifyRequired) {
+        context.go('/login/totp-verify');
       }
       if (next.error != null) {
         ScaffoldMessenger.of(context).showSnackBar(

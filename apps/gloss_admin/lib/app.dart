@@ -3,6 +3,8 @@ import 'package:go_router/go_router.dart';
 import 'package:gloss_routing/gloss_routing.dart';
 import 'providers/auth_provider.dart';
 import 'screens/login_screen.dart';
+import 'screens/totp_setup_screen.dart';
+import 'screens/totp_verify_screen.dart';
 import 'screens/dashboard_tab.dart';
 import 'screens/orders_tab.dart';
 import 'screens/order_detail_screen.dart';
@@ -35,6 +37,8 @@ final routerProvider = Provider<GoRouter>((ref) {
     },
     routes: [
       GoRoute(path: '/login', builder: (_, __) => const LoginScreen()),
+      GoRoute(path: '/login/totp-setup', builder: (_, __) => const TotpSetupScreen()),
+      GoRoute(path: '/login/totp-verify', builder: (_, __) => const TotpVerifyScreen()),
       ShellRoute(
         builder: (_, __, child) => AdminShell(child: child),
         routes: [
