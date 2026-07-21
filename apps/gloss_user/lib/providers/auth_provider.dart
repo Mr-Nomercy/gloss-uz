@@ -218,7 +218,7 @@ final dioProvider = Provider<Dio>((ref) {
   dio.interceptors.add(LogInterceptor(
     requestBody: true,
     responseBody: true,
-    logPrint: (o) => print('[API] $o'),
+    logPrint: (o) => debugPrint('[API] $o'),
   ));
 
   return dio;
