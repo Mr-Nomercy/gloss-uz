@@ -66,7 +66,11 @@ class BusinessRules {
 class AppConstants {
   static const String appName = 'Gloss';
   static const String baseUrl = 'https://api.gloss.com.uz';
-  static const String devBaseUrl = 'http://localhost:3000/api/v1';
+  // Port 3000 was the original NestJS plan's port — the actual Django
+  // backend runs on 8000 (see backend/docker-compose.yml). Host is the
+  // dev machine's LAN IP rather than localhost, since "localhost" from
+  // a physical phone means the phone itself, not this machine.
+  static const String devBaseUrl = 'http://192.168.100.214:8000/api/v1';
   static const int connectTimeout = 10000;
   static const int receiveTimeout = 15000;
   static const int otpResendSeconds = 30;
