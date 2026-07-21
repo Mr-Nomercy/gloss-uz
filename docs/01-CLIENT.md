@@ -1,5 +1,7 @@
 # Gloss Client App
 
+> Endpoint jadvali pastda hozircha rejalashtirilgan (backend Django, batafsil: [12-END-TO-END-ROADMAP.md](12-END-TO-END-ROADMAP.md)).
+
 Mijoz ilovasi — Flutter platformasida yaratilgan. Tozalash xizmatlarini buyurtma qilish va mahsulotlar marketidan xarid qilish imkonini beradi.
 
 ## Texnologiyalar

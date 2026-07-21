@@ -1,5 +1,7 @@
 # Gloss Provider App
 
+> Ro'yxatdan o'tish endi firma admin bergan invite-ID orqali bo'ladi (batafsil: [12-END-TO-END-ROADMAP.md](12-END-TO-END-ROADMAP.md)).
+
 Tozalash xizmati provayderi ilovasi. Cleaning service kompaniyalari o'z xizmatlarini ko'rsatadi, buyurtmalarni qabul qiladi va xodimlarini boshqaradi.
 
 ## Texnologiyalar

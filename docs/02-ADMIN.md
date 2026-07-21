@@ -1,5 +1,7 @@
 # Gloss Admin Panel
 
+> Backend Django (DRF), batafsil rol/endpoint modeli: [12-END-TO-END-ROADMAP.md](12-END-TO-END-ROADMAP.md). Market/`Product` CRUD shu panel orqali — alohida seller app yo'q.
+
 React asosida yaratilgan veb-admin panel. Platformani boshqarish uchun ikki xil rol mavjud: Platform Admin va Tenant Admin.
 
 ## Texnologiyalar

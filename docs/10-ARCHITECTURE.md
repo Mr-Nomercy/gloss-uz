@@ -1,5 +1,7 @@
 # Complete Project Architecture — To'liq Arxitektura
 
+> ⚠️ Backend endi **Django + DRF + GeoDjango + Channels + Celery** (NestJS emas). Diagramma va endpoint nomlari pastda eski holicha (umumiy tushuncha uchun to'g'ri), lekin real backend joylashuvi/stack uchun [12-END-TO-END-ROADMAP.md](12-END-TO-END-ROADMAP.md)ga qarang. Shuningdek `gloss_seller` app endi rejada yo'q — market `platform_admin` orqali boshqariladi.
+
 ## System Architecture Diagram
 
 ```
@@ -26,8 +28,8 @@
 │                        BACKEND                                   │
 │                              │                                   │
 │                    ┌────────▼────────┐                           │
-│                    │   NestJS API    │                           │
-│                    │   (REST + WS)   │                           │
+│                    │   Django API    │                           │
+│                    │ (DRF + Channels)│                           │
 │                    └────────┬────────┘                           │
 │                              │                                   │
 │              ┌───────────────┼───────────────┐                   │
