@@ -140,6 +140,7 @@ pending → paid → failed → refunded
 ```
 client, provider, courier, seller, admin, super_admin
 ```
+> ⚠️ `seller` — legacy, endi kerak emas (market `platform_admin`/`super_admin` orqali). Yangilangan rol nomlari uchun `12-END-TO-END-ROADMAP.md`: `platform_admin`, `tenant_admin`, `tenant_worker`, `customer`, `courier`.
 
 ### BusinessRules
 
@@ -211,6 +212,8 @@ Shared dizayn tizimi.
 ## 6. socket-client (`packages/shared/socket-client/`)
 
 WebSocket client (singleton). Hozirgi holatda skeleton — interfeys tayyor, lekin implementatsiya bo'sh.
+
+> ⚠️ **Texnik nomuvofiqlik:** bu paket `socket_io_client` (haqiqiy Socket.IO protokoli) ga bog'liq, lekin backend **Django Channels** ishlatadi — bu oddiy WebSocket protokoli, Socket.IO emas. Ular bir-biriga to'g'ridan-to'g'ri ulanmaydi. M3 (dispatch + real-time) boshlanganda bu paketni `web_socket_channel` (yoki shunga o'xshash oddiy WS client) bilan almashtirish kerak bo'ladi.
 
 ## 7. drift-db (`packages/shared/drift-db/`)
 

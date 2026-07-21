@@ -217,6 +217,8 @@ Tranzaksiya tarixi:
 
 ## 6. Real-time kuzatish
 
+> Backend Django Channels ishlatadi, aniq WebSocket event nomlari uchun `12-END-TO-END-ROADMAP.md` §4'ga qarang (`order.new_offer`, `order.assigned` va h.k.). Pastdagi jadval umumiy tushuncha uchun.
+
 ### Socket.IO event'lari
 
 | Event | Yo'nalish | Maqsad |

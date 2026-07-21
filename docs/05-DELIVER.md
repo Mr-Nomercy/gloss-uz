@@ -1,5 +1,7 @@
 # Gloss Deliver App
 
+> Bu — Gloss'ning o'z (platform-level) yetkazish floti, tenant/firmalarga bog'liq emas, faqat market buyurtmalarini yetkazadi (batafsil: [12-END-TO-END-ROADMAP.md](12-END-TO-END-ROADMAP.md)).
+
 Kuryer ilovasi. Mahsulotlarni ombordan mijozga yetkazib berish uchun mo'ljallangan.
 
 ## Texnologiyalar
