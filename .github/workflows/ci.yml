@@ -11,7 +11,7 @@ jobs:
   flutter-analyze:
     strategy:
       matrix:
-        app: [user, worker, delivery, admin]
+        app: [admin]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

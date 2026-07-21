@@ -161,7 +161,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
                                 _nameController.text.trim(),
                               );
                           setState(() => _isLoading = false);
-                          if (success && mounted) {
+                          if (success && context.mounted) {
                             context.go('/');
                           }
                         },

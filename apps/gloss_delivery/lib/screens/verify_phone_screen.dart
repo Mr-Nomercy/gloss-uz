@@ -151,7 +151,7 @@ class _VerifyPhoneScreenState extends ConsumerState<VerifyPhoneScreen>
                                 _codeController.text.trim(),
                               );
                           setState(() => _isLoading = false);
-                          if (success && mounted) {
+                          if (success && context.mounted) {
                             context.go('/');
                           }
                         },
@@ -167,7 +167,7 @@ class _VerifyPhoneScreenState extends ConsumerState<VerifyPhoneScreen>
                                   _codeController.text.trim(),
                                 );
                             setState(() => _isLoading = false);
-                            if (success && mounted) {
+                            if (success && context.mounted) {
                               context.go('/');
                             }
                           },
