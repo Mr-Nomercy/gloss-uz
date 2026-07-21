@@ -14,8 +14,7 @@ scripts:
 
   # Flutter apps
   user:dev: melos run --scope=gloss_user -- dev
-  firm:dev: melos run --scope=gloss_worker -- dev
-  delivery:dev: melos run --scope=gloss_delivery -- dev
+  partner:dev: melos run --scope=gloss_partner -- dev
   admin:dev: melos run --scope=gloss_admin -- dev
 
   # Shared packages
