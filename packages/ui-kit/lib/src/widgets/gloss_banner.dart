@@ -25,7 +25,7 @@ class GlossBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context).extension<GlossTheme>()!;
+    final theme = context.gloss;
     final config = _resolveVariant(theme, variant);
 
     return Container(

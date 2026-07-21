@@ -7,6 +7,8 @@ class GlossDialog extends StatelessWidget {
   final Widget? contentWidget;
   final List<Widget>? actions;
   final bool barrierDismissible;
+  final String cancelLabel;
+  final String confirmLabel;
 
   const GlossDialog({
     super.key,
@@ -15,6 +17,8 @@ class GlossDialog extends StatelessWidget {
     this.contentWidget,
     this.actions,
     this.barrierDismissible = true,
+    this.cancelLabel = "Bekor qilish",
+    this.confirmLabel = "Tasdiqlash",
   }) : assert(content != null || contentWidget != null);
 
   static Future<T?> show<T>({
@@ -24,6 +28,8 @@ class GlossDialog extends StatelessWidget {
     Widget? contentWidget,
     List<Widget>? actions,
     bool barrierDismissible = true,
+    String cancelLabel = "Bekor qilish",
+    String confirmLabel = "Tasdiqlash",
   }) {
     return showDialog<T>(
       context: context,
@@ -34,6 +40,8 @@ class GlossDialog extends StatelessWidget {
         contentWidget: contentWidget,
         actions: actions,
         barrierDismissible: barrierDismissible,
+        cancelLabel: cancelLabel,
+        confirmLabel: confirmLabel,
       ),
     );
   }
@@ -48,7 +56,7 @@ class GlossDialog extends StatelessWidget {
           [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Bekor qilish'),
+              child: Text(cancelLabel),
             ),
             ElevatedButton(
               onPressed: () => Navigator.pop(context, true),
@@ -57,7 +65,7 @@ class GlossDialog extends StatelessWidget {
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
               ),
-              child: const Text('Tasdiqlash'),
+              child: Text(confirmLabel),
             ),
           ],
       actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),

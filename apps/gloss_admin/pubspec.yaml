@@ -1,0 +1,38 @@
+name: gloss_admin
+description: Gloss Admin — platform management mobile app
+publish_to: none
+version: 0.1.0+1
+
+environment:
+  sdk: '>=3.2.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  flutter_riverpod: ^2.4.9
+  go_router: ^13.0.0
+  dio: ^5.4.0
+  models:
+    path: ../../packages/shared/models
+  constants:
+    path: ../../packages/shared/constants
+  ui_kit:
+    path: ../../packages/ui-kit
+  flutter_secure_storage: ^9.0.0
+  intl: ^0.20.2
+  gloss_routing:
+    path: ../../packages/gloss_routing
+  fl_chart: ^1.2.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.1
+  build_runner: ^2.4.8
+  riverpod_generator: ^2.3.9
+
+flutter:
+  uses-material-design: true
+  generate: true
