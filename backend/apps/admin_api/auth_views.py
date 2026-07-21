@@ -1,12 +1,21 @@
+from django.contrib.auth.hashers import check_password as check_password_hash
+from django.contrib.auth.hashers import make_password
 from rest_framework import status
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
+from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.views import APIView
 
 from apps.accounts.models import Role, User
 from apps.accounts.serializers import UserSerializer
 from apps.accounts.tokens import issue_token_for_role
 from apps.accounts.views import RefreshView as AdminRefreshView  # noqa: F401 (re-exported)
+
+# Computed once at import time, not per-request — used to give a
+# nonexistent-email login attempt the same hash-comparison cost as a
+# real one, so response timing can't be used to enumerate which emails
+# have admin accounts (see AdminLoginView.post).
+_DUMMY_PASSWORD_HASH = make_password("not-a-real-password-just-for-timing-safety")
 
 
 class AdminLoginView(APIView):
@@ -18,13 +27,24 @@ class AdminLoginView(APIView):
     """
 
     permission_classes = [AllowAny]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "admin-login"
 
     def post(self, request):
         email = request.data.get("email")
         password = request.data.get("password")
 
         user = User.objects.filter(email=email).first()
-        if user is None or not user.is_active or not user.check_password(password):
+        if user is None:
+            # Still run a (failing) hash check so a missing-vs-wrong-password
+            # response takes the same time either way — otherwise the
+            # early-exit here is a timing side channel an attacker can use
+            # to enumerate which emails have admin accounts at all.
+            check_password_hash(password or "", _DUMMY_PASSWORD_HASH)
+            return Response(
+                {"message": "Email yoki parol noto'g'ri"}, status=status.HTTP_401_UNAUTHORIZED
+            )
+        if not user.is_active or user.is_blocked or not user.check_password(password):
             return Response(
                 {"message": "Email yoki parol noto'g'ri"}, status=status.HTTP_401_UNAUTHORIZED
             )

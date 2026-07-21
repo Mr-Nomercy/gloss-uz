@@ -19,7 +19,12 @@ class Tenant(models.Model):
     # Per-tenant override shown/edited on the admin "tenant detail" screen —
     # distinct from CommissionRule below, which drives the platform-wide
     # per-service-type rates on the separate "commissions" admin screen.
-    commission_rate = models.DecimalField(max_digits=4, decimal_places=2, default=0.15)
+    commission_rate = models.DecimalField(
+        max_digits=4,
+        decimal_places=2,
+        default=Decimal("0.15"),
+        validators=[MinValueValidator(Decimal(0)), MaxValueValidator(Decimal(1))],
+    )
     rating = models.DecimalField(max_digits=3, decimal_places=2, default=0)
     is_verified = models.BooleanField(default=False)
     contract_signed_at = models.DateTimeField(null=True, blank=True)

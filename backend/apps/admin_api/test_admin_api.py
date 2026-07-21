@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.utils import timezone
 from rest_framework.test import APITestCase
 
@@ -228,3 +230,92 @@ class AdminApiTests(APITestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["workers"][0]["fullName"], "Ishchi Bir")
+
+    def test_blocking_a_user_actually_revokes_api_access(self):
+        # Found during audit: is_blocked was set by this exact endpoint but
+        # nothing anywhere checked it — blocking a user had zero real effect.
+        self.client.patch(f"/api/v1/admin/users/{self.customer.id}", {"isBlocked": True})
+
+        blocked_token = issue_token_for_role(self.customer, "customer", None)
+        blocked_client = self.client_class()
+        blocked_client.credentials(HTTP_AUTHORIZATION=f"Bearer {blocked_token.access_token}")
+
+        response = blocked_client.get("/api/v1/orders/")
+
+        self.assertEqual(response.status_code, 401)
+
+    def test_commission_rate_out_of_bounds_is_rejected(self):
+        response = self.client.patch(
+            f"/api/v1/admin/tenants/{self.tenant.id}/commission", {"commissionRate": 5}
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.tenant.refresh_from_db()
+        self.assertNotEqual(float(self.tenant.commission_rate), 5.0)
+
+    def test_commissions_bulk_save_rejects_out_of_bounds_rate(self):
+        rule = CommissionRule.objects.create(
+            service_type="Uy tozalash", percentage="10.00", tenant=None
+        )
+
+        response = self.client.put(
+            "/api/v1/admin/commissions",
+            {"commissions": [{"serviceTypeId": str(rule.id), "rate": 150}]},
+        )
+
+        self.assertEqual(response.status_code, 400)
+        rule.refresh_from_db()
+        self.assertEqual(float(rule.percentage), 10.0)
+
+    def test_commissions_bulk_save_rejects_missing_fields(self):
+        response = self.client.put(
+            "/api/v1/admin/commissions",
+            {"commissions": [{"serviceTypeId": "999"}]},
+        )
+
+        self.assertEqual(response.status_code, 400)
+
+    def test_payout_approve_debits_wallet_and_guards_against_double_approval(self):
+        payout = Payout.objects.create(
+            tenant=self.tenant, amount="30000.00", card_number="8600000000000000"
+        )
+
+        response = self.client.patch(
+            f"/api/v1/admin/payouts/{payout.id}/approve", {"adminNote": "ok"}
+        )
+        self.assertEqual(response.status_code, 200, response.data)
+
+        wallet = Wallet.objects.get(tenant=self.tenant)
+        self.assertEqual(wallet.balance, Decimal("70000.00"))
+
+        second_response = self.client.patch(
+            f"/api/v1/admin/payouts/{payout.id}/approve", {"adminNote": "again"}
+        )
+        self.assertEqual(second_response.status_code, 409)
+        wallet.refresh_from_db()
+        self.assertEqual(wallet.balance, Decimal("70000.00"))
+
+    def test_payout_approve_rejected_when_wallet_balance_insufficient(self):
+        payout = Payout.objects.create(
+            tenant=self.tenant, amount="999999.00", card_number="8600000000000000"
+        )
+
+        response = self.client.patch(f"/api/v1/admin/payouts/{payout.id}/approve", {})
+
+        self.assertEqual(response.status_code, 400)
+        payout.refresh_from_db()
+        self.assertEqual(payout.status, Payout.Status.PENDING)
+
+    def test_payout_reject_guards_against_double_action(self):
+        payout = Payout.objects.create(
+            tenant=self.tenant,
+            amount="10000.00",
+            card_number="8600000000000000",
+            status=Payout.Status.REJECTED,
+        )
+
+        response = self.client.patch(
+            f"/api/v1/admin/payouts/{payout.id}/reject", {"reason": "again"}
+        )
+
+        self.assertEqual(response.status_code, 409)

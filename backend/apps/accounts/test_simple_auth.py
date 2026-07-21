@@ -69,3 +69,16 @@ class SimpleLoginRegisterTests(APITestCase):
 
         self.assertEqual(response.status_code, 400)
         self.assertFalse(User.objects.filter(phone="+998955555555").exists())
+
+    @patch("apps.otp.providers.ConsoleOtpProvider.send")
+    def test_blocked_user_cannot_log_in_via_otp_even_with_correct_code(self, mock_send):
+        phone = "+998966666666"
+        user = User.objects.create_user(phone=phone, full_name="Bloklangan", is_blocked=True)
+        user.roles.create(role=Role.CUSTOMER, tenant=None)
+
+        self.client.post("/api/v1/auth/login", {"phone": phone})
+        code = self._sent_code(mock_send)
+
+        response = self.client.post("/api/v1/auth/login", {"phone": phone, "otp": code})
+
+        self.assertEqual(response.status_code, 403)

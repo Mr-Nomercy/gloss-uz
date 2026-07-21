@@ -61,6 +61,8 @@ class OtpVerifyView(APIView):
 
         user = User.objects.filter(phone=phone).first()
         if user is not None:
+            if user.is_blocked or not user.is_active:
+                return Response({"error": "account_blocked"}, status=status.HTTP_403_FORBIDDEN)
             token = issue_token_for_user(user)
             return _token_pair_response(token, extra={"status": "login"})
 
@@ -194,6 +196,8 @@ class SimpleLoginView(APIView):
         user = User.objects.filter(phone=phone).first()
         if user is None:
             return Response({"message": "Ro'yxatdan o'tilmagan"}, status=status.HTTP_404_NOT_FOUND)
+        if user.is_blocked or not user.is_active:
+            return Response({"message": "Hisob bloklangan"}, status=status.HTTP_403_FORBIDDEN)
 
         token = issue_token_for_user(user)
         return Response(

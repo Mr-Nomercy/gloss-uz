@@ -1,5 +1,7 @@
 from datetime import timedelta
+from decimal import Decimal, InvalidOperation
 
+from django.db import transaction
 from django.db.models import Sum
 from django.utils import timezone
 from rest_framework import status, viewsets
@@ -11,7 +13,7 @@ from apps.accounts.models import User
 from apps.core.permissions import IsPlatformAdmin
 from apps.market.models import Category, Product
 from apps.orders.models import Order
-from apps.tenants.models import CommissionRule, Payout, Tenant
+from apps.tenants.models import CommissionRule, Payout, Tenant, Wallet
 from apps.workforce.models import Team, WorkerProfile
 
 from .serializers import (
@@ -137,7 +139,18 @@ class TenantViewSet(viewsets.ModelViewSet):
             return Response(
                 {"message": "commissionRate required"}, status=status.HTTP_400_BAD_REQUEST
             )
-        tenant.commission_rate = rate
+        try:
+            rate_decimal = Decimal(str(rate))
+        except InvalidOperation:
+            return Response(
+                {"message": "commissionRate is not a number"}, status=status.HTTP_400_BAD_REQUEST
+            )
+        if not (0 <= rate_decimal <= 1):
+            return Response(
+                {"message": "commissionRate must be between 0 and 1"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        tenant.commission_rate = rate_decimal
         tenant.save(update_fields=["commission_rate"])
         return Response(TenantSerializer(tenant).data)
 
@@ -151,9 +164,38 @@ class CommissionsView(APIView):
 
     def put(self, request):
         for item in request.data.get("commissions", []):
-            CommissionRule.objects.filter(id=item["service_type_id"], tenant__isnull=True).update(
-                percentage=item["rate"], min_order_amount=item.get("min_order_amount", 30000)
-            )
+            rule_id = item.get("service_type_id")
+            rate = item.get("rate")
+            if rule_id is None or rate is None:
+                return Response(
+                    {"message": "each commission needs serviceTypeId and rate"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            try:
+                rate_decimal = Decimal(str(rate))
+            except InvalidOperation:
+                return Response(
+                    {"message": f"rate for {rule_id} is not a number"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            if not (0 <= rate_decimal <= 100):
+                return Response(
+                    {"message": f"rate for {rule_id} must be between 0 and 100"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            rule = CommissionRule.objects.filter(id=rule_id, tenant__isnull=True).first()
+            if rule is None:
+                return Response(
+                    {"message": f"unknown commission rule: {rule_id}"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            # .update() would bypass field validators entirely — going
+            # through the instance + save() is what actually enforces them.
+            rule.percentage = rate_decimal
+            rule.min_order_amount = item.get("min_order_amount", rule.min_order_amount)
+            rule.save(update_fields=["percentage", "min_order_amount"])
+
         rules = CommissionRule.objects.filter(tenant__isnull=True)
         return Response(CommissionRuleSerializer(rules, many=True).data)
 
@@ -231,13 +273,31 @@ class PayoutApproveView(APIView):
     permission_classes = [IsPlatformAdmin]
 
     def patch(self, request, pk):
-        payout = Payout.objects.filter(id=pk).first()
-        if payout is None:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-        payout.status = Payout.Status.APPROVED
-        payout.admin_note = request.data.get("admin_note")
-        payout.processed_at = timezone.now()
-        payout.save(update_fields=["status", "admin_note", "processed_at"])
+        with transaction.atomic():
+            payout = Payout.objects.select_for_update().filter(id=pk).first()
+            if payout is None:
+                return Response(status=status.HTTP_404_NOT_FOUND)
+            if payout.status != Payout.Status.PENDING:
+                return Response(
+                    {"message": f"payout is already {payout.status}, not pending"},
+                    status=status.HTTP_409_CONFLICT,
+                )
+
+            wallet = Wallet.objects.select_for_update().filter(tenant_id=payout.tenant_id).first()
+            if wallet is None or wallet.balance < payout.amount:
+                return Response(
+                    {"message": "insufficient tenant wallet balance for this payout"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            wallet.balance -= payout.amount
+            wallet.save(update_fields=["balance"])
+
+            payout.status = Payout.Status.APPROVED
+            payout.admin_note = request.data.get("admin_note")
+            payout.processed_at = timezone.now()
+            payout.save(update_fields=["status", "admin_note", "processed_at"])
+
         return Response(PayoutSerializer(payout).data)
 
 
@@ -248,6 +308,11 @@ class PayoutRejectView(APIView):
         payout = Payout.objects.filter(id=pk).first()
         if payout is None:
             return Response(status=status.HTTP_404_NOT_FOUND)
+        if payout.status != Payout.Status.PENDING:
+            return Response(
+                {"message": f"payout is already {payout.status}, not pending"},
+                status=status.HTTP_409_CONFLICT,
+            )
         payout.status = Payout.Status.REJECTED
         payout.admin_note = request.data.get("reason")
         payout.processed_at = timezone.now()
