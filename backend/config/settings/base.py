@@ -30,7 +30,13 @@ INSTALLED_APPS = [
     "apps.accounts",
     "apps.tenants",
     "apps.workforce",
+    "apps.otp",
+    "apps.catalog",
+    "apps.addresses",
+    "apps.orders",
 ]
+
+OTP_FORCE_CONSOLE_PROVIDER = env.bool("OTP_FORCE_CONSOLE_PROVIDER", default=True)
 
 AUTH_USER_MODEL = "accounts.User"
 
