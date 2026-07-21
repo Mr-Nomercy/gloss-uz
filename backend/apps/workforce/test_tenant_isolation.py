@@ -57,8 +57,18 @@ class TenantIsolationTests(APITestCase):
         returned_ids = {item["id"] for item in response.data["results"]}
         self.assertEqual(returned_ids, {self.worker_b.id})
 
-    def test_no_tenant_in_token_returns_empty_not_everything(self):
+    def test_wrong_role_is_rejected_before_any_query_runs(self):
         self._auth(self.worker_a_user, "customer", None)
+
+        response = self.client.get(reverse("worker-profile-list"))
+
+        self.assertEqual(response.status_code, 403)
+
+    def test_tenant_admin_with_no_tenant_in_token_gets_empty_not_everything(self):
+        # Right role, but a token somehow missing tenant_id (e.g. a bug
+        # upstream in token issuance) must still fail closed to empty,
+        # never fall back to "show everything".
+        self._auth(self.worker_a_user, "tenant_admin", None)
 
         response = self.client.get(reverse("worker-profile-list"))
 

@@ -1,5 +1,5 @@
 from django.conf import settings
-from django.db import models
+from django.db import IntegrityError, models, transaction
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 
@@ -47,12 +47,21 @@ class WorkerInviteCode(TenantScopedModel):
     created_at = models.DateTimeField(auto_now_add=True)
 
     @classmethod
-    def generate(cls, tenant, valid_for=timezone.timedelta(days=7)):
-        return cls.all_tenants.create(
-            tenant=tenant,
-            code=get_random_string(8).upper(),
-            expires_at=timezone.now() + valid_for,
-        )
+    def generate(cls, tenant, valid_for=timezone.timedelta(days=7), max_attempts=5):
+        for _ in range(max_attempts):
+            try:
+                # Each attempt gets its own savepoint — an IntegrityError
+                # on a collision must not poison the caller's outer
+                # transaction (e.g. a request wrapped in ATOMIC_REQUESTS).
+                with transaction.atomic():
+                    return cls.all_tenants.create(
+                        tenant=tenant,
+                        code=get_random_string(8).upper(),
+                        expires_at=timezone.now() + valid_for,
+                    )
+            except IntegrityError:
+                continue
+        raise IntegrityError("Could not generate a unique invite code after several attempts")
 
     def __str__(self):
         return self.code

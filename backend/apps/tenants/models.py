@@ -1,3 +1,4 @@
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 
@@ -23,7 +24,9 @@ class CommissionRule(models.Model):
     tenant = models.ForeignKey(
         Tenant, on_delete=models.CASCADE, null=True, blank=True, related_name="commission_rules"
     )
-    percentage = models.DecimalField(max_digits=5, decimal_places=2)
+    percentage = models.DecimalField(
+        max_digits=5, decimal_places=2, validators=[MinValueValidator(0), MaxValueValidator(100)]
+    )
 
     class Meta:
         unique_together = ("service_type", "tenant")
