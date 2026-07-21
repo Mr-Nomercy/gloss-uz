@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
@@ -33,7 +35,9 @@ class CommissionRule(models.Model):
         Tenant, on_delete=models.CASCADE, null=True, blank=True, related_name="commission_rules"
     )
     percentage = models.DecimalField(
-        max_digits=5, decimal_places=2, validators=[MinValueValidator(0), MaxValueValidator(100)]
+        max_digits=5,
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal(0)), MaxValueValidator(Decimal(100))],
     )
     min_order_amount = models.DecimalField(max_digits=12, decimal_places=2, default=30000)
 
@@ -59,7 +63,9 @@ class Payout(models.Model):
         REJECTED = "rejected", "Rejected"
 
     tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE, related_name="payouts")
-    amount = models.DecimalField(max_digits=14, decimal_places=2, validators=[MinValueValidator(0)])
+    amount = models.DecimalField(
+        max_digits=14, decimal_places=2, validators=[MinValueValidator(Decimal(0))]
+    )
     card_number = models.CharField(max_length=32)
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
     admin_note = models.TextField(null=True, blank=True)

@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.core.validators import MinValueValidator
 from django.db import models
 
@@ -20,9 +22,15 @@ class Product(models.Model):
     # seller FK. Only platform_admin ever writes to this model.
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
-    price = models.DecimalField(max_digits=12, decimal_places=2, validators=[MinValueValidator(0)])
+    price = models.DecimalField(
+        max_digits=12, decimal_places=2, validators=[MinValueValidator(Decimal(0))]
+    )
     sale_price = models.DecimalField(
-        max_digits=12, decimal_places=2, null=True, blank=True, validators=[MinValueValidator(0)]
+        max_digits=12,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(Decimal(0))],
     )
     stock_qty = models.PositiveIntegerField(default=0)
     category = models.ForeignKey(

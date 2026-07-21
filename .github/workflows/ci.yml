@@ -48,7 +48,12 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     env:
-      DATABASE_URL: postgis://gloss:gloss@localhost:5432/gloss
+      # gloss_app, not gloss — gloss is initdb's bootstrap superuser and
+      # Postgres refuses to let it strip its own SUPERUSER flag ("the
+      # bootstrap user must have the SUPERUSER attribute"), so the actual
+      # app connection has to be a separate, genuinely non-superuser role
+      # (superusers bypass RLS, which would make the isolation tests lie).
+      DATABASE_URL: postgis://gloss_app:gloss@localhost:5432/gloss
       REDIS_URL: redis://localhost:6379/0
       SECRET_KEY: ci-test-key
     steps:
@@ -61,8 +66,14 @@ jobs:
         working-directory: backend
       - run: ruff check .
         working-directory: backend
-      - name: Strip superuser from the app DB role (superusers bypass RLS)
-        run: PGPASSWORD=gloss psql -h localhost -U gloss -d gloss -c "ALTER ROLE gloss NOSUPERUSER;"
+      - name: Create the non-superuser app role
+        run: |
+          PGPASSWORD=gloss psql -h localhost -U gloss -d gloss -c "
+            CREATE ROLE gloss_app WITH LOGIN PASSWORD 'gloss' NOSUPERUSER CREATEDB;
+            ALTER DATABASE gloss OWNER TO gloss_app;
+            ALTER SCHEMA public OWNER TO gloss_app;
+            GRANT ALL PRIVILEGES ON DATABASE gloss TO gloss_app;
+          "
       - run: python manage.py migrate
         working-directory: backend
       - run: pytest

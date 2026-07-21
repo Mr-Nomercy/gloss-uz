@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.core.validators import MinValueValidator
 from django.db import models
 
@@ -19,7 +21,7 @@ class Tariff(models.Model):
     )
     name = models.CharField(max_length=255)
     base_price = models.DecimalField(
-        max_digits=12, decimal_places=2, validators=[MinValueValidator(0)]
+        max_digits=12, decimal_places=2, validators=[MinValueValidator(Decimal(0))]
     )
     duration_min = models.PositiveIntegerField()
 
@@ -30,7 +32,9 @@ class Tariff(models.Model):
 class Addon(models.Model):
     tariff = models.ForeignKey(Tariff, on_delete=models.CASCADE, related_name="addons")
     name = models.CharField(max_length=255)
-    price = models.DecimalField(max_digits=12, decimal_places=2, validators=[MinValueValidator(0)])
+    price = models.DecimalField(
+        max_digits=12, decimal_places=2, validators=[MinValueValidator(Decimal(0))]
+    )
 
     def __str__(self):
         return self.name

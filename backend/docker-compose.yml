@@ -6,7 +6,10 @@ services:
       POSTGRES_PASSWORD: gloss
       POSTGRES_DB: gloss
     ports:
-      - "5432:5432"
+      # Host-side port shifted off the default 5432 — that's commonly
+      # already taken by a locally-installed Postgres. Containers still
+      # reach this one internally via `db:5432` regardless of this mapping.
+      - "5455:5432"
     volumes:
       - gloss_db_data:/var/lib/postgresql/data
       - ./docker/postgres-init:/docker-entrypoint-initdb.d
@@ -19,7 +22,9 @@ services:
   redis:
     image: redis:7-alpine
     ports:
-      - "6379:6379"
+      # Same reasoning as db above — host-side only, shifted off the
+      # default port since a local Redis is often already using it.
+      - "6390:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
@@ -30,7 +35,10 @@ services:
     build: .
     env_file: .env
     environment:
-      DATABASE_URL: postgis://gloss:gloss@db:5432/gloss
+      # gloss_app, not gloss — gloss is initdb's bootstrap superuser
+      # (superusers bypass RLS); gloss_app is the real, non-superuser
+      # app role created by docker/postgres-init/01-app-role-nosuperuser.sql.
+      DATABASE_URL: postgis://gloss_app:gloss@db:5432/gloss
       REDIS_URL: redis://redis:6379/0
     ports:
       - "8000:8000"
@@ -46,7 +54,10 @@ services:
     build: .
     env_file: .env
     environment:
-      DATABASE_URL: postgis://gloss:gloss@db:5432/gloss
+      # gloss_app, not gloss — gloss is initdb's bootstrap superuser
+      # (superusers bypass RLS); gloss_app is the real, non-superuser
+      # app role created by docker/postgres-init/01-app-role-nosuperuser.sql.
+      DATABASE_URL: postgis://gloss_app:gloss@db:5432/gloss
       REDIS_URL: redis://redis:6379/0
     command: celery -A config worker --loglevel=info
     depends_on:
