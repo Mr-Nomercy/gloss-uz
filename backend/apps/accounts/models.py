@@ -29,6 +29,11 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_blocked = models.BooleanField(default=False)
     marketing_consent = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
+    # TOTP secret is written on setup (apps.admin_api.auth_views) and
+    # stays unconfirmed until the first correct code is entered — only
+    # confirmed_at set means 2FA is actually enforced at login.
+    totp_secret = models.CharField(max_length=32, null=True, blank=True)
+    totp_confirmed_at = models.DateTimeField(null=True, blank=True)
 
     objects = UserManager()
 

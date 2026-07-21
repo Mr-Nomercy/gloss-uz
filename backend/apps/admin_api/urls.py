@@ -1,6 +1,11 @@
 from django.urls import path
 
-from .auth_views import AdminLoginView, AdminRefreshView
+from .auth_views import (
+    AdminLoginView,
+    AdminRefreshView,
+    AdminTotpConfirmView,
+    AdminTotpVerifyView,
+)
 from .views import (
     AdminOrderDetailView,
     AdminOrdersView,
@@ -23,6 +28,8 @@ tenant_commission = TenantViewSet.as_view({"patch": "commission"})
 
 urlpatterns = [
     path("auth/login", AdminLoginView.as_view(), name="admin-auth-login"),
+    path("auth/totp/confirm", AdminTotpConfirmView.as_view(), name="admin-auth-totp-confirm"),
+    path("auth/totp/verify", AdminTotpVerifyView.as_view(), name="admin-auth-totp-verify"),
     path("auth/refresh", AdminRefreshView.as_view(), name="admin-auth-refresh"),
     path("dashboard", DashboardView.as_view(), name="admin-dashboard"),
     path("tenants", tenant_list, name="admin-tenants"),

@@ -1,7 +1,7 @@
 from django.db.models import Sum
 from rest_framework import serializers
 
-from apps.accounts.models import User
+from apps.accounts.models import Role, User, UserRole
 from apps.accounts.role_mapping import frontend_roles_for_user
 from apps.core.serializers import StringPKModelSerializer
 from apps.market.models import Category, Product
@@ -14,12 +14,22 @@ class TenantCreateSerializer(serializers.Serializer):
     """Manual tenant onboarding (M5): platform_admin creates the record
     after the sales-led contract process happens outside the system —
     see docs/12-END-TO-END-ROADMAP.md's onboarding flow.
+
+    Also provisions the firm's first tenant_admin, using the contact
+    phone as their login identity — tenant_admin has no email+password
+    login (that's platform_admin-only, see AdminLoginView), so phone+OTP
+    via the same combined login every other role uses is how they get in.
     """
 
     company_name = serializers.CharField(max_length=255)
     phone = serializers.CharField(max_length=20)
     email = serializers.EmailField(required=False, allow_null=True)
     city = serializers.CharField(max_length=100)
+
+    def validate_phone(self, value):
+        if User.objects.filter(phone=value).exists():
+            raise serializers.ValidationError("Bu telefon raqami allaqachon ro'yxatdan o'tgan")
+        return value
 
     def create(self, validated_data):
         tenant = Tenant.objects.create(
@@ -30,6 +40,10 @@ class TenantCreateSerializer(serializers.Serializer):
             status=Tenant.Status.PENDING,
         )
         Wallet.objects.create(tenant=tenant)
+        admin_user = User.objects.create_user(
+            phone=validated_data["phone"], full_name=validated_data["company_name"]
+        )
+        UserRole.objects.create(user=admin_user, role=Role.TENANT_ADMIN, tenant=tenant)
         return tenant
 
 

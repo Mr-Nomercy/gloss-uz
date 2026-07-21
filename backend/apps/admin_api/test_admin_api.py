@@ -1,5 +1,6 @@
 from decimal import Decimal
 
+from django.core.cache import cache
 from django.utils import timezone
 from rest_framework.test import APITestCase
 
@@ -15,6 +16,11 @@ from apps.workforce.models import Team, WorkerProfile
 
 class AdminApiTests(APITestCase):
     def setUp(self):
+        # admin-login's ScopedRateThrottle (5/min) uses the process-wide
+        # LocMemCache, which isn't reset between test methods by default —
+        # without this, later tests in the class inherit earlier tests'
+        # request counts and get spuriously throttled.
+        cache.clear()
         self.admin = User.objects.create_user(phone="+998900000001", email="admin@gloss.uz")
         self.admin.set_password("admin123")
         self.admin.save()
@@ -50,19 +56,95 @@ class AdminApiTests(APITestCase):
             net_amount="42500.00",
         )
 
-    def test_admin_login_with_email_password(self):
-        self.client.credentials()  # unauthenticated for this call
+    def test_admin_login_first_time_requires_totp_setup(self):
+        self.client.credentials()
         response = self.client.post(
             "/api/v1/admin/auth/login", {"email": "admin@gloss.uz", "password": "admin123"}
         )
         self.assertEqual(response.status_code, 200, response.data)
-        # response.data is the pre-render Python dict (DRF test-client
-        # convenience) — camelCase is a render-time transform, so the
-        # actual wire contract has to be checked via response.json().
+        body = response.json()
+        self.assertTrue(body["totpSetupRequired"])
+        self.assertIn("setupToken", body)
+        self.assertIn("secret", body)
+        self.assertNotIn("accessToken", body)
+
+    def test_admin_totp_confirm_enables_2fa_and_completes_login(self):
+        import pyotp
+
+        self.client.credentials()
+        login = self.client.post(
+            "/api/v1/admin/auth/login", {"email": "admin@gloss.uz", "password": "admin123"}
+        ).json()
+        code = pyotp.TOTP(login["secret"]).now()
+
+        response = self.client.post(
+            "/api/v1/admin/auth/totp/confirm",
+            {"setup_token": login["setupToken"], "code": code},
+        )
+        self.assertEqual(response.status_code, 200, response.data)
         body = response.json()
         self.assertIn("accessToken", body)
         self.assertEqual(body["user"]["email"], "admin@gloss.uz")
         self.assertIn("super_admin", body["user"]["roles"])
+
+        self.admin.refresh_from_db()
+        self.assertIsNotNone(self.admin.totp_confirmed_at)
+
+    def test_admin_totp_confirm_rejects_wrong_code(self):
+        self.client.credentials()
+        login = self.client.post(
+            "/api/v1/admin/auth/login", {"email": "admin@gloss.uz", "password": "admin123"}
+        ).json()
+
+        response = self.client.post(
+            "/api/v1/admin/auth/totp/confirm",
+            {"setup_token": login["setupToken"], "code": "000000"},
+        )
+        self.assertEqual(response.status_code, 401)
+        self.admin.refresh_from_db()
+        self.assertIsNone(self.admin.totp_confirmed_at)
+
+    def test_admin_login_after_2fa_enabled_requires_totp_verify(self):
+        import pyotp
+
+        self.admin.totp_secret = pyotp.random_base32()
+        self.admin.totp_confirmed_at = timezone.now()
+        self.admin.save(update_fields=["totp_secret", "totp_confirmed_at"])
+
+        self.client.credentials()
+        response = self.client.post(
+            "/api/v1/admin/auth/login", {"email": "admin@gloss.uz", "password": "admin123"}
+        )
+        self.assertEqual(response.status_code, 200, response.data)
+        body = response.json()
+        self.assertTrue(body["totpRequired"])
+        self.assertIn("mfaToken", body)
+        self.assertNotIn("accessToken", body)
+
+        verify = self.client.post(
+            "/api/v1/admin/auth/totp/verify",
+            {"mfa_token": body["mfaToken"], "code": pyotp.TOTP(self.admin.totp_secret).now()},
+        )
+        self.assertEqual(verify.status_code, 200, verify.data)
+        self.assertIn("accessToken", verify.json())
+
+    def test_admin_totp_verify_rejects_wrong_code(self):
+        import pyotp
+
+        self.admin.totp_secret = pyotp.random_base32()
+        self.admin.totp_confirmed_at = timezone.now()
+        self.admin.save(update_fields=["totp_secret", "totp_confirmed_at"])
+
+        self.client.credentials()
+        login = self.client.post(
+            "/api/v1/admin/auth/login", {"email": "admin@gloss.uz", "password": "admin123"}
+        ).json()
+
+        response = self.client.post(
+            "/api/v1/admin/auth/totp/verify",
+            {"mfa_token": login["mfaToken"], "code": "000000"},
+        )
+        self.assertEqual(response.status_code, 401)
 
     def test_admin_login_rejects_wrong_password(self):
         self.client.credentials()

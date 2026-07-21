@@ -1,4 +1,14 @@
+from datetime import timedelta
+
 from rest_framework_simplejwt.tokens import RefreshToken
+
+# platform_admin holds the single highest-value credential in the system
+# (admin_api grants everything) — a 30-day refresh token (the global
+# SIMPLE_JWT default, sized for mobile apps that shouldn't force
+# frequent re-login) is too long-lived for that risk. This overrides
+# just the embedded exp claim, which simplejwt honors over the global
+# setting on validation.
+ADMIN_REFRESH_TOKEN_LIFETIME = timedelta(hours=8)
 
 
 def issue_token_for_role(user, role, tenant_id=None):
@@ -6,6 +16,8 @@ def issue_token_for_role(user, role, tenant_id=None):
     token = RefreshToken.for_user(user)
     token["role"] = role
     token["tenant_id"] = tenant_id
+    if role == "platform_admin":
+        token.set_exp(lifetime=ADMIN_REFRESH_TOKEN_LIFETIME)
     return token
 
 
