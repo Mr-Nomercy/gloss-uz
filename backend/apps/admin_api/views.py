@@ -23,6 +23,7 @@ from .serializers import (
     CommissionRuleSerializer,
     PayoutSerializer,
     ProductSerializer,
+    TenantCreateSerializer,
     TenantDetailSerializer,
     TenantSerializer,
 )
@@ -94,7 +95,18 @@ class TenantViewSet(viewsets.ModelViewSet):
     serializer_class = TenantSerializer
     queryset = Tenant.objects.all().order_by("-created_at")
     pagination_class = None
-    http_method_names = ["get", "patch"]
+    http_method_names = ["get", "post", "patch"]
+
+    def get_serializer_class(self):
+        if self.action == "create":
+            return TenantCreateSerializer
+        return TenantSerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = TenantCreateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        tenant = serializer.save()
+        return Response(TenantSerializer(tenant).data, status=status.HTTP_201_CREATED)
 
     def retrieve(self, request, *args, **kwargs):
         tenant = self.get_object()

@@ -319,3 +319,25 @@ class AdminApiTests(APITestCase):
         )
 
         self.assertEqual(response.status_code, 409)
+
+    def test_platform_admin_can_create_tenant(self):
+        response = self.client.post(
+            "/api/v1/admin/tenants",
+            {"companyName": "Yangi Firma", "phone": "+998900000099", "city": "Buxoro"},
+        )
+
+        self.assertEqual(response.status_code, 201, response.data)
+        tenant = Tenant.objects.get(name="Yangi Firma")
+        self.assertEqual(tenant.status, Tenant.Status.PENDING)
+        self.assertTrue(Wallet.objects.filter(tenant=tenant).exists())
+
+    def test_non_admin_cannot_create_tenant(self):
+        token = issue_token_for_role(self.customer, "customer", None)
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {token.access_token}")
+
+        response = self.client.post(
+            "/api/v1/admin/tenants",
+            {"companyName": "X", "phone": "+998900000000", "city": "X"},
+        )
+
+        self.assertEqual(response.status_code, 403)

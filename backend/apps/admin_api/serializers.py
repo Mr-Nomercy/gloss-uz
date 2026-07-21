@@ -6,8 +6,31 @@ from apps.accounts.role_mapping import frontend_roles_for_user
 from apps.core.serializers import StringPKModelSerializer
 from apps.market.models import Category, Product
 from apps.orders.models import Order
-from apps.tenants.models import CommissionRule, Payout, Tenant
+from apps.tenants.models import CommissionRule, Payout, Tenant, Wallet
 from apps.workforce.models import WorkerProfile
+
+
+class TenantCreateSerializer(serializers.Serializer):
+    """Manual tenant onboarding (M5): platform_admin creates the record
+    after the sales-led contract process happens outside the system —
+    see docs/12-END-TO-END-ROADMAP.md's onboarding flow.
+    """
+
+    company_name = serializers.CharField(max_length=255)
+    phone = serializers.CharField(max_length=20)
+    email = serializers.EmailField(required=False, allow_null=True)
+    city = serializers.CharField(max_length=100)
+
+    def create(self, validated_data):
+        tenant = Tenant.objects.create(
+            name=validated_data["company_name"],
+            phone=validated_data["phone"],
+            email=validated_data.get("email"),
+            city=validated_data["city"],
+            status=Tenant.Status.PENDING,
+        )
+        Wallet.objects.create(tenant=tenant)
+        return tenant
 
 
 class TenantSerializer(StringPKModelSerializer):

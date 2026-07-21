@@ -17,7 +17,7 @@ from .views import (
     TenantViewSet,
 )
 
-tenant_list = TenantViewSet.as_view({"get": "list"})
+tenant_list = TenantViewSet.as_view({"get": "list", "post": "create"})
 tenant_detail = TenantViewSet.as_view({"get": "retrieve", "patch": "partial_update"})
 tenant_commission = TenantViewSet.as_view({"patch": "commission"})
 
