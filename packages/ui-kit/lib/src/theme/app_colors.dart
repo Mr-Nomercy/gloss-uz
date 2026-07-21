@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
-const Color glossGreen = Color(0xFF00AA13);
-const Color glossDarkGreen = Color(0xFF004A00);
-const Color glossBg = Color(0xFFF5F5F5);
+const Color glossGreen = Color(0xFF16A34A);
+const Color glossDarkGreen = Color(0xFF166534);
+const Color glossBg = Color(0xFFF1F5F9);
 const Color glossSurface = Color(0xFFFFFFFF);
 const Color glossCard = Color(0xFFFFFFFF);
 const Color glossText = Color(0xFF1A1A1A);
 const Color glossHint = Color(0xFF757575);
-const Color glossGreenText = Color(0xFF008A10);
+const Color glossGreenText = Color(0xFF16A34A);
 const Color glossBorder = Color(0xFFE0E0E0);
 const Color glossDisabled = Color(0xFFBDBDBD);
 const Color glossDivider = Color(0xFFF0F0F0);
@@ -26,7 +26,7 @@ const Color glossGrayDark = Color(0xFF333333);
 
 const Color glossGreenBorderLight = Color(0xFFE0F5E0);
 const Color glossGreenBorderSoft = Color(0xFFE8F5E8);
-const Color glossGreenShadow = Color(0x1400AA13);
+const Color glossGreenShadow = Color(0x1416A34A);
 const Color glossBlackTint4 = Color(0x0A000000);
 const Color glossBlackTint10 = Color(0x1A000000);
 
@@ -39,7 +39,7 @@ const Color glossCatCyan = Color(0xFF00BCD4);
 const Color glossCatAmber = Color(0xFFFFC107);
 const Color glossAccentOrange = Color(0xFFFF6B35);
 const Color glossFacebook = Color(0xFF1877F2);
-const Color glossGreenDarkVariant = Color(0xFF006B0A);
+const Color glossGreenDarkVariant = Color(0xFF15803D);
 
 class GlossColors {
   GlossColors._();

@@ -37,6 +37,8 @@ dependencies:
     path: ../../packages/ui-kit
   cached_network_image: ^3.3.1
   shimmer: ^3.0.0
+  gloss_routing:
+    path: ../../packages/gloss_routing
 
 dev_dependencies:
   flutter_test:

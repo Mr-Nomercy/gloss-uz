@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ui_kit/ui_kit.dart';
+import '../providers/auth_provider.dart';
 
 final loginFormProvider =
     StateNotifierProvider<LoginFormNotifier, LoginFormState>((ref) {
@@ -188,10 +189,39 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
               SizedBox(
                 height: 52,
                 child: _scaleTap(
-                  onTap: form.isLoading ? null : () => context.go('/'),
+                  onTap: form.isLoading
+                      ? null
+                      : () async {
+                          ref
+                              .read(loginFormProvider.notifier)
+                              .setLoading(true);
+                          final success = await ref
+                              .read(authProvider.notifier)
+                              .login(form.phone);
+                          ref
+                              .read(loginFormProvider.notifier)
+                              .setLoading(false);
+                          if (success && context.mounted) {
+                            context.go('/');
+                          }
+                        },
                   child: ElevatedButton(
-                    onPressed:
-                        form.isLoading ? null : () => context.go('/'),
+                    onPressed: form.isLoading
+                        ? null
+                        : () async {
+                            ref
+                                .read(loginFormProvider.notifier)
+                                .setLoading(true);
+                            final success = await ref
+                                .read(authProvider.notifier)
+                                .login(form.phone);
+                            ref
+                                .read(loginFormProvider.notifier)
+                                .setLoading(false);
+                            if (success && context.mounted) {
+                              context.go('/');
+                            }
+                          },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: theme.green,
                       foregroundColor: Colors.white,

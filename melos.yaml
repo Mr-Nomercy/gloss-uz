@@ -14,8 +14,9 @@ scripts:
 
   # Flutter apps
   user:dev: melos run --scope=gloss_user -- dev
-  firm:dev: melos run --scope=gloss_firm -- dev
+  firm:dev: melos run --scope=gloss_worker -- dev
   delivery:dev: melos run --scope=gloss_delivery -- dev
+  admin:dev: melos run --scope=gloss_admin -- dev
 
   # Shared packages
   shared:build: "cd packages/shared/models && dart run build_runner build --delete-conflicting-outputs"

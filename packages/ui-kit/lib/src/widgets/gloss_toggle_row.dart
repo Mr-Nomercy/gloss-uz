@@ -23,7 +23,7 @@ class GlossToggleRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context).extension<GlossTheme>()!;
+    final theme = context.gloss;
     final accentColor = iconColor ?? theme.green;
 
     return Column(

@@ -92,11 +92,12 @@ class CartNotifier extends StateNotifier<CartState> {
   }
 
   Future<void> _loadCart() async {
-    // Local storage'dan savatni yuklash
+    // TODO: Load cart from local storage (SharedPreferences / Hive) so cart
+    // survives app restarts. Currently all cart data is in-memory only.
   }
 
   Future<void> _saveCart() async {
-    // Local storage'ga saqlash
+    // TODO: Persist cart to local storage on every mutation.
   }
 
   void addItem(Product product, {int quantity = 1}) {
@@ -186,7 +187,7 @@ class CartNotifier extends StateNotifier<CartState> {
     state = state.copyWith(promoCode: null, discountPercent: null);
   }
 
-  Future<bool> checkout({
+  Future<String?> checkout({
     required String addressId,
     required String paymentMethod,
   }) async {
@@ -205,15 +206,15 @@ class CartNotifier extends StateNotifier<CartState> {
       });
 
       final data = response.data as Map<String, dynamic>;
-      final _ = data['id'] as String;
+      final orderId = data['id'] as String?;
       clearCart();
-      return true;
+      return orderId;
     } on DioException catch (e) {
       state = state.copyWith(isLoading: false, error: _handleError(e));
-      return false;
+      return null;
     } catch (_) {
       state = state.copyWith(isLoading: false, error: 'Xatolik yuz berdi');
-      return false;
+      return null;
     }
   }
 

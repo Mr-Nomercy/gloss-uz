@@ -11,7 +11,7 @@ jobs:
   flutter-analyze:
     strategy:
       matrix:
-        app: [user, firm, delivery, admin]
+        app: [user, worker, delivery, admin]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -22,17 +22,3 @@ jobs:
         with:
           melos-version: "6.3.0"
       - run: melos exec --scope="gloss_${{ matrix.app }}" -- flutter analyze
-
-  admin-lint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-      - run: npm ci
-        working-directory: apps/gloss_admin_new
-      - run: npm run lint
-        working-directory: apps/gloss_admin_new
-      - run: npm run build
-        working-directory: apps/gloss_admin_new

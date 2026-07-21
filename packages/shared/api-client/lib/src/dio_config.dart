@@ -33,22 +33,22 @@ class DioConfig {
 }
 
 class AuthInterceptor extends Interceptor {
-  String? _accessToken;
-  final String? refreshToken;
+  String? accessToken;
+  String? refreshToken;
   final void Function(String, String)? onTokenRefreshed;
-  final void Function()? onLogout;
+  void Function()? onLogout;
 
   AuthInterceptor({
     String? accessToken,
     this.refreshToken,
     this.onTokenRefreshed,
     this.onLogout,
-  }) : _accessToken = accessToken;
+  }) : this.accessToken = accessToken;
 
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
-    if (_accessToken != null) {
-      options.headers['Authorization'] = 'Bearer $_accessToken';
+    if (accessToken != null) {
+      options.headers['Authorization'] = 'Bearer $accessToken';
     }
     handler.next(options);
   }
@@ -59,24 +59,28 @@ class AuthInterceptor extends Interceptor {
       try {
         final dio = Dio();
         final response = await dio.post(
-          'http://localhost:3000/api/v1/auth/refresh' // will be /auth/refresh after removing /api/v1 prefix,
+          '${err.requestOptions.baseUrl}/auth/refresh',
           data: {'refreshToken': refreshToken},
         );
         final newAccess = response.data['accessToken'] as String;
         final newRefresh = response.data['refreshToken'] as String;
-        _accessToken = newAccess;
+        accessToken = newAccess;
+        refreshToken = newRefresh;
         onTokenRefreshed?.call(newAccess, newRefresh);
 
-        err.requestOptions.headers['Authorization'] = 'Bearer $_accessToken';
-        final retry = await Dio(BaseOptions(headers: err.requestOptions.headers))
-            .request(err.requestOptions.path, options: Options(
+        err.requestOptions.headers['Authorization'] = 'Bearer $accessToken';
+        final retry = await Dio(BaseOptions(
+              baseUrl: err.requestOptions.baseUrl,
+              headers: err.requestOptions.headers,
+            )).request(err.requestOptions.path, options: Options(
               method: err.requestOptions.method,
               data: err.requestOptions.data,
               queryParameters: err.requestOptions.queryParameters,
             ));
         handler.resolve(retry);
         return;
-      } catch (_) {
+      } catch (e) {
+        print('[AuthInterceptor] Token refresh failed: $e');
         onLogout?.call();
       }
     }
@@ -94,10 +98,12 @@ class RetryInterceptor extends Interceptor {
       err.requestOptions.extra['retryCount'] = (err.requestOptions.extra['retryCount'] ?? 0) + 1;
       await Future.delayed(Duration(seconds: 2));
       try {
-        final response = await Dio().fetch(err.requestOptions);
+        final response = await Dio(BaseOptions(baseUrl: err.requestOptions.baseUrl)).fetch(err.requestOptions);
         handler.resolve(response);
         return;
-      } catch (_) {}
+      } catch (e) {
+        print('[RetryInterceptor] Retry ${err.requestOptions.extra['retryCount']} failed: $e');
+      }
     }
     handler.next(err);
   }

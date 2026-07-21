@@ -1,0 +1,15 @@
+name: gloss_routing
+description: GoRouter role-based route guards for Gloss Ecosystem
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_riverpod: '>=2.4.0'
+  go_router: '>=13.0.0'
+  constants:
+    path: ../shared/constants

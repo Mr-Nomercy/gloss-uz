@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:models/models.dart';
+import 'package:constants/constants.dart';
 
 class AuthState {
   final String? phone;
@@ -46,9 +48,18 @@ class AuthState {
 class AuthNotifier extends StateNotifier<AuthState> {
   final Dio _dio;
   final FlutterSecureStorage _storage;
+  final _authStateController = StreamController<AuthState>.broadcast();
+
+  Stream<AuthState> get authStateStream => _authStateController.stream;
 
   AuthNotifier(this._dio, this._storage) : super(const AuthState()) {
     _loadTokens();
+  }
+
+  @override
+  void dispose() {
+    _authStateController.close();
+    super.dispose();
   }
 
   Future<void> _loadTokens() async {
@@ -63,21 +74,31 @@ class AuthNotifier extends StateNotifier<AuthState> {
         phone: phone,
       );
     }
+    _authStateController.add(state);
   }
 
-  Future<void> login(String phone) async {
+  Future<bool> login(String phone) async {
     state = state.copyWith(isLoading: true, error: null, phone: phone);
+    _authStateController.add(state);
     try {
       await _dio.post('/auth/login', data: {'phone': phone});
+      state = state.copyWith(isLoading: false);
+      _authStateController.add(state);
+      return true;
     } on DioException catch (e) {
       state = state.copyWith(isLoading: false, error: _handleError(e));
+      _authStateController.add(state);
+      return false;
     } catch (e) {
       state = state.copyWith(isLoading: false, error: 'Xatolik yuz berdi');
+      _authStateController.add(state);
+      return false;
     }
   }
 
   Future<bool> verifyOtp(String phone, String code) async {
     state = state.copyWith(isLoading: true, error: null);
+    _authStateController.add(state);
     try {
       final response = await _dio.post('/auth/login', data: {
         'phone': phone,
@@ -94,6 +115,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
           isLoading: false,
           error: "Siz kuryer emassiz",
         );
+        _authStateController.add(state);
         return false;
       }
 
@@ -105,18 +127,22 @@ class AuthNotifier extends StateNotifier<AuthState> {
         user: user,
         isLoading: false,
       );
+      _authStateController.add(state);
       return true;
     } on DioException catch (e) {
       state = state.copyWith(isLoading: false, error: _handleError(e));
+      _authStateController.add(state);
       return false;
     } catch (e) {
       state = state.copyWith(isLoading: false, error: 'Xatolik yuz berdi');
+      _authStateController.add(state);
       return false;
     }
   }
 
   Future<bool> register(String phone, String fullName) async {
     state = state.copyWith(isLoading: true, error: null);
+    _authStateController.add(state);
     try {
       final response = await _dio.post('/auth/register', data: {
         'phone': phone,
@@ -136,12 +162,15 @@ class AuthNotifier extends StateNotifier<AuthState> {
         user: user,
         isLoading: false,
       );
+      _authStateController.add(state);
       return true;
     } on DioException catch (e) {
       state = state.copyWith(isLoading: false, error: _handleError(e));
+      _authStateController.add(state);
       return false;
     } catch (e) {
       state = state.copyWith(isLoading: false, error: 'Xatolik yuz berdi');
+      _authStateController.add(state);
       return false;
     }
   }
@@ -160,10 +189,12 @@ class AuthNotifier extends StateNotifier<AuthState> {
   Future<void> logout() async {
     await _storage.deleteAll();
     state = const AuthState();
+    _authStateController.add(state);
   }
 
   void clearError() {
     state = state.copyWith(error: null);
+    _authStateController.add(state);
   }
 
   Future<void> refreshAccessToken() async {
@@ -177,6 +208,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
       final accessToken = response.data['accessToken'] as String;
       await _storage.write(key: 'access_token', value: accessToken);
       state = state.copyWith(accessToken: accessToken);
+      _authStateController.add(state);
     } on DioException catch (e) {
       if (e.response?.statusCode == 401) {
         await logout();
@@ -208,7 +240,7 @@ final storageProvider = Provider<FlutterSecureStorage>((ref) {
 
 final dioProvider = Provider<Dio>((ref) {
   return Dio(BaseOptions(
-    baseUrl: 'http://localhost:3000/api',
+    baseUrl: AppConstants.devBaseUrl,
     connectTimeout: const Duration(milliseconds: 30000),
     receiveTimeout: const Duration(milliseconds: 30000),
     headers: {'Content-Type': 'application/json'},

@@ -1,20 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ui_kit/ui_kit.dart';
+import '../providers/auth_provider.dart';
 
-class RegisterScreen extends StatefulWidget {
+class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
 
   @override
-  State<RegisterScreen> createState() => _RegisterScreenState();
+  ConsumerState<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _RegisterScreenState extends State<RegisterScreen>
+class _RegisterScreenState extends ConsumerState<RegisterScreen>
     with SingleTickerProviderStateMixin {
   final _phoneController = TextEditingController();
   final _nameController = TextEditingController();
   final _passwordController = TextEditingController();
-  final bool _isLoading = false;
+  bool _isLoading = false;
   bool _agreeToTerms = true;
 
   late final AnimationController _fadeController;
@@ -148,11 +150,23 @@ class _RegisterScreenState extends State<RegisterScreen>
               SizedBox(
                 height: 52,
                 child: _scaleTap(
-                  onTap:
-                      _isLoading ? null : () => context.go('/'),
+                  onTap: _isLoading
+                      ? null
+                      : () async {
+                          setState(() => _isLoading = true);
+                          final success = await ref
+                              .read(authProvider.notifier)
+                              .register(
+                                _phoneController.text.trim(),
+                                _nameController.text.trim(),
+                              );
+                          setState(() => _isLoading = false);
+                          if (success && mounted) {
+                            context.go('/');
+                          }
+                        },
                   child: ElevatedButton(
-                    onPressed:
-                        _isLoading ? null : () => context.go('/'),
+                    onPressed: _isLoading ? null : () {},
                     style: ElevatedButton.styleFrom(
                       backgroundColor: theme.green,
                       foregroundColor: Colors.white,

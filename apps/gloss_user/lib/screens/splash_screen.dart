@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -22,8 +23,17 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
     await Future.delayed(const Duration(milliseconds: 1500));
     if (!mounted) return;
 
-    final authState = ref.read(authProvider);
-    if (authState.isAuthenticated) {
+    final authNotifier = ref.read(authProvider.notifier);
+    AuthState resolved;
+    try {
+      resolved = await authNotifier.authStateStream.first
+          .timeout(const Duration(seconds: 5));
+    } on TimeoutException {
+      resolved = ref.read(authProvider);
+    }
+    if (!mounted) return;
+
+    if (resolved.isAuthenticated) {
       context.go('/home');
     } else {
       context.go('/auth');

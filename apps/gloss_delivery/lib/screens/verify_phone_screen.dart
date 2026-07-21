@@ -1,19 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ui_kit/ui_kit.dart';
+import '../providers/auth_provider.dart';
 
-class VerifyPhoneScreen extends StatefulWidget {
+class VerifyPhoneScreen extends ConsumerStatefulWidget {
   final String phone;
   const VerifyPhoneScreen({super.key, required this.phone});
 
   @override
-  State<VerifyPhoneScreen> createState() => _VerifyPhoneScreenState();
+  ConsumerState<VerifyPhoneScreen> createState() => _VerifyPhoneScreenState();
 }
 
-class _VerifyPhoneScreenState extends State<VerifyPhoneScreen>
+class _VerifyPhoneScreenState extends ConsumerState<VerifyPhoneScreen>
     with SingleTickerProviderStateMixin {
   final _codeController = TextEditingController();
-  final bool _isLoading = false;
+  bool _isLoading = false;
 
   late final AnimationController _fadeController;
   late final Animation<double> _fadeAnimation;
@@ -138,12 +140,37 @@ class _VerifyPhoneScreenState extends State<VerifyPhoneScreen>
                 SizedBox(
                   height: 52,
                   child: _scaleTap(
-                    onTap:
-                        _isLoading ? null : () => context.go('/'),
-                    child: ElevatedButton(
-                      onPressed: _isLoading
-                          ? null
-                          : () => context.go('/'),
+                  onTap: _isLoading
+                      ? null
+                      : () async {
+                          setState(() => _isLoading = true);
+                          final success = await ref
+                              .read(authProvider.notifier)
+                              .verifyOtp(
+                                widget.phone,
+                                _codeController.text.trim(),
+                              );
+                          setState(() => _isLoading = false);
+                          if (success && mounted) {
+                            context.go('/');
+                          }
+                        },
+                  child: ElevatedButton(
+                    onPressed: _isLoading
+                        ? null
+                        : () async {
+                            setState(() => _isLoading = true);
+                            final success = await ref
+                                .read(authProvider.notifier)
+                                .verifyOtp(
+                                  widget.phone,
+                                  _codeController.text.trim(),
+                                );
+                            setState(() => _isLoading = false);
+                            if (success && mounted) {
+                              context.go('/');
+                            }
+                          },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: theme.green,
                         foregroundColor: Colors.white,

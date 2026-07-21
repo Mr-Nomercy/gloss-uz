@@ -10,6 +10,7 @@ class GlossAppBar extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback? onBackPressed;
   final Color? backgroundColor;
   final double elevation;
+  final PreferredSizeWidget? bottom;
 
   const GlossAppBar({
     super.key,
@@ -21,6 +22,7 @@ class GlossAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.onBackPressed,
     this.backgroundColor,
     this.elevation = 0,
+    this.bottom,
   });
 
   @override
@@ -40,6 +42,7 @@ class GlossAppBar extends StatelessWidget implements PreferredSizeWidget {
         ),
       ),
       actions: actions,
+      bottom: bottom,
     );
   }
 
@@ -53,7 +56,7 @@ class GlossAppBar extends StatelessWidget implements PreferredSizeWidget {
           borderRadius: BorderRadius.circular(8),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
+              color: GlossColors.blackTint4,
               blurRadius: 10,
               offset: const Offset(0, 2),
             ),

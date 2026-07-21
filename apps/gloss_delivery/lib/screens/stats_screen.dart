@@ -13,6 +13,7 @@ class _StatsScreenState extends State<StatsScreen>
   late final AnimationController _fadeController;
   late final Animation<double> _fadeAnimation;
   bool _isLoading = true;
+  bool _hasError = false;
 
   @override
   void initState() {
@@ -29,13 +30,51 @@ class _StatsScreenState extends State<StatsScreen>
   }
 
   Future<void> _loadData() async {
-    setState(() => _isLoading = true);
+    setState(() {
+      _isLoading = true;
+      _hasError = false;
+    });
     _fadeController.reset();
-    await Future.delayed(const Duration(milliseconds: 300));
-    if (mounted) {
-      setState(() => _isLoading = false);
-      _fadeController.forward();
+    try {
+      await Future.delayed(const Duration(milliseconds: 300));
+      if (mounted) {
+        setState(() => _isLoading = false);
+        _fadeController.forward();
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _hasError = true;
+        });
+      }
     }
+  }
+
+  Widget _buildErrorView(GlossTheme theme) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.error_outline, size: 48, color: theme.red),
+          const SizedBox(height: 12),
+          Text(
+            "Ma'lumotlarni yuklashda xatolik",
+            style: TextStyle(fontSize: 15, color: theme.hint),
+          ),
+          const SizedBox(height: 16),
+          ElevatedButton.icon(
+            onPressed: _loadData,
+            icon: const Icon(Icons.refresh, size: 18),
+            label: const Text('Qayta urinish'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: theme.green,
+              foregroundColor: Colors.white,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -63,7 +102,9 @@ class _StatsScreenState extends State<StatsScreen>
       ),
       body: _isLoading
           ? const GlossLoadingView(message: 'Yuklanmoqda...')
-          : FadeTransition(
+          : _hasError
+              ? _buildErrorView(theme)
+              : FadeTransition(
               opacity: _fadeAnimation,
               child: RefreshIndicator(
                 color: theme.green,

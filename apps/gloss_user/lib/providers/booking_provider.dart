@@ -38,6 +38,7 @@ class BookingState {
 
   bool get isReady =>
       serviceId != null &&
+      serviceId!.isNotEmpty &&
       selectedDate != null &&
       selectedTime != null &&
       addressId != null &&

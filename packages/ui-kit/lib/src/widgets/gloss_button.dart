@@ -24,13 +24,15 @@ class GlossButton extends StatelessWidget {
   Widget build(BuildContext context) {
     Widget content;
     if (isLoading) {
-      content = const SizedBox(
+      final progressColor = isOutlined ? Theme.of(context).colorScheme.onSurface : Colors.white;
+      content = SizedBox(
         width: 20,
         height: 20,
-        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+        child: CircularProgressIndicator(strokeWidth: 2, color: progressColor),
       );
     } else {
-      final iconWidget = leading ?? (icon != null ? Icon(icon, size: 20, color: Colors.white) : null);
+      final iconColor = isOutlined ? Theme.of(context).colorScheme.onSurface : Colors.white;
+      final iconWidget = leading ?? (icon != null ? Icon(icon, size: 20, color: iconColor) : null);
       content = Row(
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,

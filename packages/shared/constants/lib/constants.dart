@@ -34,10 +34,12 @@ class PaymentStatus {
 class UserRole {
   static const String client = 'client';
   static const String provider = 'provider';
+  static const String worker = 'worker';
   static const String courier = 'courier';
   static const String seller = 'seller';
   static const String admin = 'admin';
   static const String superAdmin = 'super_admin';
+  static const String tenantAdmin = 'tenant_admin';
 }
 
 // ─── Order Types ───

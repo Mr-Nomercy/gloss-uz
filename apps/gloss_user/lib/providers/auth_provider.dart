@@ -2,7 +2,10 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:constants/constants.dart';
+import 'package:api_client/api_client.dart';
 import 'dart:async';
+
+void Function()? _dioLogoutCallback;
 
 class AuthState {
   final String? phone;
@@ -46,7 +49,21 @@ class AuthNotifier extends StateNotifier<AuthState> {
   Stream<AuthState> get authStateStream => _authStateController.stream;
 
   AuthNotifier(this._dio, this._storage) : super(const AuthState()) {
+    _dioLogoutCallback = () => logout();
     _loadTokens();
+  }
+
+  AuthInterceptor? get _interceptor {
+    final interceptors = _dio.interceptors.whereType<AuthInterceptor>();
+    return interceptors.isNotEmpty ? interceptors.first : null;
+  }
+
+  void _updateInterceptorTokens(String accessToken, String refreshToken) {
+    final interceptor = _interceptor;
+    if (interceptor != null) {
+      interceptor.accessToken = accessToken;
+      interceptor.refreshToken = refreshToken;
+    }
   }
 
   @override
@@ -61,6 +78,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
     final phone = await _storage.read(key: 'user_phone');
 
     if (accessToken != null && refreshToken != null) {
+      _updateInterceptorTokens(accessToken, refreshToken);
       state = state.copyWith(
         accessToken: accessToken,
         refreshToken: refreshToken,
@@ -139,6 +157,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
     await _storage.write(key: 'access_token', value: accessToken);
     await _storage.write(key: 'refresh_token', value: refreshToken);
     await _storage.write(key: 'user_phone', value: phone);
+    _updateInterceptorTokens(accessToken, refreshToken);
     _authStateController.add(state);
   }
 
@@ -154,7 +173,10 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
   String _handleError(DioException e) {
     if (e.response?.statusCode == 401) {
-      return "Kod noto'g'ri";
+      if (e.requestOptions.path.contains('/auth/')) {
+        return "Kod noto'g'ri";
+      }
+      return "Sessiya muddati tugagan";
     }
     if (e.response?.statusCode == 400) {
       final data = e.response?.data;
@@ -175,12 +197,31 @@ final storageProvider = Provider<FlutterSecureStorage>((ref) {
 });
 
 final dioProvider = Provider<Dio>((ref) {
-  return Dio(BaseOptions(
+  final dio = Dio(BaseOptions(
     baseUrl: AppConstants.devBaseUrl,
     connectTimeout: const Duration(seconds: 10),
     receiveTimeout: const Duration(seconds: 30),
     headers: {'Content-Type': 'application/json'},
   ));
+
+  dio.interceptors.add(AuthInterceptor(
+    onTokenRefreshed: (newAccess, newRefresh) async {
+      final storage = ref.read(storageProvider);
+      await storage.write(key: 'access_token', value: newAccess);
+      await storage.write(key: 'refresh_token', value: newRefresh);
+    },
+    onLogout: () => _dioLogoutCallback?.call(),
+  ));
+
+  dio.interceptors.add(RetryInterceptor(maxRetries: 3));
+
+  dio.interceptors.add(LogInterceptor(
+    requestBody: true,
+    responseBody: true,
+    logPrint: (o) => print('[API] $o'),
+  ));
+
+  return dio;
 });
 
 final authProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {

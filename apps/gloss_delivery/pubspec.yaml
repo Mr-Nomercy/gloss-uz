@@ -28,15 +28,14 @@ dependencies:
   flutter_secure_storage: ^9.0.0
   # Utils
   intl: ^0.20.2
-  connectivity_plus: ^5.0.2
   # Firebase
   firebase_core: ^2.27.0
-  firebase_messaging: ^14.7.19
   # UI
   ui_kit:
     path: ../../packages/ui-kit
-  cached_network_image: ^3.3.1
-  shimmer: ^3.0.0
+  dashboard_kit: ^0.1.0
+  gloss_routing:
+    path: ../../packages/gloss_routing
 
 dev_dependencies:
   flutter_test:

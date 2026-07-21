@@ -1,16 +1,18 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ui_kit/ui_kit.dart';
+import '../providers/auth_provider.dart';
 
-class SplashScreen extends StatefulWidget {
+class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
 
   @override
-  State<SplashScreen> createState() => _SplashScreenState();
+  ConsumerState<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen>
+class _SplashScreenState extends ConsumerState<SplashScreen>
     with SingleTickerProviderStateMixin {
   Timer? _timer;
   late final AnimationController _logoController;
@@ -40,8 +42,22 @@ class _SplashScreenState extends State<SplashScreen>
 
     _logoController.forward();
 
-    _timer = Timer(const Duration(seconds: 2), () {
-      if (mounted) context.go('/onboarding');
+    _timer = Timer(const Duration(seconds: 2), () async {
+      if (!mounted) return;
+      final authNotifier = ref.read(authProvider.notifier);
+      AuthState resolved;
+      try {
+        resolved = await authNotifier.authStateStream.first
+            .timeout(const Duration(seconds: 5));
+      } on TimeoutException {
+        resolved = ref.read(authProvider);
+      }
+      if (!mounted) return;
+      if (resolved.isAuthenticated) {
+        context.go('/');
+      } else {
+        context.go('/onboarding');
+      }
     });
   }
 

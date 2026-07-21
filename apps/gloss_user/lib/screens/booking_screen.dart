@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ui_kit/ui_kit.dart';
+import '../providers/address_provider.dart';
 import '../providers/booking_provider.dart';
 import 'address_search_screen.dart';
 
@@ -53,9 +54,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
   @override
   void initState() {
     super.initState();
-    if (widget.serviceId.isNotEmpty) {
-      ref.read(bookingProvider.notifier).setService(widget.serviceId, widget.serviceName);
-    }
+    ref.read(bookingProvider.notifier).setService(widget.serviceId, widget.serviceName);
   }
 
   @override
@@ -119,12 +118,23 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
     );
     if (result != null && mounted) {
       setState(() => _addressResult = result);
-      ref.read(bookingProvider.notifier).setAddress(
-            'temp_address',
-            result.address,
-            result.lat,
-            result.lng,
+      final success = await ref.read(addressProvider.notifier).addAddress(
+            label: 'Asosiy',
+            lat: result.lat,
+            lng: result.lng,
+            addressLine: result.address,
           );
+      if (success && mounted) {
+        final addresses = ref.read(addressProvider).addresses;
+        if (addresses.isNotEmpty) {
+          ref.read(bookingProvider.notifier).setAddress(
+                addresses.last.id,
+                result.address,
+                result.lat,
+                result.lng,
+              );
+        }
+      }
     }
   }
 
@@ -368,7 +378,10 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                       final tariff = _tariffs[i];
                       final selected = i == _selectedTariff;
                       return GestureDetector(
-                        onTap: () => setState(() => _selectedTariff = i),
+                        onTap: () {
+                          setState(() => _selectedTariff = i);
+                          ref.read(bookingProvider.notifier).setTariff(tariff['name'] as String);
+                        },
                         child: Container(
                           width: 140,
                           padding: const EdgeInsets.all(16),

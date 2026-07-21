@@ -32,26 +32,38 @@ class GlossStatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context).extension<GlossTheme>()!;
+    final theme = context.gloss;
     final iconColor = color ?? theme.green;
+    final bgColor = iconColor.withValues(alpha: 0.06);
+    final borderColor = iconColor.withValues(alpha: 0.15);
 
     return GlossCard(
       padding: padding,
       onTap: onTap,
+      color: bgColor,
+      elevation: 0,
+      border: BorderSide(color: borderColor, width: 1.5),
       child: Column(
         crossAxisAlignment: crossAxisAlignment,
         mainAxisAlignment: verticalAlignment,
         children: [
           Container(
-            width: 36,
-            height: 36,
+            width: 38,
+            height: 38,
             decoration: BoxDecoration(
-              color: iconColor.withValues(alpha: 0.10),
-              borderRadius: BorderRadius.circular(8),
+              color: iconColor,
+              borderRadius: BorderRadius.circular(10),
+              boxShadow: [
+                BoxShadow(
+                  color: iconColor.withValues(alpha: 0.3),
+                  blurRadius: 8,
+                  offset: const Offset(0, 3),
+                )
+              ]
             ),
-            child: Icon(icon, color: iconColor, size: iconSize),
+            child: Icon(icon, color: Colors.white, size: iconSize),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
           Text(
             '$value${suffix ?? ''}',
             style: TextStyle(
@@ -64,7 +76,7 @@ class GlossStatCard extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             label,
-            style: TextStyle(fontSize: 11, color: theme.hint),
+            style: TextStyle(fontSize: 12, color: theme.text.withValues(alpha: 0.6), fontWeight: FontWeight.w500),
             overflow: TextOverflow.ellipsis,
           ),
         ],

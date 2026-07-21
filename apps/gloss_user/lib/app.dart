@@ -1,6 +1,6 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:gloss_routing/gloss_routing.dart';
 import 'providers/auth_provider.dart';
 import 'screens/splash_screen.dart';
 import 'screens/auth_screen.dart';
@@ -34,18 +34,10 @@ final routerProvider = Provider<GoRouter>((ref) {
     initialLocation: '/splash',
     refreshListenable: GoRouterRefreshStream(authNotifier.authStateStream),
     redirect: (context, state) {
-      final isAuthenticated = authState.isAuthenticated;
-      final isAuthRoute = state.matchedLocation.startsWith('/auth') ||
-          state.matchedLocation.startsWith('/verify') ||
-          state.matchedLocation.startsWith('/register');
-
-      if (!isAuthenticated && !isAuthRoute && state.matchedLocation != '/splash') {
-        return '/auth';
-      }
-      if (isAuthenticated && isAuthRoute) {
-        return '/home';
-      }
-      return null;
+      return AuthGuard(
+        isAuthenticated: authState.isAuthenticated,
+        authPaths: const ['/splash', '/auth', '/verify', '/register'],
+      ).redirect(state);
     },
     routes: [
       GoRoute(path: '/splash', builder: (_, __) => const SplashScreen()),
@@ -114,14 +106,6 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/favorites', builder: (_, __) => const FavoritesScreen()),
       GoRoute(path: '/profile', builder: (_, __) => const ProfileScreen()),
       GoRoute(path: '/saved-addresses', builder: (_, __) => const SavedAddressesScreen()),
-      GoRoute(path: '/', builder: (_, __) => const SplashScreen()),
     ],
   );
 });
-
-class GoRouterRefreshStream extends ChangeNotifier {
-  GoRouterRefreshStream(Stream<dynamic> stream) {
-    notifyListeners();
-    stream.listen((_) => notifyListeners());
-  }
-}

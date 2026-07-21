@@ -218,6 +218,19 @@ class AppTheme {
       elevation: 0,
       centerTitle: true,
       backgroundColor: Colors.transparent,
+      surfaceTintColor: Colors.transparent,
+    ),
+    cardTheme: const CardThemeData(
+      color: Colors.white,
+      surfaceTintColor: Colors.transparent,
+    ),
+    dialogTheme: const DialogThemeData(
+      backgroundColor: Colors.white,
+      surfaceTintColor: Colors.transparent,
+    ),
+    bottomSheetTheme: const BottomSheetThemeData(
+      backgroundColor: Colors.white,
+      surfaceTintColor: Colors.transparent,
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(

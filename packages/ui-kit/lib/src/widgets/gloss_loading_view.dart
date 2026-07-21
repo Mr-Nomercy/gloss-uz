@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_colors.dart';
 
 class GlossLoadingView extends StatelessWidget {
   final String? message;
@@ -10,7 +11,7 @@ class GlossLoadingView extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const CircularProgressIndicator(color: Color(0xFF00AA13)),
+          const CircularProgressIndicator(color: GlossColors.green),
           if (message != null) ...[
             const SizedBox(height: 16),
             Text(message!,
