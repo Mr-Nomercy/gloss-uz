@@ -3,7 +3,7 @@ from rest_framework import serializers
 from apps.addresses.models import Address
 from apps.catalog.models import Addon, Tariff
 
-from .models import Order
+from .models import Order, Review
 
 
 class OrderSerializer(serializers.ModelSerializer):
@@ -12,6 +12,7 @@ class OrderSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "tenant",
+            "team",
             "tariff",
             "addons",
             "address",
@@ -22,6 +23,28 @@ class OrderSerializer(serializers.ModelSerializer):
             "net_amount",
             "created_at",
             "completed_at",
+        ]
+        read_only_fields = fields
+
+
+class RateSerializer(serializers.Serializer):
+    aspect_quality = serializers.IntegerField(min_value=1, max_value=5)
+    aspect_punctuality = serializers.IntegerField(min_value=1, max_value=5)
+    aspect_communication = serializers.IntegerField(min_value=1, max_value=5)
+    comment = serializers.CharField(required=False, allow_blank=True, default="")
+
+
+class ReviewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Review
+        fields = [
+            "id",
+            "order",
+            "aspect_quality",
+            "aspect_punctuality",
+            "aspect_communication",
+            "comment",
+            "created_at",
         ]
         read_only_fields = fields
 

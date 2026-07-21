@@ -61,6 +61,31 @@ class Wallet(models.Model):
         return f"Wallet({self.tenant_id}): {self.balance}"
 
 
+class Transaction(models.Model):
+    class Type(models.TextChoices):
+        COMMISSION_CREDIT = "commission_credit", "Commission Credit"
+        PAYOUT = "payout", "Payout"
+        ADJUSTMENT = "adjustment", "Adjustment"
+
+    wallet = models.ForeignKey(Wallet, on_delete=models.CASCADE, related_name="transactions")
+    order = models.ForeignKey(
+        "orders.Order",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="transactions",
+    )
+    type = models.CharField(max_length=20, choices=Type.choices)
+    amount = models.DecimalField(max_digits=14, decimal_places=2)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"Transaction({self.wallet_id}, {self.type}, {self.amount})"
+
+
 class Payout(models.Model):
     class Status(models.TextChoices):
         PENDING = "pending", "Pending"

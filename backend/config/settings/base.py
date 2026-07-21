@@ -37,7 +37,10 @@ INSTALLED_APPS = [
     "apps.dispatch",
     "apps.market",
     "apps.admin_api",
+    "apps.notifications",
 ]
+
+PUSH_FORCE_CONSOLE_PROVIDER = env.bool("PUSH_FORCE_CONSOLE_PROVIDER", default=True)
 
 OTP_FORCE_CONSOLE_PROVIDER = env.bool("OTP_FORCE_CONSOLE_PROVIDER", default=True)
 

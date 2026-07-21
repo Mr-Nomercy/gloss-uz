@@ -5,6 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.notifications.services import notify
 from apps.orders.models import Order
 from apps.realtime.broadcast import broadcast_to_order, broadcast_to_team
 
@@ -61,7 +62,8 @@ class AcceptOfferView(APIView):
             # `objects`), which only happens to work here because the
             # accepting worker's own tenant context matches their team's.
             order.tenant_id = worker_profile.tenant_id
-            order.save(update_fields=["status", "tenant"])
+            order.team_id = team_id
+            order.save(update_fields=["status", "tenant", "team"])
 
             DispatchQueue.objects.filter(order=order, status=DispatchQueue.Status.PENDING).exclude(
                 id=offer.id
@@ -70,5 +72,6 @@ class AcceptOfferView(APIView):
         broadcast_to_order(order.id, "order.assigned", team_id=team_id)
         for other_team_id in other_pending_team_ids:
             broadcast_to_team(other_team_id, "order.cancelled", order_id=order.id)
+        notify(order.customer, "Buyurtma tayinlandi", "Sizning buyurtmangiz uchun jamoa topildi.")
 
         return Response({"status": "assigned"})

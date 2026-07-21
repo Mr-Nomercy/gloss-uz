@@ -21,6 +21,21 @@ class Team(TenantScopedModel):
     def __str__(self):
         return self.name
 
+    def recalculate_rating(self):
+        # Local import: apps.orders.models imports Team for Order.team,
+        # so importing Review at module level here would be circular.
+        from django.db.models import Avg, F
+
+        from apps.orders.models import Review
+
+        avg = Review.objects.filter(team=self).aggregate(
+            avg=Avg(
+                (F("aspect_quality") + F("aspect_punctuality") + F("aspect_communication")) / 3.0
+            )
+        )["avg"]
+        self.rating_avg = round(avg, 2) if avg is not None else 0
+        self.save(update_fields=["rating_avg"])
+
 
 class WorkerProfile(TenantScopedModel):
     class Status(models.TextChoices):
