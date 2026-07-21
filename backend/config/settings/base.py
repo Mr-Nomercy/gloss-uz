@@ -36,6 +36,8 @@ INSTALLED_APPS = [
     "apps.orders",
     "apps.dispatch",
     "apps.market",
+    "apps.delivery",
+    "apps.payments",
     "apps.admin_api",
     "apps.notifications",
 ]
@@ -143,6 +145,17 @@ REST_FRAMEWORK = {
 }
 
 CORS_ALLOWED_ORIGINS = env.list("CORS_ALLOWED_ORIGINS", default=[])
+
+# Payme/Click merchant credentials — unset (empty) until the real
+# contract with each gateway is signed. Checkout URL generation degrades
+# gracefully with blank ids (just won't resolve to anything live);
+# webhook signature checks fail closed when the secret is empty (see
+# apps.payments.views), so no live traffic can be forged in the meantime.
+PAYME_MERCHANT_ID = env("PAYME_MERCHANT_ID", default="")
+PAYME_SECRET_KEY = env("PAYME_SECRET_KEY", default="")
+CLICK_SERVICE_ID = env("CLICK_SERVICE_ID", default="")
+CLICK_MERCHANT_ID = env("CLICK_MERCHANT_ID", default="")
+CLICK_SECRET_KEY = env("CLICK_SECRET_KEY", default="")
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),

@@ -7,6 +7,7 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from apps.delivery.models import Courier
 from apps.otp import services as otp_services
 from apps.otp.models import OtpRequest
 from apps.workforce.models import WorkerInviteCode, WorkerProfile
@@ -255,6 +256,8 @@ class SimpleRegisterView(APIView):
         with transaction.atomic():
             user = User.objects.create_user(phone=phone, full_name=full_name)
             UserRole.objects.create(user=user, role=backend_role, tenant=None)
+            if backend_role == Role.COURIER:
+                Courier.objects.create(user=user)
 
         token = issue_token_for_role(user, backend_role, None)
         return Response(
